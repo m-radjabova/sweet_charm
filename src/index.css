@@ -1,174 +1,23 @@
+@import url("https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Mulish:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@200;300;400;500;600;700;800;900&display=swap');
 
-@import "./components//header/header.css";
-@import "./components//hero/hero.css";
-@import "./components/about/about.css";
-@import "./components/projects/projects.css";
-@import "./components/projects/withoutbackend.css";
-@import "./components/contact/contact.css";
-@import "./components/isLoading.css";
-
-*{
-    font-family: 'Nunito', sans-serif;
-
-}
-:root {
-    --sakura: #F7C6D1;
-  --blossom: #F39EB8;
-  --petal: #FFF5F7;
-  --branch: #6B4A3A;
-  --plum: #8B4B6E;
-  --sage: #C1E1C1;
-  --cherry: #FF1493;
-  --blossom-pink: #FF69B4;
-  --soft-petal: #FFF5F5;
-  --radius: 16px;
-  --shadow: 0 12px 32px rgba(139, 69, 19, 0.12);
-  --gradient: linear-gradient(135deg, var(--sakura) 0%, var(--blossom) 100%);
-  --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  --gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-  --gradient-4: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-  --gradient-5: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-  --bggradient: linear-gradient(135deg, #0f0f1b 0%, #1a1a2e 50%, #16213e 100%); 
-  --dark-bg: #0f0f1b;
-  --dark-surface: rgba(26, 26, 46, 0.95);
-  --dark-surface-hover: rgba(26, 26, 46, 0.98);
-  --dark-text: rgba(255, 255, 255, 0.95);
-  --dark-text-secondary: rgba(255, 255, 255, 0.7);
-  --dark-border: rgba(255, 255, 255, 0.1);
-  --dark-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  --primary: #667eea;
-  --primary-dark: #5a6fd8;
-  --secondary: #764ba2;
-  --accent: #f093fb;
-  --accent-light: #f9c5f7;
-  --text-light: rgba(255, 255, 255, 0.8);
-  --text-lighter: rgba(255, 255, 255, 0.6);
-
-  --glass-bg: rgba(255, 255, 255, 0.05);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  
-  /* Animatsiya vaqtlari */
-  --transition-slow: 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  --transition-medium: 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  --transition-fast: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+html {
+  scroll-behavior: smooth;
 }
 
-
-
-.animated-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
+body {
+  margin: 0;
+  min-width: 320px;
+  background: var(--light-bg);
+  color: var(--light-text);
+  transition: background 0.35s ease, color 0.35s ease;
 }
 
-.gradient-orbs {
-  position: absolute;
-  width: 100%;
-  height: 100%;
+a {
+  color: inherit;
+  text-decoration: none;
 }
 
-.orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(60px);
-  opacity: 0.3;
-  animation: float-orb 20s infinite linear;
-}
-
-.orb-1 {
-  width: 400px;
-  height: 400px;
-  background: var(--gradient-1);
-  top: -100px;
-  left: -100px;
-  animation-delay: 0s;
-}
-
-.orb-2 {
-  width: 300px;
-  height: 300px;
-  background: var(--gradient-2);
-  bottom: -50px;
-  right: 20%;
-  animation-delay: -7s;
-}
-
-.orb-3 {
-  width: 250px;
-  height: 250px;
-  background: var(--gradient-3);
-  top: 40%;
-  right: -50px;
-  animation-delay: -14s;
-}
-
-@keyframes float-orb {
-  0%, 100% {
-    transform: translate(0, 0) rotate(0deg);
-  }
-  25% {
-    transform: translate(50px, 50px) rotate(90deg);
-  }
-  50% {
-    transform: translate(0, 100px) rotate(180deg);
-  }
-  75% {
-    transform: translate(-50px, 50px) rotate(270deg);
-  }
-}
-
-.particles-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
-.floating-particle {
-  position: absolute;
-  background: rgba(255, 255, 255, 0.1);
-  animation: float-particle linear infinite;
-}
-
-.floating-particle.circle {
-  border-radius: 50%;
-}
-
-.floating-particle.square {
-  border-radius: 2px;
-}
-
-.floating-particle.triangle {
-  width: 0;
-  height: 0;
-  background: transparent !important;
-  border-left: 4px solid transparent;
-  border-right: 4px solid transparent;
-  border-bottom: 8px solid rgba(255, 255, 255, 0.1);
-}
-
-@keyframes float-particle {
-  0% {
-    transform: translateY(100vh) rotate(0deg);
-    opacity: 0;
-  }
-  10% {
-    opacity: 0.7;
-  }
-  90% {
-    opacity: 0.7;
-  }
-  100% {
-    transform: translateY(-100px) rotate(360deg);
-    opacity: 0;
-  }
+* {
+  box-sizing: border-box;
 }

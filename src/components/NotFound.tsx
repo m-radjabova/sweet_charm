@@ -1,9 +1,6 @@
-import { FaHome, FaUtensils, FaSearch, FaArrowLeft} from 'react-icons/fa';
-import { GiBacon, GiCoffeeCup, GiForkKnifeSpoon } from 'react-icons/gi';
+import { HiMiniHome, HiMiniArrowLeft, HiMiniMagnifyingGlass } from 'react-icons/hi2';
 import { useNavigate } from 'react-router-dom';
-import { FiCoffee } from 'react-icons/fi';
 import { useEffect, useState } from 'react';
-import { LuChefHat } from 'react-icons/lu';
 
 function NotFound() {
   const navigate = useNavigate();
@@ -14,116 +11,79 @@ function NotFound() {
   }, []);
   
   return (
-    <div className="not-found-container">
-      {/* Background decorative elements */}
-      <div className="not-bg-decoration not-bg-1"></div>
-      <div className="not-bg-decoration not-bg-2"></div>
-      <div className="not-bg-decoration not-bg-3"></div>
-      
-      <div className={`not-found-content ${isVisible ? 'visible' : ''}`}>
-        <div className="not-header-decoration">
-          <div className="not-decoration-dot not-dot-1"></div>
-          <div className="not-decoration-dot not-dot-2"></div>
-          <div className="not-decoration-dot not-dot-3"></div>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-indigo-50/20 flex items-center justify-center p-4">
+      <div className={`max-w-lg w-full transition-all duration-500 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
         
-        <div className="not-animation-container">
-          <div className="not-floating-icon not-icon-1">
-            <GiBacon />
-            <div className="not-icon-shadow"></div>
-          </div>
-          <div className="not-floating-icon not-icon-2">
-            <FiCoffee />
-            <div className="not-icon-shadow"></div>
-          </div>
-          <div className="not-floating-icon not-icon-3">
-            <FaUtensils />
-            <div className="not-icon-shadow"></div>
-          </div>
-          <div className="not-floating-icon not-icon-4">
-            <LuChefHat />
-            <div className="not-icon-shadow"></div>
-          </div>
-          <div className="not-floating-icon not-icon-5">
-            <GiForkKnifeSpoon />
-            <div className="not-icon-shadow"></div>
-          </div>
-          <div className="not-floating-icon not-icon-6">
-            <GiCoffeeCup />
-            <div className="not-icon-shadow"></div>
-          </div>
-        </div>
-        
-        <div className="not-found-text">
-          <div className="not-number-glow">
-            <h1>4<span className="not-highlight">0</span>4</h1>
-          </div>
-          <h2>Oops! Breakfast Not Found</h2>
-          <p>Unfortunately, the page you're looking for doesn't exist. <br />It might have been removed or the URL has changed.</p>
-        </div>
-        
-        <div className="not-action-buttons">
-          <button className="not-btn not-primary" onClick={() => navigate(-1)}>
-            <FaArrowLeft className="not-btn-icon" />
-            <span>Go Back</span>
-            <div className="not-btn-hover-effect"></div>
-          </button>
-          <button className="not-btn not-secondary" onClick={() => navigate('/')}>
-            <FaHome className="not-btn-icon" />
-            <span>Home Page</span>
-            <div className="not-btn-hover-effect"></div>
-          </button>
-          <button className="not-btn not-outline" onClick={() => {
-            const query = prompt("What breakfast are you craving for?");
-            if (query) navigate(`/search?q=${encodeURIComponent(query)}`);
-          }}>
-            <FaSearch className="not-btn-icon" />
-            <span>Search Breakfast</span>
-            <div className="not-btn-hover-effect"></div>
-          </button>
-        </div>
-        
-        <div className="not-breakfast-tips">
-          <div className="not-tips-header">
-            <LuChefHat className="not-chef-icon" />
-            <h3>Chef's Breakfast Tips</h3>
-          </div>
-          <div className="not-tips-container">
-            <div className="not-tip-card">
-              <div className="not-tip-icon">🥓</div>
-              <div className="not-tip-content">
-                <h4>Crispy Bacon Secret</h4>
-                <p>Toss bacon in a little flour before cooking for extra crispiness</p>
-              </div>
+        {/* Card */}
+        <div className="relative bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500" />
+          
+          <div className="p-8 text-center">
+            {/* 404 Number */}
+            <div className="relative mb-6">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-500 blur-3xl opacity-10 animate-pulse" />
+              <h1 className="text-8xl font-black bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+                4<span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">0</span>4
+              </h1>
             </div>
-            <div className="not-tip-card">
-              <div className="not-tip-icon">🍳</div>
-              <div className="not-tip-content">
-                <h4>Perfect Eggs</h4>
-                <p>Always cook scrambled eggs over medium heat for creamy texture</p>
-              </div>
+            
+            {/* Message */}
+            <div className="mb-6">
+              <h2 className="text-xl font-bold text-slate-800 mb-2">Sahifa topilmadi</h2>
+              <p className="text-slate-500 text-sm">
+                Siz qidirayotgan sahifa mavjud emas yoki o'chirilgan bo'lishi mumkin
+              </p>
             </div>
-            <div className="not-tip-card">
-              <div className="not-tip-icon">🥐</div>
-              <div className="not-tip-content">
-                <h4>Flaky Croissants</h4>
-                <p>Reheat at 180°C for 5 minutes to restore original flakiness</p>
-              </div>
+            
+            {/* Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
+              <button
+                onClick={() => navigate(-1)}
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-slate-700 font-medium rounded-xl hover:bg-slate-50 transition-all"
+              >
+                <HiMiniArrowLeft size={18} />
+                Orqaga
+              </button>
+              <button
+                onClick={() => navigate('/')}
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl shadow-md hover:shadow-lg transition-all"
+              >
+                <HiMiniHome size={18} />
+                Bosh sahifa
+              </button>
+            </div>
+            
+            {/* Search */}
+            <div className="relative">
+              <HiMiniMagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Sahifa qidirish..."
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 text-sm"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    const query = (e.target as HTMLInputElement).value;
+                    if (query) navigate(`/search?q=${encodeURIComponent(query)}`);
+                  }
+                }}
+              />
             </div>
           </div>
         </div>
         
-        <div className="not-floating-particles">
-          {[...Array(15)].map((_, i) => (
-            <div key={i} className="not-particle" style={{
-              animationDelay: `${i * 0.5}s`,
-              left: `${Math.random() * 100}%`
-            }}></div>
-          ))}
+        {/* Quick Links */}
+        <div className="text-center mt-6">
+          <p className="text-xs text-slate-400 mb-2">Tezkor sahifalar:</p>
+          <div className="flex flex-wrap justify-center gap-4 text-xs">
+            <button onClick={() => navigate('/admin')} className="text-slate-500 hover:text-blue-600">Dashboard</button>
+            <button onClick={() => navigate('/admin/students')} className="text-slate-500 hover:text-blue-600">Studentlar</button>
+            <button onClick={() => navigate('/admin/groups')} className="text-slate-500 hover:text-blue-600">Guruhlar</button>
+            <button onClick={() => navigate('/admin/courses')} className="text-slate-500 hover:text-blue-600">Kurslar</button>
+          </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export default NotFound;

@@ -1,45 +1,39 @@
-import { useEffect, useReducer, type Dispatch, type ReactNode } from "react";
-import { MyContext } from "../context/MyContext";
-import type {User } from "../types/types";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, getFirestore } from "firebase/firestore";
+import { useCallback, useEffect, useMemo, useReducer, type Dispatch, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-
-export interface ContextType {
-  state: TypeState;
-  dispatch: Dispatch<Action>;
-}
+import { MyContext } from "../context/MyContext";
+import { clearStoredAuth, getMe, getStoredAccessToken, logoutUser, normalizeUser, persistTokens } from "../api/auth";
+import type { TokenResponse, User } from "../types/types";
 
 export interface TypeState {
   user: User | null;
   isLoading: boolean;
 }
 
-type SETAction = { type: "SET_USER"; payload: User };
-type LOGOUTAction = { type: "LOGOUT" };
-type SETLoadingAction = { type: "SET_LOADING"; payload: boolean };
-type AddUserAction = { type: "ADD_USER" };
-
-type Action =
-  | SETAction
-  | LOGOUTAction
-  | SETLoadingAction
-  | AddUserAction
-
 export interface ContextType {
   state: TypeState;
   dispatch: Dispatch<Action>;
+  login: (tokens: TokenResponse, user: User) => void;
+  logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
+
+type SetUserAction = { type: "SET_USER"; payload: User | null };
+type UpdateUserAction = { type: "UPDATE_USER"; payload: Partial<User> };
+type LogoutAction = { type: "LOGOUT" };
+type SetLoadingAction = { type: "SET_LOADING"; payload: boolean };
+
+type Action = SetUserAction | UpdateUserAction | LogoutAction | SetLoadingAction;
 
 function reducer(state: TypeState, action: Action): TypeState {
   switch (action.type) {
     case "SET_USER":
-      return { ...state, user: action.payload as User };
+      return { ...state, user: action.payload };
+    case "UPDATE_USER":
+      return state.user ? { ...state, user: { ...state.user, ...action.payload } } : state;
     case "LOGOUT":
       return { ...state, user: null };
     case "SET_LOADING":
-      console.log("loading", action.payload);
-      return { ...state, isLoading: action.payload as boolean };
+      return { ...state, isLoading: action.payload };
     default:
       return state;
   }
@@ -52,60 +46,59 @@ function CreateContextPro({ children }: { children: ReactNode }) {
     isLoading: true,
   });
 
-
-  useEffect(() => {
-    const unsubscribe = fetchUser();
-    return () => {
-      if (typeof unsubscribe === "function") unsubscribe();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (state.user?.roles.includes("ADMIN")) {
+  const refreshUser = useCallback(async () => {
+    if (!getStoredAccessToken()) {
+      dispatch({ type: "SET_USER", payload: null });
+      dispatch({ type: "SET_LOADING", payload: false });
       return;
     }
 
-    if (state.user?.roles.includes("WAITER")) {
-      navigate("/waiter");
+    dispatch({ type: "SET_LOADING", payload: true });
+
+    try {
+      const me = await getMe();
+      dispatch({ type: "SET_USER", payload: normalizeUser(me) });
+    } catch {
+      clearStoredAuth();
+      dispatch({ type: "SET_USER", payload: null });
+    } finally {
+      dispatch({ type: "SET_LOADING", payload: false });
     }
+  }, []);
 
-    if (state.user?.roles.includes("CHEF")) {
-      navigate("/chef");
+  useEffect(() => {
+    refreshUser();
+  }, [refreshUser]);
+
+  const login = useCallback((tokens: TokenResponse, user: User) => {
+    persistTokens(tokens);
+    dispatch({ type: "SET_USER", payload: normalizeUser(user) });
+  }, []);
+
+  const logout = useCallback(async () => {
+    try {
+      await logoutUser();
+    } catch {
+      // Local logout should still complete even if backend logout fails.
+    } finally {
+      clearStoredAuth();
+      dispatch({ type: "LOGOUT" });
+      navigate("/login", { replace: true });
     }
-  }, [state.user?.email]);
+  }, [navigate]);
 
-
-  const fetchUser = () => {
-    const auth = getAuth();
-    const db = getFirestore();
-    const unsub = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        try {
-          const userDoc = await getDoc(doc(db, "users", user.uid));
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
-            dispatch({ type: "SET_USER", payload: userData as User });
-          } else {
-            dispatch({ type: "LOGOUT" });
-          }
-        } catch (err) {
-          console.log(err);
-        } finally {
-          dispatch({ type: "SET_LOADING", payload: false });
-        }
-      } else {
-        dispatch({ type: "LOGOUT" });
-        dispatch({ type: "SET_LOADING", payload: false });
-      }
-    });
-    return unsub;
-  };
-
-  return (
-    <MyContext.Provider value={{ state, dispatch }}>
-      {children}
-    </MyContext.Provider>
+  const value = useMemo<ContextType>(
+    () => ({
+      state,
+      dispatch,
+      login,
+      logout,
+      refreshUser,
+    }),
+    [state, login, logout, refreshUser],
   );
+
+  return <MyContext.Provider value={value}>{children}</MyContext.Provider>;
 }
 
 export default CreateContextPro;
