@@ -32,13 +32,18 @@ import useGrades from "../../../hooks/useGrades";
 import useGroups from "../../../hooks/useGroups";
 import useLessons from "../../../hooks/useLessons";
 import useStudents from "../../../hooks/useStudents";
-import type { AttendanceStatus, Enrollment, Lesson } from "../../../types/types";
+import type {
+  AttendanceStatus,
+  Enrollment,
+  Lesson,
+} from "../../../types/types";
 
-const enrollmentStatusLabels: Record<string, { label: string; color: string }> = {
-  active: { label: "Faol", color: "bg-emerald-100 text-emerald-700" },
-  finished: { label: "Tugagan", color: "bg-slate-100 text-slate-600" },
-  left: { label: "Chiqarilgan", color: "bg-rose-100 text-rose-700" },
-};
+const enrollmentStatusLabels: Record<string, { label: string; color: string }> =
+  {
+    active: { label: "Faol", color: "bg-emerald-100 text-emerald-700" },
+    finished: { label: "Tugagan", color: "bg-slate-100 text-slate-600" },
+    left: { label: "Chiqarilgan", color: "bg-rose-100 text-rose-700" },
+  };
 
 const monthNames = [
   "Yanvar",
@@ -88,9 +93,7 @@ function normalizeAttendanceStatus(status?: string | null): AttendanceStatus {
 function normalizeGradeValue(score?: number | string | null) {
   if (score === null || score === undefined || score === "") return "";
   const numericScore =
-    typeof score === "number"
-      ? score
-      : Number(String(score).replace(",", "."));
+    typeof score === "number" ? score : Number(String(score).replace(",", "."));
 
   if (!Number.isFinite(numericScore)) return "";
   return String(Math.trunc(numericScore));
@@ -126,7 +129,10 @@ function normalizeDraft(
 function getEnrollmentDraft(
   enrollment: Enrollment,
   attendanceMap: Map<string, { status: string | null | undefined }>,
-  gradesMap: Map<string, { score: number | string | null | undefined; note?: string | null }>,
+  gradesMap: Map<
+    string,
+    { score: number | string | null | undefined; note?: string | null }
+  >,
 ): StudentRowDraft {
   return normalizeDraft(
     normalizeAttendanceStatus(attendanceMap.get(enrollment.student_id)?.status),
@@ -141,10 +147,19 @@ function AdminGroupStudents() {
   const { state } = useContextPro();
   const isTeacher = state.user?.role === "teacher";
   const { groups } = useGroups();
-  const selectedGroup = useMemo(() => groups.find((group) => group.id === groupId) ?? null, [groupId, groups]);
-  const canAccessGroup = !isTeacher || selectedGroup?.teacher_id === state.user?.id;
+  const selectedGroup = useMemo(
+    () => groups.find((group) => group.id === groupId) ?? null,
+    [groupId, groups],
+  );
+  const canAccessGroup =
+    !isTeacher || selectedGroup?.teacher_id === state.user?.id;
 
-  const { enrollments, enrollmentsLoading, updateEnrollment, updatingEnrollment } = useStudents(groupId || undefined, {
+  const {
+    enrollments,
+    enrollmentsLoading,
+    updateEnrollment,
+    updatingEnrollment,
+  } = useStudents(groupId || undefined, {
     includeStudentLists: false,
   });
   const {
@@ -158,16 +173,26 @@ function AdminGroupStudents() {
   const [selectedMonthKey, setSelectedMonthKey] = useState("");
   const [customMonthKeys, setCustomMonthKeys] = useState<string[]>([]);
   const [isLessonDrawerOpen, setIsLessonDrawerOpen] = useState(false);
-  const [lessonDrawerMode, setLessonDrawerMode] = useState<"create" | "edit">("create");
-  const [lessonForm, setLessonForm] = useState<LessonFormState>(initialLessonForm);
+  const [lessonDrawerMode, setLessonDrawerMode] = useState<"create" | "edit">(
+    "create",
+  );
+  const [lessonForm, setLessonForm] =
+    useState<LessonFormState>(initialLessonForm);
   const [isMonthDrawerOpen, setIsMonthDrawerOpen] = useState(false);
-  const [newMonthValue, setNewMonthValue] = useState(() => new Date().toISOString().slice(0, 7));
+  const [newMonthValue, setNewMonthValue] = useState(() =>
+    new Date().toISOString().slice(0, 7),
+  );
   const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
   const [viewingLesson, setViewingLesson] = useState<Lesson | null>(null);
-  const [enrollmentToRemove, setEnrollmentToRemove] = useState<Enrollment | null>(null);
+  const [enrollmentToRemove, setEnrollmentToRemove] =
+    useState<Enrollment | null>(null);
   const todayKey = new Date().toISOString().slice(0, 10);
   const currentMonthKey = getMonthKey(todayKey);
   const monthStorageKey = groupId ? `admin-group-months:${groupId}` : "";
+  const hasLessonToday = useMemo(
+    () => allLessons.some((lesson) => lesson.lesson_date === todayKey),
+    [allLessons, todayKey],
+  );
 
   useEffect(() => {
     if (!monthStorageKey) {
@@ -186,7 +211,12 @@ function AdminGroupStudents() {
         setCustomMonthKeys([]);
         return;
       }
-      setCustomMonthKeys(parsed.filter((value): value is string => typeof value === "string" && isValidMonthKey(value)));
+      setCustomMonthKeys(
+        parsed.filter(
+          (value): value is string =>
+            typeof value === "string" && isValidMonthKey(value),
+        ),
+      );
     } catch {
       setCustomMonthKeys([]);
     }
@@ -194,7 +224,10 @@ function AdminGroupStudents() {
 
   useEffect(() => {
     if (!monthStorageKey) return;
-    window.localStorage.setItem(monthStorageKey, JSON.stringify(customMonthKeys));
+    window.localStorage.setItem(
+      monthStorageKey,
+      JSON.stringify(customMonthKeys),
+    );
   }, [customMonthKeys, monthStorageKey]);
 
   const monthOptions = useMemo(() => {
@@ -231,13 +264,19 @@ function AdminGroupStudents() {
   }, [currentMonthKey, monthOptions]);
 
   useEffect(() => {
-    const preferredMonth = monthOptions.find((month) => month.key === currentMonthKey) ?? monthOptions[0];
+    const preferredMonth =
+      monthOptions.find((month) => month.key === currentMonthKey) ??
+      monthOptions[0];
 
     if (!selectedMonthKey && preferredMonth) {
       setSelectedMonthKey(preferredMonth.key);
       return;
     }
-    if (selectedMonthKey && monthOptions.length > 0 && !monthOptions.some((item) => item.key === selectedMonthKey)) {
+    if (
+      selectedMonthKey &&
+      monthOptions.length > 0 &&
+      !monthOptions.some((item) => item.key === selectedMonthKey)
+    ) {
       setSelectedMonthKey(preferredMonth?.key ?? "");
     }
   }, [currentMonthKey, monthOptions, selectedMonthKey]);
@@ -247,10 +286,7 @@ function AdminGroupStudents() {
     [monthOptions, selectedMonthKey],
   );
 
-  const {
-    lessons,
-    loading: filteredLessonsLoading,
-  } = useLessons({
+  const { lessons, loading: filteredLessonsLoading } = useLessons({
     groupId: groupId || undefined,
     year: selectedMonthOption?.year,
     month: selectedMonthOption?.month,
@@ -261,23 +297,42 @@ function AdminGroupStudents() {
       setSelectedLessonId(lessons[0].id);
       return;
     }
-    if (selectedLessonId && !lessons.some((lesson) => lesson.id === selectedLessonId)) {
+    if (
+      selectedLessonId &&
+      !lessons.some((lesson) => lesson.id === selectedLessonId)
+    ) {
       setSelectedLessonId(lessons[0]?.id ?? "");
     }
   }, [lessons, selectedLessonId]);
 
-  const { attendance, createAttendance } = useAttendance(selectedLessonId || undefined, { successToast: false });
-  const { grades, createGrade, updateGrade } = useGrades({ lessonId: selectedLessonId || undefined }, { successToast: false });
+  const { attendance, createAttendance } = useAttendance(
+    selectedLessonId || undefined,
+    { successToast: false },
+  );
+  const { grades, createGrade, updateGrade } = useGrades(
+    { lessonId: selectedLessonId || undefined },
+    { successToast: false },
+  );
   const [drafts, setDrafts] = useState<Record<string, StudentRowDraft>>({});
 
-  const attendanceMap = useMemo(() => new Map(attendance.map((item) => [item.student_id, item])), [attendance]);
-  const gradesMap = useMemo(() => new Map(grades.map((item) => [item.student_id, item])), [grades]);
+  const attendanceMap = useMemo(
+    () => new Map(attendance.map((item) => [item.student_id, item])),
+    [attendance],
+  );
+  const gradesMap = useMemo(
+    () => new Map(grades.map((item) => [item.student_id, item])),
+    [grades],
+  );
   const selectedLesson = useMemo(
     () => lessons.find((lesson) => lesson.id === selectedLessonId) ?? null,
     [lessons, selectedLessonId],
   );
 
-  const saveAttendance = async (enrollment: Enrollment, status: AttendanceStatus, note: string) => {
+  const saveAttendance = async (
+    enrollment: Enrollment,
+    status: AttendanceStatus,
+    note: string,
+  ) => {
     if (!selectedLessonId) {
       toast.error("Avval darsni tanlang");
       return;
@@ -293,9 +348,15 @@ function AdminGroupStudents() {
     });
   };
 
-  const saveGrade = async (enrollment: Enrollment, scoreValue: string, note: string) => {
+  const saveGrade = async (
+    enrollment: Enrollment,
+    scoreValue: string,
+    note: string,
+  ) => {
     if (!selectedLessonId || scoreValue === "") return;
-    const numericScore = Math.trunc(Number(String(scoreValue).replace(",", ".")));
+    const numericScore = Math.trunc(
+      Number(String(scoreValue).replace(",", ".")),
+    );
     if (Number.isNaN(numericScore) || numericScore < 0 || numericScore > 100) {
       toast.error("Baho 0 dan 100 gacha bo'lishi kerak");
       return;
@@ -336,16 +397,24 @@ function AdminGroupStudents() {
   }, [selectedLessonId]);
 
   const getCurrentDraft = (enrollment: Enrollment) =>
-    drafts[enrollment.id] ?? getEnrollmentDraft(enrollment, attendanceMap, gradesMap);
+    drafts[enrollment.id] ??
+    getEnrollmentDraft(enrollment, attendanceMap, gradesMap);
 
-  const handleDraftChange = (enrollment: Enrollment, nextDraft: StudentRowDraft) => {
+  const handleDraftChange = (
+    enrollment: Enrollment,
+    nextDraft: StudentRowDraft,
+  ) => {
     const normalizedNextDraft = normalizeDraft(
       nextDraft.attendance,
       nextDraft.grade,
       nextDraft.note,
       nextDraft.attendanceTouched,
     );
-    const initialDraft = getEnrollmentDraft(enrollment, attendanceMap, gradesMap);
+    const initialDraft = getEnrollmentDraft(
+      enrollment,
+      attendanceMap,
+      gradesMap,
+    );
 
     setDrafts((prev) => {
       if (
@@ -384,10 +453,19 @@ function AdminGroupStudents() {
     }
 
     setDrafts({});
-    toast.success(`${changedEnrollments.length} ta student uchun ma'lumot saqlandi`);
+    toast.success(
+      `${changedEnrollments.length} ta student uchun ma'lumot saqlandi`,
+    );
   };
 
   const openCreateLessonDrawer = (monthKey = selectedMonthKey) => {
+    if (hasLessonToday) {
+      toast.info(
+        "Bugungi dars allaqachon qo'shilgan. Yangi darsni ertaga qo'shasiz.",
+      );
+      return;
+    }
+
     if (!monthKey) {
       setIsMonthDrawerOpen(true);
       return;
@@ -429,7 +507,6 @@ function AdminGroupStudents() {
       });
       setSelectedMonthKey(getMonthKey(updatedLesson.lesson_date));
       setSelectedLessonId(updatedLesson.id);
-      toast.success("Dars yangilandi");
     } else {
       const createdLesson = await createLesson({
         group_id: groupId,
@@ -464,7 +541,9 @@ function AdminGroupStudents() {
       return;
     }
 
-    setCustomMonthKeys((prev) => [...prev, newMonthValue].sort((a, b) => b.localeCompare(a)));
+    setCustomMonthKeys((prev) =>
+      [...prev, newMonthValue].sort((a, b) => b.localeCompare(a)),
+    );
     setSelectedMonthKey(newMonthValue);
     setIsMonthDrawerOpen(false);
     toast.success("Yangi oy qo'shildi");
@@ -481,7 +560,11 @@ function AdminGroupStudents() {
   const visibleEnrollments = useMemo(() => {
     if (!selectedMonthBounds) return enrollments;
     return enrollments.filter((enrollment) =>
-      isEnrollmentVisibleInRange(enrollment, selectedMonthBounds.min, selectedMonthBounds.max),
+      isEnrollmentVisibleInRange(
+        enrollment,
+        selectedMonthBounds.min,
+        selectedMonthBounds.max,
+      ),
     );
   }, [enrollments, selectedMonthBounds]);
 
@@ -548,8 +631,18 @@ function AdminGroupStudents() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <StatCard label="Studentlar" value={totalStudents} icon={<HiMiniUser size={20} />} color="sky" />
-                <StatCard label="Darslar" value={totalLessons} icon={<HiMiniBookmarkSquare size={20} />} color="emerald" />
+                <StatCard
+                  label="Studentlar"
+                  value={totalStudents}
+                  icon={<HiMiniUser size={20} />}
+                  color="sky"
+                />
+                <StatCard
+                  label="Darslar"
+                  value={totalLessons}
+                  icon={<HiMiniBookmarkSquare size={20} />}
+                  color="emerald"
+                />
                 <StatCard
                   label="O'qituvchi"
                   value={selectedGroup?.teacher?.full_name ?? "Biriktirilmagan"}
@@ -566,10 +659,15 @@ function AdminGroupStudents() {
           <div className="border-b border-slate-200 p-5 bg-gradient-to-r from-slate-50 to-white">
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
               <div>
-                <p className="text-xs font-bold text-sky-600 uppercase tracking-wider">LESSON JURNALI</p>
-                <h2 className="text-xl font-black text-slate-900 mt-1">Dars jurnali</h2>
+                <p className="text-xs font-bold text-sky-600 uppercase tracking-wider">
+                  LESSON JURNALI
+                </p>
+                <h2 className="text-xl font-black text-slate-900 mt-1">
+                  Dars jurnali
+                </h2>
                 <p className="text-sm text-slate-500 mt-0.5">
-                  Avval oy qo'shing yoki tanlang, keyin shu oy ichida darslarni boshqaring
+                  Avval oy qo'shing yoki tanlang, keyin shu oy ichida darslarni
+                  boshqaring
                 </p>
               </div>
             </div>
@@ -584,10 +682,14 @@ function AdminGroupStudents() {
                     Oy bo'yicha filter
                   </div>
                   {allLessonsLoading && (
-                    <span className="text-sm text-slate-400">Oylar yuklanmoqda...</span>
+                    <span className="text-sm text-slate-400">
+                      Oylar yuklanmoqda...
+                    </span>
                   )}
                   {!allLessonsLoading && monthOptions.length === 0 && (
-                    <span className="text-sm text-slate-400">Hali oy qo'shilmagan</span>
+                    <span className="text-sm text-slate-400">
+                      Hali oy qo'shilmagan
+                    </span>
                   )}
                 </div>
                 <Button
@@ -611,7 +713,9 @@ function AdminGroupStudents() {
 
               <div className="flex flex-wrap items-center gap-2 px-5">
                 {allLessonsLoading && (
-                  <span className="text-sm text-slate-400">Oylar tayyorlanmoqda...</span>
+                  <span className="text-sm text-slate-400">
+                    Oylar tayyorlanmoqda...
+                  </span>
                 )}
                 {monthOptions.map((month) => {
                   const isActive = month.key === selectedMonthKey;
@@ -626,13 +730,19 @@ function AdminGroupStudents() {
                           : "border-slate-200 bg-white text-slate-600 shadow-sm hover:-translate-y-0.5 hover:border-sky-300 hover:bg-sky-50/60 hover:text-sky-700"
                       }`}
                     >
-                      <span className={`absolute inset-0 rounded-2xl transition-opacity ${isActive ? "opacity-100 bg-white/0" : "opacity-0 group-hover:opacity-100 bg-gradient-to-r from-sky-50/60 to-cyan-50/60"}`} />
-                      <span className="relative">{formatMonthLabel(month.year, month.month)}</span>
-                      <span className={`relative rounded-full px-2.5 py-1 text-[11px] font-bold ${
-                        isActive
-                          ? "bg-white/20 text-white"
-                          : "bg-slate-100 text-slate-500 group-hover:bg-white"
-                      }`}>
+                      <span
+                        className={`absolute inset-0 rounded-2xl transition-opacity ${isActive ? "opacity-100 bg-white/0" : "opacity-0 group-hover:opacity-100 bg-gradient-to-r from-sky-50/60 to-cyan-50/60"}`}
+                      />
+                      <span className="relative">
+                        {formatMonthLabel(month.year, month.month)}
+                      </span>
+                      <span
+                        className={`relative rounded-full px-2.5 py-1 text-[11px] font-bold ${
+                          isActive
+                            ? "bg-white/20 text-white"
+                            : "bg-slate-100 text-slate-500 group-hover:bg-white"
+                        }`}
+                      >
                         {month.count}
                       </span>
                     </button>
@@ -644,13 +754,17 @@ function AdminGroupStudents() {
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <p className="text-sm font-bold text-slate-900">
-                      {selectedMonthOption ? `${formatMonthLabel(selectedMonthOption.year, selectedMonthOption.month)} darslari` : "Darslar"}
+                      {selectedMonthOption
+                        ? `${formatMonthLabel(selectedMonthOption.year, selectedMonthOption.month)} darslari`
+                        : "Darslar"}
                     </p>
                     <p className="text-xs text-slate-500">
-                      {selectedMonthOption ? `${lessons.length} ta dars topildi` : "Avval oy tanlang"}
+                      {selectedMonthOption
+                        ? `${lessons.length} ta dars topildi`
+                        : "Avval oy tanlang"}
                     </p>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex flex-wrap items-center justify-end gap-3">
                     {selectedLesson && (
                       <div className="inline-flex items-center gap-2 rounded-2xl border border-sky-100 bg-gradient-to-r from-white to-sky-50 px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-[0_10px_30px_-22px_rgba(14,165,233,0.9)]">
                         <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-sky-500 text-white shadow-sm">
@@ -660,20 +774,53 @@ function AdminGroupStudents() {
                       </div>
                     )}
                     {selectedMonthOption && (
-                      <Button
-                        variant="contained"
-                        startIcon={<HiMiniPlus />}
-                        onClick={() => openCreateLessonDrawer(selectedMonthOption.key)}
-                        sx={{
-                          borderRadius: "14px",
-                          textTransform: "none",
-                          fontWeight: 700,
-                          bgcolor: "#0ea5e9",
-                          "&:hover": { bgcolor: "#0284c7" },
-                        }}
-                      >
-                        Yangi dars qo'shish
-                      </Button>
+                      <>
+                        <div className="flex flex-col items-end gap-1">
+                          <Button
+                            variant="contained"
+                            startIcon={<HiMiniPlus />}
+                            onClick={() =>
+                              openCreateLessonDrawer(selectedMonthOption.key)
+                            }
+                            disabled={hasLessonToday}
+                            sx={{
+                              minWidth: 240,
+                              minHeight: 56,
+                              px: 3,
+                              borderRadius: "18px",
+                              textTransform: "none",
+                              fontSize: "1rem",
+                              fontWeight: 800,
+                              letterSpacing: "-0.01em",
+                              boxShadow: hasLessonToday
+                                ? "none"
+                                : "0 20px 40px -24px rgba(14,165,233,0.95)",
+                              bgcolor: "#0ea5e9",
+                              backgroundImage: hasLessonToday
+                                ? "linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%)"
+                                : "linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)",
+                              "&:hover": {
+                                bgcolor: "#0284c7",
+                                backgroundImage:
+                                  "linear-gradient(135deg, #38bdf8 0%, #0284c7 100%)",
+                              },
+                              "&.Mui-disabled": {
+                                bgcolor: "#cbd5e1",
+                                backgroundImage:
+                                  "linear-gradient(135deg, #dbe4ef 0%, #cbd5e1 100%)",
+                                color: "#64748b",
+                              },
+                            }}
+                          >
+                            Yangi dars qo'shish
+                          </Button>
+                          {hasLessonToday && (
+                            <p className="text-xs font-medium text-slate-500">
+                              Bugun uchun dars qo'shildi.
+                            </p>
+                          )}
+                        </div>
+                      </>
                     )}
                   </div>
                 </div>
@@ -701,14 +848,22 @@ function AdminGroupStudents() {
                     </Button>
                   </div>
                 ) : filteredLessonsLoading ? (
-                  <div className="py-8 text-center text-sm text-slate-400">Darslar yuklanmoqda...</div>
+                  <div className="py-8 text-center text-sm text-slate-400">
+                    Darslar yuklanmoqda...
+                  </div>
                 ) : lessons.length === 0 ? (
                   <div className="rounded-xl border border-dashed border-slate-300 bg-white px-4 py-6 text-center text-sm text-slate-500">
-                    <p>Bu oy uchun hali dars yo'q. Shu bo'limdagi tugma bilan birinchi darsni qo'shing.</p>
+                    <p>
+                      Bu oy uchun hali dars yo'q. Shu bo'limdagi tugma bilan
+                      birinchi darsni qo'shing.
+                    </p>
                     <Button
                       variant="contained"
                       startIcon={<HiMiniPlus />}
-                      onClick={() => openCreateLessonDrawer(selectedMonthOption.key)}
+                      onClick={() =>
+                        openCreateLessonDrawer(selectedMonthOption.key)
+                      }
+                      disabled={hasLessonToday}
                       sx={{
                         mt: 2,
                         borderRadius: "14px",
@@ -716,10 +871,19 @@ function AdminGroupStudents() {
                         fontWeight: 700,
                         bgcolor: "#0ea5e9",
                         "&:hover": { bgcolor: "#0284c7" },
+                        "&.Mui-disabled": {
+                          bgcolor: "#cbd5e1",
+                          color: "#64748b",
+                        },
                       }}
                     >
                       Birinchi darsni qo'shish
                     </Button>
+                    {hasLessonToday && (
+                      <p className="mt-2 text-xs font-semibold text-slate-500">
+                        Bugungi dars qo'shilgan. Yangi darsni ertaga qo'shasiz.
+                      </p>
+                    )}
                   </div>
                 ) : (
                   <div
@@ -761,7 +925,9 @@ function AdminGroupStudents() {
                     <td colSpan={6} className="px-4 py-12 text-center">
                       <div className="flex flex-col items-center gap-2">
                         <div className="w-8 h-8 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
-                        <p className="text-sm text-slate-500">Studentlar yuklanmoqda...</p>
+                        <p className="text-sm text-slate-500">
+                          Studentlar yuklanmoqda...
+                        </p>
                       </div>
                     </td>
                   </tr>
@@ -770,7 +936,10 @@ function AdminGroupStudents() {
                 {!enrollmentsLoading && visibleEnrollments.length === 0 && (
                   <tr>
                     <td colSpan={6} className="px-4 py-12 text-center">
-                      <HiMiniUserGroup size={48} className="mx-auto text-slate-300 mb-3" />
+                      <HiMiniUserGroup
+                        size={48}
+                        className="mx-auto text-slate-300 mb-3"
+                      />
                       <p className="text-slate-500">
                         {selectedMonthOption
                           ? "Tanlangan oy uchun student ko'rinmadi"
@@ -780,28 +949,35 @@ function AdminGroupStudents() {
                   </tr>
                 )}
 
-                {!enrollmentsLoading && visibleEnrollments.map((enrollment) => (
-                  (() => {
-                    const draft = getCurrentDraft(enrollment);
-                    return (
-                      <StudentRow
-                        key={enrollment.id}
-                        enrollment={enrollment}
-                        attendanceValue={draft.attendance}
-                        attendanceTouched={draft.attendanceTouched}
-                        attendanceLocked={attendanceMap.has(enrollment.student_id)}
-                        gradeLocked={gradesMap.has(enrollment.student_id)}
-                        gradeValue={draft.grade}
-                        gradeNote={draft.note}
-                        hasPendingChanges={Boolean(drafts[enrollment.id])}
-                        disabled={!selectedLessonId}
-                        canRemove={!isTeacher}
-                        onChange={(nextDraft) => handleDraftChange(enrollment, nextDraft)}
-                        onRemoveStudent={() => setEnrollmentToRemove(enrollment)}
-                      />
-                    );
-                  })()
-                ))}
+                {!enrollmentsLoading &&
+                  visibleEnrollments.map((enrollment) =>
+                    (() => {
+                      const draft = getCurrentDraft(enrollment);
+                      return (
+                        <StudentRow
+                          key={enrollment.id}
+                          enrollment={enrollment}
+                          attendanceValue={draft.attendance}
+                          attendanceTouched={draft.attendanceTouched}
+                          attendanceLocked={attendanceMap.has(
+                            enrollment.student_id,
+                          )}
+                          gradeLocked={gradesMap.has(enrollment.student_id)}
+                          gradeValue={draft.grade}
+                          gradeNote={draft.note}
+                          hasPendingChanges={Boolean(drafts[enrollment.id])}
+                          disabled={!selectedLessonId}
+                          canRemove={!isTeacher}
+                          onChange={(nextDraft) =>
+                            handleDraftChange(enrollment, nextDraft)
+                          }
+                          onRemoveStudent={() =>
+                            setEnrollmentToRemove(enrollment)
+                          }
+                        />
+                      );
+                    })(),
+                  )}
               </tbody>
             </table>
           </div>
@@ -809,7 +985,9 @@ function AdminGroupStudents() {
           <div className="border-t border-slate-100 bg-slate-50/70 px-5 py-4">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold text-slate-900">Umumiy saqlash</p>
+                <p className="text-sm font-semibold text-slate-900">
+                  Umumiy saqlash
+                </p>
                 <p className="text-xs text-slate-500">
                   {changedEnrollments.length > 0
                     ? `${changedEnrollments.length} ta student bo'yicha o'zgarish tayyor`
@@ -841,7 +1019,14 @@ function AdminGroupStudents() {
         open={isLessonDrawerOpen}
         mode={lessonDrawerMode}
         value={lessonForm}
-        selectedMonthLabel={selectedMonthOption ? formatMonthLabel(selectedMonthOption.year, selectedMonthOption.month) : ""}
+        selectedMonthLabel={
+          selectedMonthOption
+            ? formatMonthLabel(
+                selectedMonthOption.year,
+                selectedMonthOption.month,
+              )
+            : ""
+        }
         dateBounds={lessonDrawerMode === "create" ? selectedMonthBounds : null}
         onChange={setLessonForm}
         onClose={() => setIsLessonDrawerOpen(false)}
@@ -908,13 +1093,19 @@ function StatCard({
   };
 
   return (
-    <div className={`p-4 rounded-xl border min-w-[140px] ${colors[color as keyof typeof colors]}`}>
+    <div
+      className={`p-4 rounded-xl border min-w-[140px] ${colors[color as keyof typeof colors]}`}
+    >
       <div className="flex items-center gap-2">
         <div>{icon}</div>
         <div>
-          <p className="text-[11px] font-bold text-white/70 uppercase">{label}</p>
+          <p className="text-[11px] font-bold text-white/70 uppercase">
+            {label}
+          </p>
           {isText ? (
-            <p className="text-sm font-bold text-white truncate max-w-[120px]">{value}</p>
+            <p className="text-sm font-bold text-white truncate max-w-[120px]">
+              {value}
+            </p>
           ) : (
             <p className="text-2xl font-black text-white">{value}</p>
           )}
@@ -947,11 +1138,19 @@ function LessonCompactCard({
           : "border-slate-200 bg-white hover:-translate-y-0.5 hover:border-sky-200 hover:shadow-[0_18px_45px_-32px_rgba(15,23,42,0.35)]"
       }`}
     >
-      <div className={`pointer-events-none absolute inset-x-0 top-0 h-1.5 ${isActive ? "bg-gradient-to-r from-sky-500 via-cyan-400 to-emerald-400" : "bg-transparent"}`} />
+      <div
+        className={`pointer-events-none absolute inset-x-0 top-0 h-1.5 ${isActive ? "bg-gradient-to-r from-sky-500 via-cyan-400 to-emerald-400" : "bg-transparent"}`}
+      />
       <div className="flex items-start justify-between gap-1">
-        <button type="button" onClick={onSelect} className="min-w-0 flex-1 text-left">
+        <button
+          type="button"
+          onClick={onSelect}
+          className="min-w-0 flex-1 text-left"
+        >
           <div className="mb-2 flex items-center gap-2">
-            <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${isActive ? "bg-sky-100 text-sky-700" : "bg-slate-100 text-slate-600"}`}>
+            <span
+              className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${isActive ? "bg-sky-100 text-sky-700" : "bg-slate-100 text-slate-600"}`}
+            >
               {lesson.lesson_number}-dars
             </span>
             {isActive && (
@@ -960,10 +1159,14 @@ function LessonCompactCard({
               </span>
             )}
           </div>
-          <p className={`truncate text-[14px] font-extrabold leading-5 ${isActive ? "text-slate-950" : "text-slate-900"}`}>
+          <p
+            className={`truncate text-[14px] font-extrabold leading-5 ${isActive ? "text-slate-950" : "text-slate-900"}`}
+          >
             {truncateText(lesson.topic || "Mavzu kiritilmagan", 22)}
           </p>
-          <p className={`mt-2 text-[12px] font-medium ${isActive ? "text-sky-700" : "text-slate-500"}`}>
+          <p
+            className={`mt-2 text-[12px] font-medium ${isActive ? "text-sky-700" : "text-slate-500"}`}
+          >
             {lesson.lesson_date}
           </p>
         </button>
@@ -1020,7 +1223,10 @@ function LessonDrawer({
   onSubmit: () => Promise<void>;
 }) {
   const title = mode === "edit" ? "Darsni tahrirlash" : "Yangi dars qo'shish";
-  const subtitle = mode === "edit" ? "Mavzu va uyga vazifani yangilang" : "Tanlangan oy uchun dars ma'lumotlarini kiriting";
+  const subtitle =
+    mode === "edit"
+      ? "Mavzu va uyga vazifani yangilang"
+      : "Tanlangan oy uchun dars ma'lumotlarini kiriting";
 
   return (
     <Drawer
@@ -1041,7 +1247,11 @@ function LessonDrawer({
           <div className="flex justify-between items-center">
             <div className="flex gap-3 items-center">
               <Avatar sx={{ bgcolor: "rgba(255,255,255,0.2)" }}>
-                {mode === "edit" ? <HiMiniPencilSquare size={22} /> : <HiMiniPlus size={22} />}
+                {mode === "edit" ? (
+                  <HiMiniPencilSquare size={22} />
+                ) : (
+                  <HiMiniPlus size={22} />
+                )}
               </Avatar>
               <div>
                 <h3 className="text-xl font-black">{title}</h3>
@@ -1062,11 +1272,24 @@ function LessonDrawer({
               fullWidth
               value={value.lesson_date}
               disabled={mode === "edit"}
-              onChange={(e) => onChange({ ...value, lesson_date: e.target.value })}
-              slotProps={dateBounds ? { htmlInput: { min: dateBounds.min, max: dateBounds.max } } : undefined}
-              helperText={mode === "create" && selectedMonthLabel ? `${selectedMonthLabel} ichidan sana tanlang` : ""}
+              onChange={(e) =>
+                onChange({ ...value, lesson_date: e.target.value })
+              }
+              slotProps={
+                dateBounds
+                  ? { htmlInput: { min: dateBounds.min, max: dateBounds.max } }
+                  : undefined
+              }
+              helperText={
+                mode === "create" && selectedMonthLabel
+                  ? `${selectedMonthLabel} ichidan sana tanlang`
+                  : ""
+              }
               sx={{
-                "& .MuiOutlinedInput-root": { borderRadius: "14px", marginBottom: 2 },
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "14px",
+                  marginBottom: 2,
+                },
                 "& .MuiInputLabel-root": {
                   backgroundColor: "white",
                   paddingRight: "4px",
@@ -1081,7 +1304,12 @@ function LessonDrawer({
               value={value.topic}
               onChange={(e) => onChange({ ...value, topic: e.target.value })}
               placeholder="Dars mavzusini kiriting"
-              sx={{ "& .MuiOutlinedInput-root": { borderRadius: "14px", marginBottom: 2 } }}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "14px",
+                  marginBottom: 2,
+                },
+              }}
             />
 
             <TextField
@@ -1092,12 +1320,18 @@ function LessonDrawer({
               value={value.homework}
               onChange={(e) => onChange({ ...value, homework: e.target.value })}
               placeholder="Uyga vazifani kiriting"
-              sx={{ "& .MuiOutlinedInput-root": { borderRadius: "14px", marginBottom: 2 } }}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "14px",
+                  marginBottom: 2,
+                },
+              }}
             />
 
             <div className="bg-sky-50 border border-sky-200 rounded-xl p-3 text-sm text-sky-700 flex items-center gap-2">
               <HiMiniInformationCircle size={18} />
-              Dars raqami avtomatik saqlanadi, bu yerda asosan mavzu va vazifani boshqarasiz
+              Dars raqami avtomatik saqlanadi, bu yerda asosan mavzu va vazifani
+              boshqarasiz
             </div>
 
             <div className="flex gap-3 pt-4">
@@ -1119,7 +1353,12 @@ function LessonDrawer({
               <Button
                 variant="outlined"
                 onClick={onClose}
-                sx={{ borderRadius: "14px", px: 4, textTransform: "none", fontWeight: 600 }}
+                sx={{
+                  borderRadius: "14px",
+                  px: 4,
+                  textTransform: "none",
+                  fontWeight: 600,
+                }}
               >
                 Bekor qilish
               </Button>
@@ -1169,7 +1408,9 @@ function MonthDrawer({
               </Avatar>
               <div>
                 <h3 className="text-xl font-black">Yangi oy qo'shish</h3>
-                <p className="mt-0.5 text-sm opacity-90">Avval oy ochiladi, keyin ichidan dars qo'shasiz</p>
+                <p className="mt-0.5 text-sm opacity-90">
+                  Avval oy ochiladi, keyin ichidan dars qo'shasiz
+                </p>
               </div>
             </div>
             <IconButton onClick={onClose} sx={{ color: "white" }}>
@@ -1199,7 +1440,8 @@ function MonthDrawer({
             />
 
             <div className="rounded-xl border border-sky-200 bg-sky-50 p-3 text-sm text-sky-700">
-              Oy saqlangach, shu oy blokida `Yangi dars qo'shish` tugmasi orqali lesson qo'shasiz.
+              Oy saqlangach, shu oy blokida `Yangi dars qo'shish` tugmasi orqali
+              lesson qo'shasiz.
             </div>
 
             <div className="flex gap-3 pt-3">
@@ -1221,7 +1463,12 @@ function MonthDrawer({
               <Button
                 variant="outlined"
                 onClick={onClose}
-                sx={{ borderRadius: "14px", px: 4, textTransform: "none", fontWeight: 600 }}
+                sx={{
+                  borderRadius: "14px",
+                  px: 4,
+                  textTransform: "none",
+                  fontWeight: 600,
+                }}
               >
                 Bekor qilish
               </Button>
@@ -1267,7 +1514,9 @@ function LessonViewDrawer({
               </Avatar>
               <div>
                 <h3 className="text-xl font-black">Dars tafsilotlari</h3>
-                <p className="text-sm opacity-90 mt-0.5">To'liq ma'lumotni ko'rish</p>
+                <p className="text-sm opacity-90 mt-0.5">
+                  To'liq ma'lumotni ko'rish
+                </p>
               </div>
             </div>
             <IconButton onClick={onClose} sx={{ color: "white" }}>
@@ -1280,17 +1529,29 @@ function LessonViewDrawer({
           {lesson && (
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <Chip label={`${lesson.lesson_number}-dars`} className="!bg-sky-100 !text-sky-700" />
-                <Chip label={lesson.lesson_date} className="!bg-slate-100 !text-slate-700" />
+                <Chip
+                  label={`${lesson.lesson_number}-dars`}
+                  className="!bg-sky-100 !text-sky-700"
+                />
+                <Chip
+                  label={lesson.lesson_date}
+                  className="!bg-slate-100 !text-slate-700"
+                />
               </div>
 
               <section className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Mavzu</p>
-                <p className="mt-2 text-base font-bold text-slate-900">{lesson.topic || "Mavzu kiritilmagan"}</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                  Mavzu
+                </p>
+                <p className="mt-2 text-base font-bold text-slate-900">
+                  {lesson.topic || "Mavzu kiritilmagan"}
+                </p>
               </section>
 
               <section className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Uyga vazifa</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                  Uyga vazifa
+                </p>
                 <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700">
                   {lesson.homework || "Uyga vazifa kiritilmagan"}
                 </p>
@@ -1319,7 +1580,12 @@ function LessonViewDrawer({
                   variant="outlined"
                   onClick={onClose}
                   fullWidth={!canEdit}
-                  sx={{ borderRadius: "14px", px: 4, textTransform: "none", fontWeight: 600 }}
+                  sx={{
+                    borderRadius: "14px",
+                    px: 4,
+                    textTransform: "none",
+                    fontWeight: 600,
+                  }}
                 >
                   Yopish
                 </Button>
@@ -1366,45 +1632,72 @@ function StudentRow({
     color: "bg-slate-100 text-slate-600",
   };
   const canRemoveStudent = canRemove && enrollment.status !== "left";
-  const presentSelected = attendanceLocked || attendanceTouched ? attendanceValue === "present" : false;
-  const absentSelected = attendanceLocked || attendanceTouched ? attendanceValue === "absent" : false;
+  const presentSelected =
+    attendanceLocked || attendanceTouched
+      ? attendanceValue === "present"
+      : false;
+  const absentSelected =
+    attendanceLocked || attendanceTouched
+      ? attendanceValue === "absent"
+      : false;
 
   return (
     <tr className="border-t border-slate-100 hover:bg-sky-50/30 transition-all">
       <td className="px-5 py-4">
         <div className="min-w-[200px]">
           <div className="flex items-center gap-3">
-            <Avatar sx={{ width: 40, height: 40, bgcolor: "#dbeafe", color: "#2563eb" }}>
+            <Avatar
+              sx={{
+                width: 40,
+                height: 40,
+                bgcolor: "#dbeafe",
+                color: "#2563eb",
+              }}
+            >
               {enrollment.student.full_name.charAt(0).toUpperCase()}
             </Avatar>
             <div>
-              <p className="font-bold text-slate-900">{enrollment.student.full_name}</p>
+              <p className="font-bold text-slate-900">
+                {enrollment.student.full_name}
+              </p>
             </div>
           </div>
         </div>
       </td>
 
       <td className="px-4 py-4">
-        <span className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold ${statusInfo.color}`}>
+        <span
+          className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold ${statusInfo.color}`}
+        >
           {statusInfo.label}
         </span>
       </td>
 
       <td className="px-4 py-4">
         {attendanceLocked ? (
-          <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl ${attendanceValue === "present" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}>
-            {attendanceValue === "present" ? <HiMiniCheckCircle size={14} /> : <HiMiniXCircle size={14} />}
-            <span className="text-sm font-medium">{attendanceValue === "present" ? "Keldi" : "Kelmadi"}</span>
+          <div
+            className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl ${attendanceValue === "present" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}
+          >
+            {attendanceValue === "present" ? (
+              <HiMiniCheckCircle size={14} />
+            ) : (
+              <HiMiniXCircle size={14} />
+            )}
+            <span className="text-sm font-medium">
+              {attendanceValue === "present" ? "Keldi" : "Kelmadi"}
+            </span>
           </div>
         ) : (
           <div className="flex items-center gap-2">
             <button
               type="button"
               disabled={disabled}
-              onClick={() => onChange(normalizeDraft("present", gradeValue, gradeNote, true))}
+              onClick={() =>
+                onChange(normalizeDraft("present", gradeValue, gradeNote, true))
+              }
               aria-label="Keldi"
               title="Keldi"
-              style={{borderRadius: "20px"}}
+              style={{ borderRadius: "20px" }}
               className={`inline-flex h-11 min-w-[48px] items-center justify-center rounded-2xl border transition-all duration-200 ${
                 presentSelected
                   ? "border-emerald-500 bg-emerald-500 text-white shadow-[0_10px_24px_-12px_rgba(16,185,129,0.9)] scale-[1.03]"
@@ -1417,10 +1710,12 @@ function StudentRow({
             <button
               type="button"
               disabled={disabled}
-              onClick={() => onChange(normalizeDraft("absent", gradeValue, gradeNote, true))}
+              onClick={() =>
+                onChange(normalizeDraft("absent", gradeValue, gradeNote, true))
+              }
               aria-label="Kelmadi"
               title="Kelmadi"
-              style={{borderRadius: "20px"}}
+              style={{ borderRadius: "20px" }}
               className={`inline-flex h-11 min-w-[48px] items-center justify-center rounded-2xl border transition-all duration-200 ${
                 absentSelected
                   ? "border-rose-500 bg-rose-500 text-white shadow-[0_10px_24px_-12px_rgba(244,63,94,0.9)] scale-[1.03]"
@@ -1452,7 +1747,9 @@ function StudentRow({
           }}
           placeholder="0-100"
           className={`w-24 px-3 py-2 rounded-xl border border-slate-200 text-center focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100 ${
-            disabled || attendanceValue === "absent" ? "bg-slate-50 text-slate-400" : "bg-white"
+            disabled || attendanceValue === "absent"
+              ? "bg-slate-50 text-slate-400"
+              : "bg-white"
           }`}
         />
       </td>
@@ -1462,10 +1759,21 @@ function StudentRow({
           type="text"
           disabled={disabled || attendanceValue === "absent"}
           value={gradeNote}
-          onChange={(e) => onChange(normalizeDraft(attendanceValue, gradeValue, e.target.value, false))}
+          onChange={(e) =>
+            onChange(
+              normalizeDraft(
+                attendanceValue,
+                gradeValue,
+                e.target.value,
+                false,
+              ),
+            )
+          }
           placeholder="Izoh"
           className={`w-48 px-3 py-2 rounded-xl border border-slate-200 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100 ${
-            disabled || attendanceValue === "absent" ? "bg-slate-50 text-slate-400" : "bg-white"
+            disabled || attendanceValue === "absent"
+              ? "bg-slate-50 text-slate-400"
+              : "bg-white"
           }`}
         />
       </td>
@@ -1510,8 +1818,15 @@ function formatMonthLabel(year: number, month: number) {
   return `${monthNames[month - 1]} ${year}`;
 }
 
-function isEnrollmentVisibleInRange(enrollment: Enrollment, rangeStart: string, rangeEnd: string) {
-  return enrollment.enrolled_at <= rangeEnd && (!enrollment.left_at || enrollment.left_at >= rangeStart);
+function isEnrollmentVisibleInRange(
+  enrollment: Enrollment,
+  rangeStart: string,
+  rangeEnd: string,
+) {
+  return (
+    enrollment.enrolled_at <= rangeEnd &&
+    (!enrollment.left_at || enrollment.left_at >= rangeStart)
+  );
 }
 
 function getMonthKey(date: string) {
@@ -1551,7 +1866,11 @@ function formatMonthLabelFromKey(monthKey: string) {
   return formatMonthLabel(parsed.year, parsed.month);
 }
 
-function getSuggestedLessonDate(monthKey: string, lessons: Lesson[], todayKey: string) {
+function getSuggestedLessonDate(
+  monthKey: string,
+  lessons: Lesson[],
+  todayKey: string,
+) {
   const monthLessons = lessons
     .filter((lesson) => getMonthKey(lesson.lesson_date) === monthKey)
     .sort((a, b) => a.lesson_date.localeCompare(b.lesson_date));
@@ -1565,11 +1884,17 @@ function getSuggestedLessonDate(monthKey: string, lessons: Lesson[], todayKey: s
   candidateDate.setDate(candidateDate.getDate() + 1);
   const nextDate = candidateDate.toISOString().slice(0, 10);
 
-  if (getMonthKey(nextDate) === monthKey && !monthLessons.some((lesson) => lesson.lesson_date === nextDate)) {
+  if (
+    getMonthKey(nextDate) === monthKey &&
+    !monthLessons.some((lesson) => lesson.lesson_date === nextDate)
+  ) {
     return nextDate;
   }
 
-  if (monthKey === getMonthKey(todayKey) && !monthLessons.some((lesson) => lesson.lesson_date === todayKey)) {
+  if (
+    monthKey === getMonthKey(todayKey) &&
+    !monthLessons.some((lesson) => lesson.lesson_date === todayKey)
+  ) {
     return todayKey;
   }
 

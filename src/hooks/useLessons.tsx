@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { getErrorMessage } from "../api/auth";
 import { createLesson, listLessons, updateLesson, type LessonPayload } from "../api/lessons";
+import type { Lesson } from "../types/types";
 
 type LessonsParams = {
   groupId?: string;
@@ -9,9 +10,60 @@ type LessonsParams = {
   month?: number;
 };
 
+type LessonsQueryKey = readonly ["lessons", string, number | "all-years", number | "all-months"];
+
+function parseLessonDateParts(lessonDate: string) {
+  const [yearRaw = "", monthRaw = ""] = lessonDate.split("-");
+  return {
+    year: Number.parseInt(yearRaw, 10),
+    month: Number.parseInt(monthRaw, 10),
+  };
+}
+
+function lessonMatchesQuery(lesson: Lesson, queryKey: LessonsQueryKey) {
+  const [, groupId, year, month] = queryKey;
+  if (lesson.group_id !== groupId) return false;
+
+  const dateParts = parseLessonDateParts(lesson.lesson_date);
+  if (year !== "all-years" && dateParts.year !== year) return false;
+  if (month !== "all-months" && dateParts.month !== month) return false;
+
+  return true;
+}
+
+function upsertLesson(list: Lesson[], lesson: Lesson) {
+  const existingIndex = list.findIndex((item) => item.id === lesson.id);
+  if (existingIndex === -1) {
+    return [lesson, ...list];
+  }
+
+  return list.map((item) => (item.id === lesson.id ? lesson : item));
+}
+
 export default function useLessons(params?: LessonsParams) {
   const queryClient = useQueryClient();
   const lessonsQueryKey = ["lessons", params?.groupId ?? "all", params?.year ?? "all-years", params?.month ?? "all-months"] as const;
+
+  const syncLessonCaches = (lesson: Lesson) => {
+    const lessonQueries = queryClient.getQueriesData<Lesson[]>({ queryKey: ["lessons"] });
+
+    lessonQueries.forEach(([queryKey, previous]) => {
+      if (!Array.isArray(queryKey) || queryKey.length !== 4 || queryKey[0] !== "lessons") {
+        return;
+      }
+
+      const typedQueryKey = queryKey as unknown as LessonsQueryKey;
+      const list = Array.isArray(previous) ? previous : [];
+
+      queryClient.setQueryData<Lesson[]>(typedQueryKey, () => {
+        if (lessonMatchesQuery(lesson, typedQueryKey)) {
+          return upsertLesson(list, lesson);
+        }
+
+        return list.filter((item) => item.id !== lesson.id);
+      });
+    });
+  };
 
   const lessonsQuery = useQuery({
     queryKey: lessonsQueryKey,
@@ -23,11 +75,7 @@ export default function useLessons(params?: LessonsParams) {
     mutationFn: createLesson,
     onSuccess: async (createdLesson) => {
       toast.success("Dars qo'shildi");
-      queryClient.setQueryData([ "lessons", params?.groupId ?? "all", params?.year ?? "all-years", params?.month ?? "all-months" ], (previous: unknown) => {
-        const list = Array.isArray(previous) ? previous : [];
-        return [createdLesson, ...list];
-      });
-      await queryClient.invalidateQueries({ queryKey: lessonsQueryKey, exact: true, refetchType: "none" });
+      syncLessonCaches(createdLesson);
     },
     onError: (error) => toast.error(getErrorMessage(error, "Dars qo'shib bo'lmadi")),
   });
@@ -37,11 +85,7 @@ export default function useLessons(params?: LessonsParams) {
       updateLesson(lessonId, payload),
     onSuccess: async (updatedLesson) => {
       toast.success("Dars yangilandi");
-      queryClient.setQueryData(lessonsQueryKey, (previous: unknown) => {
-        const list = Array.isArray(previous) ? previous : [];
-        return list.map((lesson) => (lesson.id === updatedLesson.id ? updatedLesson : lesson));
-      });
-      await queryClient.invalidateQueries({ queryKey: ["lessons"], refetchType: "none" });
+      syncLessonCaches(updatedLesson);
     },
     onError: (error) => toast.error(getErrorMessage(error, "Darsni yangilab bo'lmadi")),
   });
