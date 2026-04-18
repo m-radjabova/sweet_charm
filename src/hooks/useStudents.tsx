@@ -14,7 +14,11 @@ import {
   type StudentUpdatePayload,
 } from "../api/students";
 import { getErrorMessage } from "../api/auth";
-import type { Enrollment, StudentDetail } from "../types/types";
+import {
+  invalidateStudentDependentQueries,
+  syncGroupEnrollmentQueries,
+} from "./queryInvalidation";
+import type { StudentDetail } from "../types/types";
 
 type UseStudentsOptions = {
   includeStudentLists?: boolean;
@@ -45,13 +49,14 @@ export default function useStudents(groupId?: string, options?: UseStudentsOptio
 
   const createStudentMutation = useMutation({
     mutationFn: createStudent,
-    onSuccess: (createdStudent) => {
+    onSuccess: async (createdStudent) => {
       toast.success("Student yaratildi");
       queryClient.setQueryData<StudentDetail[]>(["students"], (previous = []) => [createdStudent, ...previous]);
       queryClient.setQueryData<StudentDetail[]>(
         ["students", "unassigned-only"],
         (previous = []) => [createdStudent, ...previous],
       );
+      await invalidateStudentDependentQueries(queryClient, [createdStudent.id]);
     },
     onError: (error) => toast.error(getErrorMessage(error, "Student yaratib bo'lmadi")),
   });
@@ -59,7 +64,7 @@ export default function useStudents(groupId?: string, options?: UseStudentsOptio
   const updateStudentMutation = useMutation({
     mutationFn: ({ userId, payload }: { userId: string; payload: StudentUpdatePayload }) =>
       updateStudent(userId, payload),
-    onSuccess: (updatedStudent) => {
+    onSuccess: async (updatedStudent) => {
       toast.success("Student ma'lumotlari yangilandi");
       queryClient.setQueryData<StudentDetail[]>(
         ["students"],
@@ -69,38 +74,44 @@ export default function useStudents(groupId?: string, options?: UseStudentsOptio
         ["students", "unassigned-only"],
         (previous = []) => previous.map((student) => (student.id === updatedStudent.id ? updatedStudent : student)),
       );
+      await invalidateStudentDependentQueries(queryClient, [updatedStudent.id]);
     },
     onError: (error) => toast.error(getErrorMessage(error, "Studentni yangilab bo'lmadi")),
   });
 
   const enrollStudentMutation = useMutation({
     mutationFn: enrollStudent,
-    onSuccess: (createdEnrollment, payload) => {
+    onSuccess: async (createdEnrollment, payload) => {
       toast.success("Student guruhga biriktirildi");
       queryClient.setQueryData<StudentDetail[]>(
         ["students", "unassigned-only"],
         (previous = []) => previous.filter((student) => student.id !== payload.student_id),
       );
-      queryClient.setQueryData<Enrollment[]>(
-        ["group-enrollments", payload.group_id],
-        (previous = []) => [createdEnrollment, ...previous],
-      );
+      syncGroupEnrollmentQueries(queryClient, payload.group_id, (previous) => [
+        createdEnrollment,
+        ...previous.filter((enrollment) => enrollment.id !== createdEnrollment.id),
+      ]);
+      await invalidateStudentDependentQueries(queryClient, [payload.student_id]);
     },
     onError: (error) => toast.error(getErrorMessage(error, "Studentni guruhga biriktirib bo'lmadi")),
   });
 
   const bulkEnrollStudentsMutation = useMutation({
     mutationFn: bulkEnrollStudents,
-    onSuccess: (createdEnrollments, payload) => {
+    onSuccess: async (createdEnrollments, payload) => {
       toast.success("Studentlar guruhga biriktirildi");
       queryClient.setQueryData<StudentDetail[]>(
         ["students", "unassigned-only"],
         (previous = []) => previous.filter((student) => !payload.student_ids.includes(student.id)),
       );
-      queryClient.setQueryData<Enrollment[]>(
-        ["group-enrollments", payload.group_id],
-        (previous = []) => [...createdEnrollments, ...previous],
-      );
+      syncGroupEnrollmentQueries(queryClient, payload.group_id, (previous) => [
+        ...createdEnrollments,
+        ...previous.filter(
+          (enrollment) =>
+            !createdEnrollments.some((createdEnrollment) => createdEnrollment.id === enrollment.id),
+        ),
+      ]);
+      await invalidateStudentDependentQueries(queryClient, payload.student_ids);
     },
     onError: (error) => toast.error(getErrorMessage(error, "Studentlarni guruhga biriktirib bo'lmadi")),
   });
@@ -108,17 +119,18 @@ export default function useStudents(groupId?: string, options?: UseStudentsOptio
   const updateEnrollmentMutation = useMutation({
     mutationFn: ({ enrollmentId, payload }: { enrollmentId: string; payload: Partial<EnrollmentPayload> }) =>
       updateEnrollment(enrollmentId, payload),
-    onSuccess: (updatedEnrollment) => {
+    onSuccess: async (updatedEnrollment) => {
       toast.success("Student guruhdan chetlashtirildi");
-      queryClient.setQueryData<Enrollment[]>(
-        ["group-enrollments", updatedEnrollment.group_id],
-        (previous = []) =>
-          previous.map((enrollment) =>
-            enrollment.id === updatedEnrollment.id ? updatedEnrollment : enrollment,
-          ),
+      syncGroupEnrollmentQueries(queryClient, updatedEnrollment.group_id, (previous) =>
+        previous.map((enrollment) =>
+          enrollment.id === updatedEnrollment.id ? updatedEnrollment : enrollment,
+        ),
       );
-      queryClient.invalidateQueries({ queryKey: ["students", "unassigned-only"], exact: true });
-      queryClient.invalidateQueries({ queryKey: ["students"], exact: true, refetchType: "none" });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["students", "unassigned-only"], exact: true }),
+        queryClient.invalidateQueries({ queryKey: ["students"], exact: true }),
+        invalidateStudentDependentQueries(queryClient, [updatedEnrollment.student_id]),
+      ]);
     },
     onError: (error) => toast.error(getErrorMessage(error, "Studentni chetlashtirib bo'lmadi")),
   });

@@ -50,6 +50,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { getErrorMessage } from "../api/auth";
 import { createPayment, listPayments, updatePayment, type PaymentPayload } from "../api/payments";
+import { invalidateStudentDependentQueries } from "./queryInvalidation";
 
 type PaymentsParams = {
   studentId?: string;
@@ -66,9 +67,12 @@ export default function usePayments(params?: PaymentsParams) {
 
   const createMutation = useMutation({
     mutationFn: createPayment,
-    onSuccess: async () => {
+    onSuccess: async (createdPayment) => {
       toast.success("To'lov qo'shildi");
-      await queryClient.invalidateQueries({ queryKey: ["payments"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["payments"] }),
+        invalidateStudentDependentQueries(queryClient, [createdPayment.student_id]),
+      ]);
     },
     onError: (error) => toast.error(getErrorMessage(error, "To'lov qo'shib bo'lmadi")),
   });
@@ -76,9 +80,12 @@ export default function usePayments(params?: PaymentsParams) {
   const updateMutation = useMutation({
     mutationFn: ({ paymentId, payload }: { paymentId: string; payload: Partial<PaymentPayload> }) =>
       updatePayment(paymentId, payload),
-    onSuccess: async () => {
+    onSuccess: async (updatedPayment) => {
       toast.success("To'lov yangilandi");
-      await queryClient.invalidateQueries({ queryKey: ["payments"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["payments"] }),
+        invalidateStudentDependentQueries(queryClient, [updatedPayment.student_id]),
+      ]);
     },
     onError: (error) => toast.error(getErrorMessage(error, "To'lovni yangilab bo'lmadi")),
   });

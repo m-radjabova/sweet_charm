@@ -4,6 +4,7 @@ import { getErrorMessage } from "../api/auth";
 import { updateCurrentUser } from "../api/users";
 import apiClient from "../apiClient/apiClient";
 import useContextPro from "./useContextPro";
+import { invalidateGroupDependentQueries, invalidateStudentDependentQueries } from "./queryInvalidation";
 
 type UpdateProfilePayload = {
   full_name?: string;
@@ -31,7 +32,12 @@ export function useProfile() {
     onSuccess: async (data) => {
       dispatch({ type: "UPDATE_USER", payload: data });
       toast.success("Profil yangilandi");
-      await queryClient.invalidateQueries({ queryKey: ["users"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["users"] }),
+        queryClient.invalidateQueries({ queryKey: ["teachers"] }),
+        invalidateGroupDependentQueries(queryClient),
+        invalidateStudentDependentQueries(queryClient, [data.id]),
+      ]);
       await refreshUser();
     },
     onError: (error) => {

@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { getErrorMessage } from "../api/auth";
 import { createCourse, deleteCourse, listCourses, updateCourse, type CoursePayload } from "../api/courses";
+import { invalidateGroupDependentQueries } from "./queryInvalidation";
 import type { Course } from "../types/types";
 
 export default function useCourses() {
@@ -16,9 +17,10 @@ export default function useCourses() {
 
   const createMutation = useMutation({
     mutationFn: createCourse,
-    onSuccess: (createdCourse) => {
+    onSuccess: async (createdCourse) => {
       toast.success("Kurs yaratildi");
       queryClient.setQueryData<Course[]>(["courses"], (previous = []) => [createdCourse, ...previous]);
+      await invalidateGroupDependentQueries(queryClient);
     },
     onError: (error) => toast.error(getErrorMessage(error, "Kurs yaratib bo'lmadi")),
   });
@@ -26,24 +28,26 @@ export default function useCourses() {
   const updateMutation = useMutation({
     mutationFn: ({ courseId, payload }: { courseId: string; payload: Partial<CoursePayload> }) =>
       updateCourse(courseId, payload),
-    onSuccess: (updatedCourse) => {
+    onSuccess: async (updatedCourse) => {
       toast.success("Kurs yangilandi");
       queryClient.setQueryData<Course[]>(
         ["courses"],
         (previous = []) => previous.map((course) => (course.id === updatedCourse.id ? updatedCourse : course)),
       );
+      await invalidateGroupDependentQueries(queryClient);
     },
     onError: (error) => toast.error(getErrorMessage(error, "Kursni yangilab bo'lmadi")),
   });
 
   const deleteMutation = useMutation({
     mutationFn: deleteCourse,
-    onSuccess: (_, deletedCourseId) => {
+    onSuccess: async (_, deletedCourseId) => {
       toast.success("Kurs o'chirildi");
       queryClient.setQueryData<Course[]>(
         ["courses"],
         (previous = []) => previous.filter((course) => course.id !== deletedCourseId),
       );
+      await invalidateGroupDependentQueries(queryClient);
     },
     onError: (error) => toast.error(getErrorMessage(error, "Kursni o'chirib bo'lmadi")),
   });

@@ -9,6 +9,7 @@ import {
   type TeacherCreatePayload,
   type TeacherProfilePayload,
 } from "../api/teachers";
+import { invalidateGroupDependentQueries } from "./queryInvalidation";
 
 export default function useTeachers(enabled = true) {
   const queryClient = useQueryClient();
@@ -26,7 +27,7 @@ export default function useTeachers(enabled = true) {
       toast.success("O'qituvchi yaratildi");
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["teachers"] }),
-        queryClient.invalidateQueries({ queryKey: ["groups"] }),
+        invalidateGroupDependentQueries(queryClient),
       ]);
     },
     onError: (error) => toast.error(getErrorMessage(error, "O'qituvchini yaratib bo'lmadi")),
@@ -37,7 +38,10 @@ export default function useTeachers(enabled = true) {
       updateTeacherProfile(userId, payload),
     onSuccess: async () => {
       toast.success("Teacher profili yangilandi");
-      await queryClient.invalidateQueries({ queryKey: ["teachers"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["teachers"] }),
+        invalidateGroupDependentQueries(queryClient),
+      ]);
     },
     onError: (error) => toast.error(getErrorMessage(error, "Teacher profilini yangilab bo'lmadi")),
   });

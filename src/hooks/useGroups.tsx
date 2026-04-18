@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { getErrorMessage } from "../api/auth";
 import { createGroup, deleteGroup, listGroups, updateGroup, type GroupPayload } from "../api/groups";
+import { invalidateGroupDependentQueries } from "./queryInvalidation";
 import type { Group } from "../types/types";
 
 export default function useGroups() {
@@ -16,9 +17,10 @@ export default function useGroups() {
 
   const createMutation = useMutation({
     mutationFn: createGroup,
-    onSuccess: (createdGroup) => {
+    onSuccess: async (createdGroup) => {
       toast.success("Guruh yaratildi");
       queryClient.setQueryData<Group[]>(["groups"], (previous = []) => [createdGroup, ...previous]);
+      await invalidateGroupDependentQueries(queryClient);
     },
     onError: (error) => toast.error(getErrorMessage(error, "Guruh yaratib bo'lmadi")),
   });
@@ -26,24 +28,26 @@ export default function useGroups() {
   const updateMutation = useMutation({
     mutationFn: ({ groupId, payload }: { groupId: string; payload: Partial<GroupPayload> }) =>
       updateGroup(groupId, payload),
-    onSuccess: (updatedGroup) => {
+    onSuccess: async (updatedGroup) => {
       toast.success("Guruh yangilandi");
       queryClient.setQueryData<Group[]>(
         ["groups"],
         (previous = []) => previous.map((group) => (group.id === updatedGroup.id ? updatedGroup : group)),
       );
+      await invalidateGroupDependentQueries(queryClient);
     },
     onError: (error) => toast.error(getErrorMessage(error, "Guruhni yangilab bo'lmadi")),
   });
 
   const deleteMutation = useMutation({
     mutationFn: deleteGroup,
-    onSuccess: (_, deletedGroupId) => {
+    onSuccess: async (_, deletedGroupId) => {
       toast.success("Guruh o'chirildi");
       queryClient.setQueryData<Group[]>(
         ["groups"],
         (previous = []) => previous.filter((group) => group.id !== deletedGroupId),
       );
+      await invalidateGroupDependentQueries(queryClient);
     },
     onError: (error) => toast.error(getErrorMessage(error, "Guruhni o'chirib bo'lmadi")),
   });

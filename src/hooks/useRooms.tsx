@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { getErrorMessage } from "../api/auth";
 import { createRoom, deleteRoom, listRooms, updateRoom, type RoomPayload } from "../api/rooms";
+import { invalidateGroupDependentQueries } from "./queryInvalidation";
 import type { Room } from "../types/types";
 
 export default function useRooms() {
@@ -16,30 +17,33 @@ export default function useRooms() {
 
   const createMutation = useMutation({
     mutationFn: createRoom,
-    onSuccess: (createdRoom) => {
+    onSuccess: async (createdRoom) => {
       toast.success("Xona yaratildi");
       queryClient.setQueryData<Room[]>(["rooms"], (previous = []) => [createdRoom, ...previous]);
+      await invalidateGroupDependentQueries(queryClient);
     },
     onError: (error) => toast.error(getErrorMessage(error, "Xona yaratib bo'lmadi")),
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ roomId, payload }: { roomId: string; payload: Partial<RoomPayload> }) => updateRoom(roomId, payload),
-    onSuccess: (updatedRoom) => {
+    onSuccess: async (updatedRoom) => {
       toast.success("Xona yangilandi");
       queryClient.setQueryData<Room[]>(
         ["rooms"],
         (previous = []) => previous.map((room) => (room.id === updatedRoom.id ? updatedRoom : room)),
       );
+      await invalidateGroupDependentQueries(queryClient);
     },
     onError: (error) => toast.error(getErrorMessage(error, "Xonani yangilab bo'lmadi")),
   });
 
   const deleteMutation = useMutation({
     mutationFn: deleteRoom,
-    onSuccess: (_, deletedRoomId) => {
+    onSuccess: async (_, deletedRoomId) => {
       toast.success("Xona o'chirildi");
       queryClient.setQueryData<Room[]>(["rooms"], (previous = []) => previous.filter((room) => room.id !== deletedRoomId));
+      await invalidateGroupDependentQueries(queryClient);
     },
     onError: (error) => toast.error(getErrorMessage(error, "Xonani o'chirib bo'lmadi")),
   });
