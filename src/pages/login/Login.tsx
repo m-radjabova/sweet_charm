@@ -15,7 +15,6 @@ import {
 } from "react-icons/hi2";
 import { toast } from "react-toastify";
 import {
-  getErrorMessage,
   getMe,
   loginUser,
   normalizeUser,
@@ -53,12 +52,45 @@ function Login() {
       persistTokens(tokens);
       const me = normalizeUser(await getMe());
       login(tokens, me);
+
       toast.success("Tizimga muvaffaqiyatli kirdingiz");
-      navigate(me.role === "teacher" ? "/admin/groups" : me.role === "student" ? "/student" : "/admin", {
-        replace: true,
-      });
-    } catch (error) {
-      toast.error(getErrorMessage(error, "Login xatoligi"));
+
+      navigate(
+        me.role === "teacher"
+          ? "/admin/groups"
+          : me.role === "student"
+          ? "/student"
+          : "/admin",
+        { replace: true }
+      );
+    } catch (error: any) {
+      const status = error?.response?.status;
+      const message =
+        error?.response?.data?.message ||
+        error?.response?.data?.detail ||
+        error?.message;
+
+      if (status === 401) {
+        toast.error("Parol noto‘g‘ri");
+      } else if (status === 404) {
+        toast.error("Bu email bilan foydalanuvchi topilmadi");
+      } else if (status === 400) {
+        if (
+          typeof message === "string" &&
+          message.toLowerCase().includes("email")
+        ) {
+          toast.error("Email noto‘g‘ri");
+        } else if (
+          typeof message === "string" &&
+          message.toLowerCase().includes("password")
+        ) {
+          toast.error("Parol noto‘g‘ri");
+        } else {
+          toast.error(message || "Login ma'lumotlari noto‘g‘ri");
+        }
+      } else {
+        toast.error(message || "Login xatoligi");
+      }
     }
   };
 
