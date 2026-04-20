@@ -14,6 +14,16 @@ export default function useTelegramStudents(studentId?: string) {
     queryKey: ["student-telegram-link", studentId ?? "none"],
     queryFn: () => getStudentTelegramLink(studentId as string),
     enabled: Boolean(studentId),
+    refetchInterval: (query) => {
+      const linkStatus = query.state.data;
+
+      if (!studentId || !linkStatus?.telegram_link_url || linkStatus.is_connected) {
+        return false;
+      }
+
+      return 3000;
+    },
+    refetchIntervalInBackground: true,
   });
 
   const createLinkMutation = useMutation({
