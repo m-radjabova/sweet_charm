@@ -155,7 +155,6 @@ function AdminStudents() {
     students,
     studentsTotal,
     activeStudentsTotal,
-    studentsPage,
     studentsPages,
     assignableStudents,
     studentsLoading,
@@ -242,10 +241,11 @@ function AdminStudents() {
   }, [activeGroups, selectedAssignmentGroupId, setAssignmentValue]);
 
   useEffect(() => {
-    if (studentsPage !== currentPage) {
-      setCurrentPage(studentsPage);
+    const maxPage = Math.max(studentsPages, 1);
+    if (currentPage > maxPage) {
+      setCurrentPage(maxPage);
     }
-  }, [studentsPage, currentPage]);
+  }, [studentsPages, currentPage]);
 
   const openCreateStudentDrawer = () => {
     setStudentDrawerMode("create");
@@ -543,7 +543,7 @@ function AdminStudents() {
 
                   <Pagination
                     count={Math.max(studentsPages, 1)}
-                    page={studentsPage}
+                    page={currentPage}
                     onChange={(_, page) => setCurrentPage(page)}
                     shape="rounded"
                     color="primary"
