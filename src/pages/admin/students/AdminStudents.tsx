@@ -10,6 +10,8 @@ import {
   IconButton,
   Avatar,
   Chip,
+  Pagination,
+  PaginationItem,
 } from "@mui/material";
 import {
   HiMiniCheckBadge,
@@ -146,8 +148,15 @@ type ActionCardProps = {
 function AdminStudents() {
   const { state } = useContextPro();
   const { groups } = useGroups();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const {
     students,
+    studentsTotal,
+    activeStudentsTotal,
+    studentsPage,
+    studentsPages,
     assignableStudents,
     studentsLoading,
     createStudent,
@@ -157,9 +166,14 @@ function AdminStudents() {
     updatingStudent,
     bulkEnrollingStudents,
     assignableStudentsLoading,
-  } = useStudents();
+  } = useStudents(undefined, {
+    studentListParams: {
+      page: currentPage,
+      limit: pageSize,
+      search: searchTerm.trim() || undefined,
+    },
+  });
 
-  const [searchTerm, setSearchTerm] = useState("");
   const [isStudentDrawerOpen, setIsStudentDrawerOpen] = useState(false);
   const [isAssignmentDrawerOpen, setIsAssignmentDrawerOpen] = useState(false);
   const [studentDrawerMode, setStudentDrawerMode] = useState<StudentDrawerMode>("create");
@@ -206,20 +220,15 @@ function AdminStudents() {
     [groups],
   );
 
-  const assignableStudentIds = useMemo(
-    () => new Set(assignableStudents.map((student) => student.id)),
-    [assignableStudents],
-  );
-
   const studentSelectOptions = useMemo(
     () =>
-      students.map((student) => ({
+      assignableStudents.map((student) => ({
         value: student.id,
         label: student.full_name,
         student,
-        isDisabled: !assignableStudentIds.has(student.id),
+        isDisabled: false,
       })),
-    [assignableStudentIds, students],
+    [assignableStudents],
   );
 
   useEffect(() => {
@@ -232,20 +241,11 @@ function AdminStudents() {
     }
   }, [activeGroups, selectedAssignmentGroupId, setAssignmentValue]);
 
-  const filteredStudents = useMemo(() => {
-    const term = searchTerm.trim().toLowerCase();
-    if (!term) return students;
-    return students.filter((student) =>
-      [
-        student.full_name,
-        student.email,
-        student.phone,
-        student.student_profile?.parent_phone,
-      ]
-        .filter(Boolean)
-        .some((value) => value?.toLowerCase().includes(term)),
-    );
-  }, [searchTerm, students]);
+  useEffect(() => {
+    if (studentsPage !== currentPage) {
+      setCurrentPage(studentsPage);
+    }
+  }, [studentsPage, currentPage]);
 
   const openCreateStudentDrawer = () => {
     setStudentDrawerMode("create");
@@ -344,11 +344,6 @@ function AdminStudents() {
     setIsAssignmentDrawerOpen(false);
   };
 
-  const totalActiveStudents = useMemo(
-    () => students.filter((student) => student.status === "active").length,
-    [students],
-  );
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
       <div className="max-w-[1800px] mx-auto p-4 lg:p-6 space-y-6">
@@ -380,13 +375,13 @@ function AdminStudents() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <StatCard
                   label="Jami studentlar"
-                  value={students.length}
+                  value={studentsTotal}
                   icon={<HiMiniUsers size={24} />}
                   color="blue"
                 />
                 <StatCard
                   label="Faol studentlar"
-                  value={totalActiveStudents}
+                  value={activeStudentsTotal}
                   icon={<HiMiniCheckBadge size={24} />}
                   color="emerald"
                 />
@@ -460,7 +455,10 @@ function AdminStudents() {
                 type="text"
                 placeholder="Ism, email yoki telefon bo'yicha qidirish..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(event) => {
+                  setSearchTerm(event.target.value);
+                  setCurrentPage(1);
+                }}
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all"
               />
             </div>
@@ -472,14 +470,14 @@ function AdminStudents() {
             description="Barcha studentlar, kontaktlar, Telegram holati va profil tafsilotlari bir joyda."
             summary={
               <>
-                <PremiumBadge tone="sky">{filteredStudents.length} ta natija</PremiumBadge>
-                <PremiumBadge tone="emerald">{totalActiveStudents} ta faol</PremiumBadge>
+                <PremiumBadge tone="sky">{studentsTotal} ta natija</PremiumBadge>
+                <PremiumBadge tone="emerald">{activeStudentsTotal} ta faol</PremiumBadge>
               </>
             }
           >
             {studentsLoading ? (
               <TableSkeleton columns={7} rows={5} />
-            ) : filteredStudents.length === 0 ? (
+            ) : students.length === 0 ? (
               <div className="p-12 text-center">
                 <HiMiniUsers size={64} className="mx-auto text-slate-300" />
                 <h3 className="text-lg font-semibold text-slate-700 mt-3">
@@ -504,7 +502,7 @@ function AdminStudents() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredStudents.map((student, idx) => (
+                    {students.map((student, idx) => (
                       <StudentRow
                         key={student.id}
                         student={student}
@@ -520,6 +518,60 @@ function AdminStudents() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            )}
+
+            {!studentsLoading && studentsTotal > 0 && (
+              <div className="border-t border-slate-200 px-4 py-4 sm:px-6">
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <div className="flex items-center gap-2 text-sm text-slate-600">
+                    <span>Sahifadagi yozuvlar:</span>
+                    <select
+                      value={pageSize}
+                      onChange={(event) => {
+                        setPageSize(Number(event.target.value));
+                        setCurrentPage(1);
+                      }}
+                      className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm font-medium text-slate-700 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                    >
+                      <option value={10}>10 ta</option>
+                      <option value={20}>20 ta</option>
+                      <option value={30}>30 ta</option>
+                    </select>
+                    <span className="text-slate-400">Jami: {studentsTotal}</span>
+                  </div>
+
+                  <Pagination
+                    count={Math.max(studentsPages, 1)}
+                    page={studentsPage}
+                    onChange={(_, page) => setCurrentPage(page)}
+                    shape="rounded"
+                    color="primary"
+                    siblingCount={1}
+                    boundaryCount={1}
+                    renderItem={(item) => (
+                      <PaginationItem
+                        {...item}
+                        slots={{ previous: undefined, next: undefined }}
+                      />
+                    )}
+                    sx={{
+                      "& .MuiPaginationItem-root": {
+                        borderRadius: "10px",
+                        fontWeight: 700,
+                        minWidth: 36,
+                        height: 36,
+                      },
+                      "& .MuiPaginationItem-root.Mui-selected": {
+                        backgroundColor: "#2563eb",
+                        color: "#fff",
+                      },
+                      "& .MuiPaginationItem-root.Mui-selected:hover": {
+                        backgroundColor: "#1d4ed8",
+                      },
+                    }}
+                  />
+                </div>
               </div>
             )}
           </PremiumTable>

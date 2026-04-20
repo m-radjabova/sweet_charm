@@ -1,10 +1,62 @@
 import apiClient from "../apiClient/apiClient";
-import type { Enrollment, StudentDetail, UserRole, UserStatus } from "../types/types";
+import type {
+  Enrollment,
+  PaginatedResult,
+  StudentDetail,
+  UserRole,
+  UserStatus,
+} from "../types/types";
 
-export async function listStudents(params?: { unassignedOnly?: boolean }) {
-  const { data } = await apiClient.get<StudentDetail[]>("/students/", {
-    params: params?.unassignedOnly ? { unassigned_only: true } : undefined,
+export type ListStudentsParams = {
+  unassignedOnly?: boolean;
+  page?: number;
+  limit?: number;
+  search?: string;
+};
+
+export async function listStudents(params?: ListStudentsParams) {
+  const { data } = await apiClient.get<PaginatedResult<StudentDetail> | StudentDetail[]>("/students/", {
+    params: {
+      ...(params?.unassignedOnly ? { unassigned_only: true } : {}),
+      ...(params?.page ? { page: params.page } : {}),
+      ...(params?.limit ? { limit: params.limit } : {}),
+      ...(params?.search ? { search: params.search } : {}),
+    },
   });
+
+  // Backward compatibility: old backend may return a plain array.
+  if (Array.isArray(data)) {
+    const searchTerm = params?.search?.trim().toLowerCase() ?? "";
+    const filtered = searchTerm
+      ? data.filter((student) =>
+          [
+            student.full_name,
+            student.email,
+            student.phone,
+            student.student_profile?.parent_phone,
+          ]
+            .filter(Boolean)
+            .some((value) => value?.toLowerCase().includes(searchTerm)),
+        )
+      : data;
+
+    const limit = Math.max(1, params?.limit ?? 20);
+    const total = filtered.length;
+    const pages = Math.max(1, Math.ceil(total / limit));
+    const page = Math.min(Math.max(params?.page ?? 1, 1), pages);
+    const startIndex = (page - 1) * limit;
+    const items = filtered.slice(startIndex, startIndex + limit);
+
+    return {
+      items,
+      total,
+      active_total: filtered.filter((student) => student.status === "active").length,
+      page,
+      limit,
+      pages,
+    } satisfies PaginatedResult<StudentDetail>;
+  }
+
   return data;
 }
 
@@ -52,14 +104,17 @@ export async function updateStudent(userId: string, payload: StudentUpdatePayloa
     apiClient.patch(`/students/${userId}/profile`, payload.profile),
   ]);
 
-  const { data } = await apiClient.get<StudentDetail[]>("/students/");
-  const updatedStudent = data.find((student) => student.id === userId);
-
-  if (!updatedStudent) {
-    throw new Error("Yangilangan student topilmadi");
+  try {
+    const { data: updatedStudent } = await apiClient.get<StudentDetail>(`/students/${userId}`);
+    return updatedStudent;
+  } catch {
+    const fallbackList = await listStudents({ page: 1, limit: 10000 });
+    const updatedStudent = fallbackList.items.find((student) => student.id === userId);
+    if (!updatedStudent) {
+      throw new Error("Yangilangan student topilmadi");
+    }
+    return updatedStudent;
   }
-
-  return updatedStudent;
 }
 
 export async function listGroupEnrollments(groupId: string) {

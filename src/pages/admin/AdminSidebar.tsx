@@ -16,12 +16,42 @@ import useContextPro from "../../hooks/useContextPro";
 
 const menuItems = [
   { label: "Dashboard", icon: HiMiniHome, to: "/admin", roles: ["admin"] },
-  { label: "Studentlar", icon: HiMiniUsers, to: "/admin/students", roles: ["admin"] },
-  { label: "O'qituvchilar", icon: HiMiniUserGroup, to: "/admin/teachers", roles: ["admin"] },
-  { label: "Guruhlar", icon: HiMiniRectangleStack, to: "/admin/groups", roles: ["admin", "teacher"] },
-  { label: "Kurslar", icon: HiMiniSquares2X2, to: "/admin/courses", roles: ["admin"] },
-  { label: "To'lovlar", icon: HiMiniCreditCard, to: "/admin/payments", roles: ["admin"] },
-  { label: "Sozlamalar", icon: HiMiniCog6Tooth, to: "/admin/settings", roles: ["admin", "teacher"] },
+  {
+    label: "Studentlar",
+    icon: HiMiniUsers,
+    to: "/admin/students",
+    roles: ["admin"],
+  },
+  {
+    label: "O'qituvchilar",
+    icon: HiMiniUserGroup,
+    to: "/admin/teachers",
+    roles: ["admin"],
+  },
+  {
+    label: "Guruhlar",
+    icon: HiMiniRectangleStack,
+    to: "/admin/groups",
+    roles: ["admin", "teacher"],
+  },
+  {
+    label: "Kurslar",
+    icon: HiMiniSquares2X2,
+    to: "/admin/courses",
+    roles: ["admin"],
+  },
+  {
+    label: "To'lovlar",
+    icon: HiMiniCreditCard,
+    to: "/admin/payments",
+    roles: ["admin"],
+  },
+  {
+    label: "Sozlamalar",
+    icon: HiMiniCog6Tooth,
+    to: "/admin/settings",
+    roles: ["admin", "teacher"],
+  },
 ];
 
 function AdminSidebar() {
@@ -31,7 +61,9 @@ function AdminSidebar() {
     state: { user },
   } = useContextPro();
   const role = user?.role ?? "admin";
-  const visibleMenuItems = menuItems.filter((item) => item.roles.includes(role));
+  const visibleMenuItems = menuItems.filter((item) =>
+    item.roles.includes(role),
+  );
 
   return (
     <aside
@@ -90,7 +122,7 @@ function AdminSidebar() {
                     collapsed ? "justify-center" : "gap-3"
                   } ${
                     isActive
-                      ? "bg-amber-300 text-slate-950 shadow-lg shadow-amber-400/20"
+                      ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/30"
                       : "text-slate-300 hover:bg-white/5 hover:text-white"
                   }`
                 }

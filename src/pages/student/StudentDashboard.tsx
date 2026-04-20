@@ -39,15 +39,55 @@ export default function StudentDashboard() {
       : 0;
 
   if (loading) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center px-4">
-        <div className="rounded-[32px] border border-emerald-100 bg-white/80 px-8 py-10 text-center shadow-xl">
-          <p className="text-lg font-bold text-slate-900">Student panel yuklanmoqda...</p>
-          <p className="mt-2 text-sm text-slate-500">Guruh, dars va to'lov ma'lumotlari tayyorlanmoqda</p>
+  return (
+    <div className="flex min-h-[60vh] items-center justify-center px-4">
+      <div className="relative rounded-2xl bg-white/90 p-8 shadow-2xl backdrop-blur-sm">
+        {/* Dekorativ elementlar */}
+        <div className="absolute -top-3 -right-3 h-20 w-20 rounded-full bg-emerald-500/20 blur-2xl" />
+        <div className="absolute -bottom-3 -left-3 h-20 w-20 rounded-full bg-sky-500/20 blur-2xl" />
+        
+        <div className="relative flex flex-col items-center gap-5">
+          {/* Spinner */}
+          <div className="relative">
+            <div className="h-16 w-16 rounded-full border-4 border-emerald-100" />
+            <div className="absolute top-0 left-0 h-16 w-16 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent" />
+            <div className="absolute top-1/2 left-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2">
+              <svg className="h-full w-full text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+            </div>
+          </div>
+
+          {/* Matn */}
+          <div className="text-center">
+            <h3 className="text-xl font-bold bg-gradient-to-r from-emerald-700 to-emerald-500 bg-clip-text text-transparent">
+              Student panel yuklanmoqda
+            </h3>
+            <p className="mt-2 text-sm text-slate-500">
+              Guruh, dars va to'lov ma'lumotlari tayyorlanmoqda
+            </p>
+          </div>
+
+          {/* Loading progress barlar (animatsiyali) */}
+          <div className="mt-2 w-64 space-y-2">
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-emerald-100">
+              <div className="h-full w-1/3 animate-[loading_1.5s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400" />
+            </div>
+            <div className="flex justify-center gap-1">
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="h-1 w-6 animate-pulse rounded-full bg-emerald-200"
+                  style={{ animationDelay: `${i * 0.2}s` }}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
   return (
     <div className="mx-auto max-w-[1700px] space-y-6 p-4 pb-8 lg:p-6">

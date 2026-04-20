@@ -33,14 +33,20 @@ function SidebarContent({
 
   return (
     <div className="flex h-full flex-col bg-[linear-gradient(180deg,#0f2f2c_0%,#0b1f29_55%,#07141f_100%)] p-3 text-white">
-      <div className={`mb-6 flex items-center ${collapsed ? "justify-center" : "justify-between"}`}>
+      <div
+        className={`mb-6 flex items-center ${collapsed ? "justify-center" : "justify-between"}`}
+      >
         {!collapsed && (
           <div className="overflow-hidden">
             <p className="text-[11px] uppercase tracking-[0.35em] text-emerald-200/60">
               Course Center
             </p>
-            <h2 className="mt-2 text-xl font-black text-white">Student Panel</h2>
-            <p className="mt-1 truncate text-xs text-emerald-100/75">{user?.full_name ?? "Student"}</p>
+            <h2 className="mt-2 text-xl font-black text-white">
+              Student Panel
+            </h2>
+            <p className="mt-1 truncate text-xs text-emerald-100/75">
+              {user?.full_name ?? "Student"}
+            </p>
           </div>
         )}
 
@@ -75,13 +81,15 @@ function SidebarContent({
                   collapsed ? "justify-center" : "gap-3"
                 } ${
                   isActive
-                    ? "bg-emerald-300 text-slate-950 shadow-lg shadow-emerald-400/20"
-                    : "text-emerald-50/78 hover:bg-white/8 hover:text-white"
+                    ? "bg-emerald-500/85 text-white shadow-sm shadow-emerald-500/20 ring-1 ring-white/10"
+                    : "text-slate-300/80 hover:bg-white/8 hover:text-slate-100 transition-all duration-200"
                 }`
               }
             >
               <Icon className="shrink-0 text-[22px]" />
-              <span className={collapsed ? "hidden" : "block"}>{item.label}</span>
+              <span className={collapsed ? "hidden" : "block"}>
+                {item.label}
+              </span>
             </NavLink>
           );
 
@@ -128,7 +136,10 @@ export default function StudentSidebar() {
           collapsed ? "w-24" : "w-80"
         }`}
       >
-        <SidebarContent collapsed={collapsed} onToggle={() => setCollapsed((prev) => !prev)} />
+        <SidebarContent
+          collapsed={collapsed}
+          onToggle={() => setCollapsed((prev) => !prev)}
+        />
       </aside>
 
       <Drawer
@@ -154,7 +165,10 @@ export default function StudentSidebar() {
           >
             <HiMiniXMark size={22} />
           </button>
-          <SidebarContent collapsed={false} onToggle={() => setMobileOpen(false)} />
+          <SidebarContent
+            collapsed={false}
+            onToggle={() => setMobileOpen(false)}
+          />
         </div>
       </Drawer>
     </>

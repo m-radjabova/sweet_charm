@@ -134,7 +134,7 @@ function Login() {
             <div className="max-w-2xl">
               <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-semibold backdrop-blur-md">
                 <HiOutlineSparkles className="text-amber-300" />
-                oshqaruv paneli
+                Boshqaruv paneli
               </div>
 
               <h1 className="text-5xl font-black leading-[1.05] tracking-tight xl:text-6xl">

@@ -4,6 +4,7 @@ import {
   bulkEnrollStudents,
   createStudent,
   enrollStudent,
+  type ListStudentsParams,
   listGroupEnrollments,
   listStudents,
   updateStudent,
@@ -18,26 +19,26 @@ import {
   invalidateStudentDependentQueries,
   syncGroupEnrollmentQueries,
 } from "./queryInvalidation";
-import type { StudentDetail } from "../types/types";
-
 type UseStudentsOptions = {
   includeStudentLists?: boolean;
+  studentListParams?: ListStudentsParams;
 };
 
 export default function useStudents(groupId?: string, options?: UseStudentsOptions) {
   const queryClient = useQueryClient();
   const includeStudentLists = options?.includeStudentLists ?? true;
+  const studentListParams = options?.studentListParams ?? { page: 1, limit: 10000 };
   const enrollmentQueryKey = ["group-enrollments", groupId ?? "none"] as const;
 
   const studentsQuery = useQuery({
-    queryKey: ["students"],
-    queryFn: () => listStudents(),
+    queryKey: ["students", studentListParams],
+    queryFn: () => listStudents(studentListParams),
     enabled: includeStudentLists,
   });
 
   const assignableStudentsQuery = useQuery({
     queryKey: ["students", "unassigned-only"],
-    queryFn: () => listStudents({ unassignedOnly: true }),
+    queryFn: () => listStudents({ unassignedOnly: true, page: 1, limit: 10000 }),
     enabled: includeStudentLists,
   });
 
@@ -51,11 +52,6 @@ export default function useStudents(groupId?: string, options?: UseStudentsOptio
     mutationFn: createStudent,
     onSuccess: async (createdStudent) => {
       toast.success("Student yaratildi");
-      queryClient.setQueryData<StudentDetail[]>(["students"], (previous = []) => [createdStudent, ...previous]);
-      queryClient.setQueryData<StudentDetail[]>(
-        ["students", "unassigned-only"],
-        (previous = []) => [createdStudent, ...previous],
-      );
       await invalidateStudentDependentQueries(queryClient, [createdStudent.id]);
     },
     onError: (error) => toast.error(getErrorMessage(error, "Student yaratib bo'lmadi")),
@@ -66,14 +62,6 @@ export default function useStudents(groupId?: string, options?: UseStudentsOptio
       updateStudent(userId, payload),
     onSuccess: async (updatedStudent) => {
       toast.success("Student ma'lumotlari yangilandi");
-      queryClient.setQueryData<StudentDetail[]>(
-        ["students"],
-        (previous = []) => previous.map((student) => (student.id === updatedStudent.id ? updatedStudent : student)),
-      );
-      queryClient.setQueryData<StudentDetail[]>(
-        ["students", "unassigned-only"],
-        (previous = []) => previous.map((student) => (student.id === updatedStudent.id ? updatedStudent : student)),
-      );
       await invalidateStudentDependentQueries(queryClient, [updatedStudent.id]);
     },
     onError: (error) => toast.error(getErrorMessage(error, "Studentni yangilab bo'lmadi")),
@@ -83,10 +71,6 @@ export default function useStudents(groupId?: string, options?: UseStudentsOptio
     mutationFn: enrollStudent,
     onSuccess: async (createdEnrollment, payload) => {
       toast.success("Student guruhga biriktirildi");
-      queryClient.setQueryData<StudentDetail[]>(
-        ["students", "unassigned-only"],
-        (previous = []) => previous.filter((student) => student.id !== payload.student_id),
-      );
       syncGroupEnrollmentQueries(queryClient, payload.group_id, (previous) => [
         createdEnrollment,
         ...previous.filter((enrollment) => enrollment.id !== createdEnrollment.id),
@@ -100,10 +84,6 @@ export default function useStudents(groupId?: string, options?: UseStudentsOptio
     mutationFn: bulkEnrollStudents,
     onSuccess: async (createdEnrollments, payload) => {
       toast.success("Studentlar guruhga biriktirildi");
-      queryClient.setQueryData<StudentDetail[]>(
-        ["students", "unassigned-only"],
-        (previous = []) => previous.filter((student) => !payload.student_ids.includes(student.id)),
-      );
       syncGroupEnrollmentQueries(queryClient, payload.group_id, (previous) => [
         ...createdEnrollments,
         ...previous.filter(
@@ -128,7 +108,7 @@ export default function useStudents(groupId?: string, options?: UseStudentsOptio
       );
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["students", "unassigned-only"], exact: true }),
-        queryClient.invalidateQueries({ queryKey: ["students"], exact: true }),
+        queryClient.invalidateQueries({ queryKey: ["students"] }),
         invalidateStudentDependentQueries(queryClient, [updatedEnrollment.student_id]),
       ]);
     },
@@ -136,8 +116,13 @@ export default function useStudents(groupId?: string, options?: UseStudentsOptio
   });
 
   return {
-    students: studentsQuery.data ?? [],
-    assignableStudents: assignableStudentsQuery.data ?? [],
+    students: studentsQuery.data?.items ?? [],
+    studentsTotal: studentsQuery.data?.total ?? 0,
+    activeStudentsTotal: studentsQuery.data?.active_total ?? 0,
+    studentsPage: studentsQuery.data?.page ?? 1,
+    studentsPages: studentsQuery.data?.pages ?? 1,
+    studentsLimit: studentsQuery.data?.limit ?? studentListParams.limit ?? 20,
+    assignableStudents: assignableStudentsQuery.data?.items ?? [],
     enrollments: enrollmentsQuery.data ?? [],
     loading: studentsQuery.isLoading || assignableStudentsQuery.isLoading || enrollmentsQuery.isLoading,
     studentsLoading: studentsQuery.isLoading,

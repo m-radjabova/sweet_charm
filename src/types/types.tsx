@@ -115,6 +115,15 @@ export interface StudentDetail extends User {
   student_profile?: StudentProfile | null;
 }
 
+export interface PaginatedResult<T> {
+  items: T[];
+  total: number;
+  active_total?: number;
+  page: number;
+  limit: number;
+  pages: number;
+}
+
 export interface TeacherProfile {
   user_id: string;
   specialization: string | null;
