@@ -17,15 +17,23 @@ import {
   HiMiniInformationCircle,
   HiMiniPencilSquare,
   HiMiniPlus,
+  HiMiniTrash,
   HiMiniUser,
   HiMiniUserGroup,
   HiMiniAcademicCap,
   HiMiniXCircle,
   HiMiniXMark,
+  HiCheckCircle,
 } from "react-icons/hi2";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import ConfirmActionDialog from "../../../components/ConfirmActionDialog";
+import {
+  PremiumBadge,
+  PremiumTable,
+  TableSkeleton,
+} from "../../../components/ui/PremiumTable";
+import { RowActionMenu } from "../../../components/ui/RowActionMenu";
 import useAttendance from "../../../hooks/useAttendance";
 import useContextPro from "../../../hooks/useContextPro";
 import useGrades from "../../../hooks/useGrades";
@@ -166,7 +174,11 @@ function AdminGroupStudents() {
     lessons: allLessons,
     createLesson,
     updateLesson,
+    deleteLesson,
     loading: allLessonsLoading,
+    creatingLesson,
+    updatingLesson,
+    deletingLesson,
   } = useLessons({ groupId: groupId || undefined });
 
   const [selectedLessonId, setSelectedLessonId] = useState("");
@@ -180,13 +192,15 @@ function AdminGroupStudents() {
     useState<LessonFormState>(initialLessonForm);
   const [isMonthDrawerOpen, setIsMonthDrawerOpen] = useState(false);
   const [newMonthValue, setNewMonthValue] = useState(() =>
-    new Date().toISOString().slice(0, 7),
+    formatMonthKey(new Date()),
   );
   const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
   const [viewingLesson, setViewingLesson] = useState<Lesson | null>(null);
+  const [lessonToDelete, setLessonToDelete] = useState<Lesson | null>(null);
   const [enrollmentToRemove, setEnrollmentToRemove] =
     useState<Enrollment | null>(null);
-  const todayKey = new Date().toISOString().slice(0, 10);
+  const [isSavingAll, setIsSavingAll] = useState(false);
+  const todayKey = formatDateKey(new Date());
   const currentMonthKey = getMonthKey(todayKey);
   const monthStorageKey = groupId ? `admin-group-months:${groupId}` : "";
   const hasLessonToday = useMemo(
@@ -305,7 +319,7 @@ function AdminGroupStudents() {
     }
   }, [lessons, selectedLessonId]);
 
-  const { attendance, createAttendance } = useAttendance(
+  const { attendance, createAttendance, updateAttendance } = useAttendance(
     selectedLessonId || undefined,
     { successToast: false },
   );
@@ -314,6 +328,9 @@ function AdminGroupStudents() {
     { successToast: false },
   );
   const [drafts, setDrafts] = useState<Record<string, StudentRowDraft>>({});
+  const [attendanceEditingRows, setAttendanceEditingRows] = useState<
+    Record<string, boolean>
+  >({});
 
   const attendanceMap = useMemo(
     () => new Map(attendance.map((item) => [item.student_id, item])),
@@ -338,7 +355,13 @@ function AdminGroupStudents() {
       return;
     }
     const existing = attendanceMap.get(enrollment.student_id);
-    if (existing) return;
+    if (existing) {
+      await updateAttendance(existing.id, {
+        status,
+        note,
+      });
+      return;
+    }
     await createAttendance({
       lesson_id: selectedLessonId,
       enrollment_id: enrollment.id,
@@ -385,8 +408,11 @@ function AdminGroupStudents() {
     attendanceNote: string,
     gradeValue: string,
     gradeNote: string,
+    shouldPersistAttendance: boolean,
   ) => {
-    await saveAttendance(enrollment, attendanceValue, attendanceNote);
+    if (shouldPersistAttendance) {
+      await saveAttendance(enrollment, attendanceValue, attendanceNote);
+    }
     if (gradeValue !== "") {
       await saveGrade(enrollment, gradeValue, gradeNote);
     }
@@ -394,6 +420,7 @@ function AdminGroupStudents() {
 
   useEffect(() => {
     setDrafts({});
+    setAttendanceEditingRows({});
   }, [selectedLessonId]);
 
   const getCurrentDraft = (enrollment: Enrollment) =>
@@ -435,6 +462,29 @@ function AdminGroupStudents() {
     });
   };
 
+  const handleAttendanceEditToggle = (enrollment: Enrollment) => {
+    const isEditing = Boolean(attendanceEditingRows[enrollment.id]);
+
+    if (isEditing) {
+      const initialDraft = getEnrollmentDraft(
+        enrollment,
+        attendanceMap,
+        gradesMap,
+      );
+      handleDraftChange(enrollment, initialDraft);
+      setAttendanceEditingRows((prev) => {
+        const { [enrollment.id]: _removed, ...rest } = prev;
+        return rest;
+      });
+      return;
+    }
+
+    setAttendanceEditingRows((prev) => ({
+      ...prev,
+      [enrollment.id]: true,
+    }));
+  };
+
   const handleSaveAll = async () => {
     if (!selectedLessonId) {
       toast.error("Avval darsni tanlang");
@@ -446,16 +496,41 @@ function AdminGroupStudents() {
       return;
     }
 
-    for (const enrollment of changedEnrollments) {
-      const draft = drafts[enrollment.id];
-      if (!draft) continue;
-      await saveRow(enrollment, draft.attendance, "", draft.grade, draft.note);
-    }
+    setIsSavingAll(true);
+    try {
+      const savedEnrollmentIds: string[] = [];
+      for (const enrollment of changedEnrollments) {
+        const draft = drafts[enrollment.id];
+        if (!draft) continue;
+        const hasSavedAttendance = attendanceMap.has(enrollment.student_id);
+        const shouldPersistAttendance =
+          !hasSavedAttendance || Boolean(attendanceEditingRows[enrollment.id]);
+        await saveRow(
+          enrollment,
+          draft.attendance,
+          "",
+          draft.grade,
+          draft.note,
+          shouldPersistAttendance,
+        );
+        savedEnrollmentIds.push(enrollment.id);
+      }
 
-    setDrafts({});
-    toast.success(
-      `${changedEnrollments.length} ta student uchun ma'lumot saqlandi`,
-    );
+      setDrafts({});
+      setAttendanceEditingRows((prev) => {
+        if (savedEnrollmentIds.length === 0) return prev;
+        const next = { ...prev };
+        savedEnrollmentIds.forEach((enrollmentId) => {
+          delete next[enrollmentId];
+        });
+        return next;
+      });
+      toast.success(
+        `${changedEnrollments.length} ta student uchun ma'lumot saqlandi`,
+      );
+    } finally {
+      setIsSavingAll(false);
+    }
   };
 
   const openCreateLessonDrawer = (monthKey = selectedMonthKey) => {
@@ -471,10 +546,21 @@ function AdminGroupStudents() {
       return;
     }
 
+    const suggestedLessonDate = getSuggestedLessonDate(
+      monthKey,
+      allLessons,
+      todayKey,
+    );
+
+    if (!suggestedLessonDate) {
+      toast.info("Tanlangan oy ichida bo'sh sana qolmagan");
+      return;
+    }
+
     setLessonDrawerMode("create");
     setEditingLessonId(null);
     setLessonForm({
-      lesson_date: getSuggestedLessonDate(monthKey, allLessons, todayKey),
+      lesson_date: suggestedLessonDate,
       topic: "",
       homework: "",
     });
@@ -496,6 +582,17 @@ function AdminGroupStudents() {
   const handleSubmitLesson = async () => {
     if (!groupId || !lessonForm.lesson_date) {
       toast.error("Dars sanasi majburiy");
+      return;
+    }
+
+    const duplicateLesson = allLessons.find(
+      (lesson) =>
+        lesson.lesson_date === lessonForm.lesson_date &&
+        lesson.id !== editingLessonId,
+    );
+
+    if (duplicateLesson) {
+      toast.error("Bir sanaga faqat bitta dars qo'shish mumkin");
       return;
     }
 
@@ -556,6 +653,19 @@ function AdminGroupStudents() {
       max: getMonthEndDate(selectedMonthOption.year, selectedMonthOption.month),
     };
   }, [selectedMonthOption]);
+  const isLessonSubmitting = creatingLesson || updatingLesson;
+  const lessonDateConflict = useMemo(
+    () =>
+      Boolean(lessonForm.lesson_date) &&
+      allLessons.some(
+        (lesson) =>
+          lesson.lesson_date === lessonForm.lesson_date &&
+          lesson.id !== editingLessonId,
+      ),
+    [allLessons, editingLessonId, lessonForm.lesson_date],
+  );
+  const isLessonSubmitDisabled =
+    !lessonForm.lesson_date || lessonDateConflict || isLessonSubmitting;
 
   const visibleEnrollments = useMemo(() => {
     if (!selectedMonthBounds) return enrollments;
@@ -583,6 +693,31 @@ function AdminGroupStudents() {
       left_at: todayKey,
     });
     setEnrollmentToRemove(null);
+  };
+
+  const handleDeleteLesson = async () => {
+    if (!lessonToDelete) return;
+
+    await deleteLesson(lessonToDelete.id);
+
+    if (viewingLesson?.id === lessonToDelete.id) {
+      setViewingLesson(null);
+    }
+
+    if (editingLessonId === lessonToDelete.id) {
+      setIsLessonDrawerOpen(false);
+      setEditingLessonId(null);
+      setLessonForm(initialLessonForm);
+    }
+
+    if (selectedLessonId === lessonToDelete.id) {
+      const fallbackLesson = lessons.find(
+        (lesson) => lesson.id !== lessonToDelete.id,
+      );
+      setSelectedLessonId(fallbackLesson?.id ?? "");
+    }
+
+    setLessonToDelete(null);
   };
 
   const totalStudents = visibleEnrollments.length;
@@ -655,23 +790,17 @@ function AdminGroupStudents() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-          <div className="border-b border-slate-200 p-5 bg-gradient-to-r from-slate-50 to-white">
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-              <div>
-                <p className="text-xs font-bold text-sky-600 uppercase tracking-wider">
-                  LESSON JURNALI
-                </p>
-                <h2 className="text-xl font-black text-slate-900 mt-1">
-                  Dars jurnali
-                </h2>
-                <p className="text-sm text-slate-500 mt-0.5">
-                  Avval oy qo'shing yoki tanlang, keyin shu oy ichida darslarni
-                  boshqaring
-                </p>
-              </div>
-            </div>
-          </div>
+        <PremiumTable
+          eyebrow="LESSON JURNALI"
+          title="Dars jurnali"
+          description="Avval oy qo'shing yoki tanlang, keyin shu oy ichida darslarni va student natijalarini boshqaring."
+          summary={
+            <>
+              <PremiumBadge tone="sky">{totalLessons} ta dars</PremiumBadge>
+              <PremiumBadge tone="emerald">{totalStudents} ta student</PremiumBadge>
+            </>
+          }
+        >
 
           <div className="sticky top-4 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
             <div className="flex flex-col gap-4">
@@ -896,9 +1025,11 @@ function AdminGroupStudents() {
                         lesson={lesson}
                         isActive={lesson.id === selectedLessonId}
                         canEdit={lesson.lesson_date === todayKey}
+                        canDelete={lesson.lesson_date === todayKey}
                         onSelect={() => setSelectedLessonId(lesson.id)}
                         onView={() => setViewingLesson(lesson)}
                         onEdit={() => openEditLessonDrawer(lesson)}
+                        onDelete={() => setLessonToDelete(lesson)}
                       />
                     ))}
                   </div>
@@ -909,8 +1040,8 @@ function AdminGroupStudents() {
 
           <div className="overflow-x-auto bg-white">
             <table className="w-full min-w-[1000px]">
-              <thead className="bg-slate-50 border-b border-slate-200">
-                <tr className="text-left text-slate-500 text-sm">
+              <thead className="border-b border-slate-200 bg-slate-950/[0.035]">
+                <tr className="text-left text-[12px] uppercase tracking-[0.18em] text-slate-500">
                   <th className="px-5 py-4 font-semibold">Student</th>
                   <th className="px-4 py-4 font-semibold">Holati</th>
                   <th className="px-4 py-4 font-semibold">Davomat</th>
@@ -922,13 +1053,8 @@ function AdminGroupStudents() {
               <tbody>
                 {enrollmentsLoading && (
                   <tr>
-                    <td colSpan={6} className="px-4 py-12 text-center">
-                      <div className="flex flex-col items-center gap-2">
-                        <div className="w-8 h-8 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
-                        <p className="text-sm text-slate-500">
-                          Studentlar yuklanmoqda...
-                        </p>
-                      </div>
+                    <td colSpan={6} className="p-0">
+                      <TableSkeleton columns={6} rows={4} />
                     </td>
                   </tr>
                 )}
@@ -962,6 +1088,9 @@ function AdminGroupStudents() {
                           attendanceLocked={attendanceMap.has(
                             enrollment.student_id,
                           )}
+                          attendanceEditing={Boolean(
+                            attendanceEditingRows[enrollment.id],
+                          )}
                           gradeLocked={gradesMap.has(enrollment.student_id)}
                           gradeValue={draft.grade}
                           gradeNote={draft.note}
@@ -970,6 +1099,9 @@ function AdminGroupStudents() {
                           canRemove={!isTeacher}
                           onChange={(nextDraft) =>
                             handleDraftChange(enrollment, nextDraft)
+                          }
+                          onToggleAttendanceEdit={() =>
+                            handleAttendanceEditToggle(enrollment)
                           }
                           onRemoveStudent={() =>
                             setEnrollmentToRemove(enrollment)
@@ -995,7 +1127,11 @@ function AdminGroupStudents() {
                 </p>
               </div>
               <Button
-                disabled={!selectedLessonId || changedEnrollments.length === 0}
+                disabled={
+                  !selectedLessonId ||
+                  changedEnrollments.length === 0 ||
+                  isSavingAll
+                }
                 onClick={handleSaveAll}
                 sx={{
                   borderRadius: "12px",
@@ -1008,11 +1144,11 @@ function AdminGroupStudents() {
                   "&.Mui-disabled": { bgcolor: "#cbd5e1", color: "#94a3b8" },
                 }}
               >
-                Hammasini saqlash
+                {isSavingAll ? "Saqlanmoqda..." : "Hammasini saqlash"}
               </Button>
             </div>
           </div>
-        </div>
+        </PremiumTable>
       </div>
 
       <LessonDrawer
@@ -1028,9 +1164,12 @@ function AdminGroupStudents() {
             : ""
         }
         dateBounds={lessonDrawerMode === "create" ? selectedMonthBounds : null}
+        dateConflict={lessonDateConflict}
         onChange={setLessonForm}
         onClose={() => setIsLessonDrawerOpen(false)}
         onSubmit={handleSubmitLesson}
+        isSubmitting={isLessonSubmitting}
+        submitDisabled={isLessonSubmitDisabled}
       />
 
       <MonthDrawer
@@ -1046,10 +1185,12 @@ function AdminGroupStudents() {
         lesson={viewingLesson}
         onClose={() => setViewingLesson(null)}
         canEdit={viewingLesson?.lesson_date === todayKey}
+        canDelete={viewingLesson?.lesson_date === todayKey}
         onEdit={(lesson) => {
           setViewingLesson(null);
           openEditLessonDrawer(lesson);
         }}
+        onDelete={(lesson) => setLessonToDelete(lesson)}
       />
 
       {!isTeacher && (
@@ -1069,6 +1210,22 @@ function AdminGroupStudents() {
           onConfirm={handleRemoveEnrollment}
         />
       )}
+
+      <ConfirmActionDialog
+        open={Boolean(lessonToDelete)}
+        title="Darsni o'chirish"
+        description={
+          lessonToDelete
+            ? `${lessonToDelete.lesson_number}-darsni o'chirmoqchimisiz? Bu amalni ortga qaytarib bo'lmaydi.`
+            : ""
+        }
+        confirmText="Ha, o'chirish"
+        cancelText="Yo'q"
+        loading={deletingLesson}
+        tone="danger"
+        onClose={() => setLessonToDelete(null)}
+        onConfirm={handleDeleteLesson}
+      />
     </div>
   );
 }
@@ -1119,16 +1276,20 @@ function LessonCompactCard({
   lesson,
   isActive,
   canEdit,
+  canDelete,
   onSelect,
   onView,
   onEdit,
+  onDelete,
 }: {
   lesson: Lesson;
   isActive: boolean;
   canEdit: boolean;
+  canDelete: boolean;
   onSelect: () => void;
   onView: () => void;
   onEdit: () => void;
+  onDelete: () => void;
 }) {
   return (
     <div
@@ -1148,15 +1309,13 @@ function LessonCompactCard({
           className="min-w-0 flex-1 text-left"
         >
           <div className="mb-2 flex items-center gap-2">
-            <span
-              className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${isActive ? "bg-sky-100 text-sky-700" : "bg-slate-100 text-slate-600"}`}
-            >
+            <PremiumBadge tone={isActive ? "sky" : "slate"}>
               {lesson.lesson_number}-dars
-            </span>
+            </PremiumBadge>
             {isActive && (
-              <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700">
-                Tanlangan
-              </span>
+              <PremiumBadge tone="emerald">
+                <HiCheckCircle size={12} />
+              </PremiumBadge>
             )}
           </div>
           <p
@@ -1184,19 +1343,23 @@ function LessonCompactCard({
           >
             <HiMiniEye size={14} />
           </IconButton>
-          <IconButton
-            size="small"
-            onClick={onEdit}
-            disabled={!canEdit}
-            sx={{
-              border: "1px solid #dbeafe",
-              borderRadius: "12px",
-              padding: "6px",
-              backgroundColor: isActive ? "#eff6ff" : "#ffffff",
-            }}
-          >
-            <HiMiniPencilSquare size={14} />
-          </IconButton>
+          <RowActionMenu
+            items={[
+              {
+                label: "Tahrirlash",
+                onClick: onEdit,
+                icon: <HiMiniPencilSquare size={16} />,
+                disabled: !canEdit,
+              },
+              {
+                label: "O'chirish",
+                onClick: onDelete,
+                icon: <HiMiniTrash size={16} />,
+                disabled: !canDelete,
+                danger: true,
+              },
+            ]}
+          />
         </div>
       </div>
     </div>
@@ -1209,18 +1372,24 @@ function LessonDrawer({
   value,
   selectedMonthLabel,
   dateBounds,
+  dateConflict,
   onChange,
   onClose,
   onSubmit,
+  isSubmitting,
+  submitDisabled,
 }: {
   open: boolean;
   mode: "create" | "edit";
   value: LessonFormState;
   selectedMonthLabel: string;
   dateBounds: { min: string; max: string } | null;
+  dateConflict: boolean;
   onChange: (value: LessonFormState) => void;
   onClose: () => void;
   onSubmit: () => Promise<void>;
+  isSubmitting: boolean;
+  submitDisabled: boolean;
 }) {
   const title = mode === "edit" ? "Darsni tahrirlash" : "Yangi dars qo'shish";
   const subtitle =
@@ -1271,7 +1440,7 @@ function LessonDrawer({
               type="date"
               fullWidth
               value={value.lesson_date}
-              disabled={mode === "edit"}
+              disabled={mode === "edit" || isSubmitting}
               onChange={(e) =>
                 onChange({ ...value, lesson_date: e.target.value })
               }
@@ -1280,10 +1449,13 @@ function LessonDrawer({
                   ? { htmlInput: { min: dateBounds.min, max: dateBounds.max } }
                   : undefined
               }
+              error={dateConflict}
               helperText={
-                mode === "create" && selectedMonthLabel
-                  ? `${selectedMonthLabel} ichidan sana tanlang`
-                  : ""
+                dateConflict
+                  ? "Bu sana uchun dars allaqachon mavjud"
+                  : mode === "create" && selectedMonthLabel
+                    ? `${selectedMonthLabel} ichidan sana tanlang`
+                    : ""
               }
               sx={{
                 "& .MuiOutlinedInput-root": {
@@ -1302,6 +1474,7 @@ function LessonDrawer({
               label="Mavzu"
               fullWidth
               value={value.topic}
+              disabled={isSubmitting}
               onChange={(e) => onChange({ ...value, topic: e.target.value })}
               placeholder="Dars mavzusini kiriting"
               sx={{
@@ -1318,6 +1491,7 @@ function LessonDrawer({
               multiline
               rows={4}
               value={value.homework}
+              disabled={isSubmitting}
               onChange={(e) => onChange({ ...value, homework: e.target.value })}
               placeholder="Uyga vazifani kiriting"
               sx={{
@@ -1338,6 +1512,7 @@ function LessonDrawer({
               <Button
                 variant="contained"
                 onClick={onSubmit}
+                disabled={submitDisabled}
                 fullWidth
                 sx={{
                   borderRadius: "14px",
@@ -1348,11 +1523,16 @@ function LessonDrawer({
                   "&:hover": { bgcolor: "#0284c7" },
                 }}
               >
-                {mode === "edit" ? "Yangilash" : "Darsni saqlash"}
+                {isSubmitting
+                  ? "Saqlanmoqda..."
+                  : mode === "edit"
+                    ? "Yangilash"
+                    : "Darsni saqlash"}
               </Button>
               <Button
                 variant="outlined"
                 onClick={onClose}
+                disabled={isSubmitting}
                 sx={{
                   borderRadius: "14px",
                   px: 4,
@@ -1484,12 +1664,16 @@ function LessonViewDrawer({
   lesson,
   onClose,
   canEdit,
+  canDelete,
   onEdit,
+  onDelete,
 }: {
   lesson: Lesson | null;
   onClose: () => void;
   canEdit: boolean;
+  canDelete: boolean;
   onEdit: (lesson: Lesson) => void;
+  onDelete: (lesson: Lesson) => void;
 }) {
   return (
     <Drawer
@@ -1564,7 +1748,7 @@ function LessonViewDrawer({
                     onClick={() => onEdit(lesson)}
                     startIcon={<HiMiniPencilSquare />}
                     fullWidth
-                    sx={{
+                  sx={{
                       borderRadius: "14px",
                       py: 1.5,
                       textTransform: "none",
@@ -1576,10 +1760,28 @@ function LessonViewDrawer({
                     Tahrirlash
                   </Button>
                 )}
+                {canDelete && (
+                  <Button
+                    variant="contained"
+                    onClick={() => onDelete(lesson)}
+                    startIcon={<HiMiniTrash />}
+                    fullWidth
+                    sx={{
+                      borderRadius: "14px",
+                      py: 1.5,
+                      textTransform: "none",
+                      fontWeight: 700,
+                      bgcolor: "#e11d48",
+                      "&:hover": { bgcolor: "#be123c" },
+                    }}
+                  >
+                    O'chirish
+                  </Button>
+                )}
                 <Button
                   variant="outlined"
                   onClick={onClose}
-                  fullWidth={!canEdit}
+                  fullWidth={!canEdit && !canDelete}
                   sx={{
                     borderRadius: "14px",
                     px: 4,
@@ -1603,6 +1805,7 @@ function StudentRow({
   attendanceValue,
   attendanceTouched,
   attendanceLocked,
+  attendanceEditing,
   gradeLocked,
   gradeValue,
   gradeNote,
@@ -1610,12 +1813,14 @@ function StudentRow({
   disabled,
   canRemove,
   onChange,
+  onToggleAttendanceEdit,
   onRemoveStudent,
 }: {
   enrollment: Enrollment;
   attendanceValue: AttendanceStatus;
   attendanceTouched: boolean;
   attendanceLocked: boolean;
+  attendanceEditing: boolean;
   gradeLocked: boolean;
   gradeValue: string;
   gradeNote: string;
@@ -1623,9 +1828,12 @@ function StudentRow({
   disabled: boolean;
   canRemove: boolean;
   onChange: (draft: StudentRowDraft) => void;
+  onToggleAttendanceEdit: () => void;
   onRemoveStudent: () => void;
 }) {
   const hasSavedData = attendanceLocked || gradeLocked;
+  const canEditAttendance = attendanceLocked && !disabled;
+  const isAttendanceReadOnly = attendanceLocked && !attendanceEditing;
 
   const statusInfo = enrollmentStatusLabels[enrollment.status] || {
     label: enrollment.status,
@@ -1633,11 +1841,11 @@ function StudentRow({
   };
   const canRemoveStudent = canRemove && enrollment.status !== "left";
   const presentSelected =
-    attendanceLocked || attendanceTouched
+    isAttendanceReadOnly || attendanceTouched || attendanceEditing
       ? attendanceValue === "present"
       : false;
   const absentSelected =
-    attendanceLocked || attendanceTouched
+    isAttendanceReadOnly || attendanceTouched || attendanceEditing
       ? attendanceValue === "absent"
       : false;
 
@@ -1674,7 +1882,7 @@ function StudentRow({
       </td>
 
       <td className="px-4 py-4">
-        {attendanceLocked ? (
+        {isAttendanceReadOnly ? (
           <div
             className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl ${attendanceValue === "present" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}
           >
@@ -1793,20 +2001,36 @@ function StudentRow({
               <span className="text-xs">Saqlangan</span>
             </div>
           )}
-          {canRemoveStudent && (
-            <IconButton
-              onClick={onRemoveStudent}
-              size="small"
-              sx={{
-                border: "1px solid #fecdd3",
-                borderRadius: "12px",
-                color: "#e11d48",
-                bgcolor: "#fff1f2",
-                "&:hover": { bgcolor: "#ffe4e6" },
-              }}
-            >
-              <HiMiniXMark size={16} />
-            </IconButton>
+          {(canEditAttendance || canRemoveStudent) && (
+            <RowActionMenu
+              items={[
+                ...(canEditAttendance
+                  ? [
+                      {
+                        label: attendanceEditing
+                          ? "Davomat tahririni bekor qilish"
+                          : "Davomatni tahrirlash",
+                        onClick: onToggleAttendanceEdit,
+                        icon: attendanceEditing ? (
+                          <HiMiniXMark size={16} />
+                        ) : (
+                          <HiMiniPencilSquare size={16} />
+                        ),
+                      },
+                    ]
+                  : []),
+                ...(canRemoveStudent
+                  ? [
+                      {
+                        label: "Studentni chiqarish",
+                        onClick: onRemoveStudent,
+                        icon: <HiMiniXMark size={16} />,
+                        danger: true,
+                      },
+                    ]
+                  : []),
+              ]}
+            />
           )}
         </div>
       </td>
@@ -1830,8 +2054,7 @@ function isEnrollmentVisibleInRange(
 }
 
 function getMonthKey(date: string) {
-  const lessonDate = new Date(date);
-  return `${lessonDate.getFullYear()}-${String(lessonDate.getMonth() + 1).padStart(2, "0")}`;
+  return date.slice(0, 7);
 }
 
 function parseMonthKey(monthKey: string) {
@@ -1849,7 +2072,7 @@ function isValidMonthKey(value: string) {
 }
 
 function getMonthEndDate(year: number, month: number) {
-  return new Date(year, month, 0).toISOString().slice(0, 10);
+  return formatDateKey(new Date(year, month, 0));
 }
 
 function getNextMonthKey(monthKey: string) {
@@ -1879,26 +2102,31 @@ function getSuggestedLessonDate(
     return monthKey === getMonthKey(todayKey) ? todayKey : `${monthKey}-01`;
   }
 
-  const lastLessonDate = monthLessons[monthLessons.length - 1].lesson_date;
-  const candidateDate = new Date(lastLessonDate);
-  candidateDate.setDate(candidateDate.getDate() + 1);
-  const nextDate = candidateDate.toISOString().slice(0, 10);
+  const occupiedDates = new Set(monthLessons.map((lesson) => lesson.lesson_date));
+  const [year, month] = monthKey.split("-").map(Number);
+  const monthStartDay =
+    monthKey === getMonthKey(todayKey) ? Number(todayKey.slice(8, 10)) : 1;
+  const monthEndDay = new Date(year, month, 0).getDate();
 
-  if (
-    getMonthKey(nextDate) === monthKey &&
-    !monthLessons.some((lesson) => lesson.lesson_date === nextDate)
-  ) {
-    return nextDate;
+  for (let day = monthStartDay; day <= monthEndDay; day += 1) {
+    const candidateDate = `${monthKey}-${String(day).padStart(2, "0")}`;
+    if (!occupiedDates.has(candidateDate)) {
+      return candidateDate;
+    }
   }
 
-  if (
-    monthKey === getMonthKey(todayKey) &&
-    !monthLessons.some((lesson) => lesson.lesson_date === todayKey)
-  ) {
-    return todayKey;
-  }
+  return "";
+}
 
-  return lastLessonDate;
+function formatDateKey(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function formatMonthKey(date: Date) {
+  return formatDateKey(date).slice(0, 7);
 }
 
 function truncateText(value: string, limit: number) {

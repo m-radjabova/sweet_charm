@@ -5,7 +5,6 @@ import { z } from "zod";
 import {
   Button,
   MenuItem,
-  Skeleton,
   TextField,
   Drawer,
   IconButton,
@@ -33,6 +32,8 @@ import {
   HiMiniPencilSquare,
 } from "react-icons/hi2";
 import Select from "react-select";
+import { PremiumBadge, PremiumTable, TableSkeleton } from "../../../components/ui/PremiumTable";
+import { RowActionMenu } from "../../../components/ui/RowActionMenu";
 import useContextPro from "../../../hooks/useContextPro";
 import useGroups from "../../../hooks/useGroups";
 import useStudents from "../../../hooks/useStudents";
@@ -465,18 +466,19 @@ function AdminStudents() {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          <PremiumTable
+            eyebrow="STUDENT REESTRI"
+            title="Studentlar ro'yxati"
+            description="Barcha studentlar, kontaktlar, Telegram holati va profil tafsilotlari bir joyda."
+            summary={
+              <>
+                <PremiumBadge tone="sky">{filteredStudents.length} ta natija</PremiumBadge>
+                <PremiumBadge tone="emerald">{totalActiveStudents} ta faol</PremiumBadge>
+              </>
+            }
+          >
             {studentsLoading ? (
-              <div className="p-6 space-y-3">
-                {[1, 2, 3, 4].map((i) => (
-                  <Skeleton
-                    key={i}
-                    variant="rounded"
-                    height={80}
-                    className="rounded-xl"
-                  />
-                ))}
-              </div>
+              <TableSkeleton columns={7} rows={5} />
             ) : filteredStudents.length === 0 ? (
               <div className="p-12 text-center">
                 <HiMiniUsers size={64} className="mx-auto text-slate-300" />
@@ -490,8 +492,8 @@ function AdminStudents() {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[1000px]">
-                  <thead className="bg-slate-50 border-b border-slate-200">
-                    <tr className="text-left text-slate-500 text-sm">
+                  <thead className="border-b border-slate-200 bg-slate-950/[0.035] backdrop-blur">
+                    <tr className="text-left text-[12px] uppercase tracking-[0.18em] text-slate-500">
                       <th className="px-6 py-4 font-semibold">Student</th>
                       <th className="px-4 py-4 font-semibold">Kontakt</th>
                       <th className="px-4 py-4 font-semibold">Holat</th>
@@ -520,7 +522,7 @@ function AdminStudents() {
                 </table>
               </div>
             )}
-          </div>
+          </PremiumTable>
         </div>
       </div>
 
@@ -1344,7 +1346,7 @@ function StudentRow({
 
   return (
     <tr
-      className={`border-b border-slate-100 hover:bg-blue-50/30 transition-all ${index % 2 === 0 ? "bg-white" : "bg-slate-50/30"}`}
+      className={`border-b border-slate-100/80 transition-all duration-200 hover:bg-[linear-gradient(90deg,rgba(239,246,255,0.72),rgba(255,255,255,0.96))] ${index % 2 === 0 ? "bg-white" : "bg-slate-50/40"}`}
     >
       <td className="px-6 py-4">
         <div className="flex items-center gap-3">
@@ -1382,29 +1384,21 @@ function StudentRow({
         </div>
       </td>
       <td className="px-4 py-4">
-        <span
-          className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${student.status === "active" ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"}`}
-        >
+        <PremiumBadge tone={student.status === "active" ? "emerald" : "slate"}>
           {student.status === "active" ? (
             <HiMiniCheckCircle size={12} />
           ) : (
             <HiMiniXCircle size={12} />
           )}
           {student.status === "active" ? "Faol" : "Nofaol"}
-        </span>
+        </PremiumBadge>
       </td>
       <td className="px-4 py-4">
         <div className="space-y-2">
-          <span
-            className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold ${
-              isTelegramConnected
-                ? "bg-sky-100 text-sky-700"
-                : "bg-amber-100 text-amber-700"
-            }`}
-          >
+          <PremiumBadge tone={isTelegramConnected ? "sky" : "amber"}>
             <HiMiniChatBubbleLeftRight size={12} />
             {isTelegramConnected ? "Bot ulangan" : "Ulanmagan"}
-          </span>
+          </PremiumBadge>
           <p className="text-xs text-slate-500">
             {student.student_profile?.telegram_username
               ? `@${student.student_profile.telegram_username}`
@@ -1414,21 +1408,15 @@ function StudentRow({
       </td>
       <td className="px-4 py-4">
         <div className="flex gap-1 flex-wrap">
-          <span
-            className={`px-2 py-1 rounded-lg text-xs font-medium ${hasParentPhone ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}
-          >
+          <PremiumBadge tone={hasParentPhone ? "emerald" : "amber"}>
             {hasParentPhone ? "Kontakt to'liq" : "Kontakt kiritilmagan"}
-          </span>
-          <span
-            className={`px-2 py-1 rounded-lg text-xs font-medium ${hasNotes ? "bg-blue-100 text-blue-700" : "bg-slate-100 text-slate-600"}`}
-          >
+          </PremiumBadge>
+          <PremiumBadge tone={hasNotes ? "sky" : "slate"}>
             {hasNotes ? "Izoh bor" : "Izoh yo'q"}
-          </span>
-          <span
-            className={`px-2 py-1 rounded-lg text-xs font-medium ${hasExtraInfo ? "bg-purple-100 text-purple-700" : "bg-slate-100 text-slate-600"}`}
-          >
+          </PremiumBadge>
+          <PremiumBadge tone={hasExtraInfo ? "violet" : "slate"}>
             {hasExtraInfo ? "Qo'shimcha bor" : "Qo'shimcha yo'q"}
-          </span>
+          </PremiumBadge>
         </div>
       </td>
       <td className="px-4 py-4 max-w-xs">
@@ -1444,23 +1432,21 @@ function StudentRow({
         )}
       </td>
       <td className="px-4 py-4">
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={onEdit}
-            className="inline-flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700 transition hover:border-amber-300 hover:bg-amber-100"
-          >
-            <HiMiniPencilSquare size={14} />
-            Edit
-          </button>
-          <button
-            type="button"
-            onClick={onOpenTelegram}
-            className="inline-flex items-center gap-2 rounded-xl border border-sky-200 bg-sky-50 px-3 py-2 text-xs font-semibold text-sky-700 transition hover:border-sky-300 hover:bg-sky-100"
-          >
-            <HiMiniPaperAirplane size={14} />
-            Telegram
-          </button>
+        <div className="flex justify-end">
+          <RowActionMenu
+            items={[
+              {
+                label: "Tahrirlash",
+                onClick: onEdit,
+                icon: <HiMiniPencilSquare size={16} />,
+              },
+              {
+                label: "Telegram",
+                onClick: onOpenTelegram,
+                icon: <HiMiniPaperAirplane size={16} />,
+              },
+            ]}
+          />
         </div>
       </td>
     </tr>

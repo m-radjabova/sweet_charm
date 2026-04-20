@@ -18,6 +18,8 @@ import {
   HiMiniWallet
 } from "react-icons/hi2";
 import { listGroupEnrollments } from "../../../api/students";
+import { PremiumBadge, PremiumTable } from "../../../components/ui/PremiumTable";
+import { RowActionMenu } from "../../../components/ui/RowActionMenu";
 import useCourses from "../../../hooks/useCourses";
 import useGroups from "../../../hooks/useGroups";
 import usePayments from "../../../hooks/usePayments";
@@ -481,62 +483,56 @@ function AdminPayments() {
         </div>
 
         {/* Payments Table Section */}
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-          <div className="border-b border-slate-200 p-5 bg-gradient-to-r from-slate-50 to-white">
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-              <div>
-                <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider">
-                  TO'LOVLAR REESTRI
-                </p>
-                <h2 className="text-xl font-black text-slate-900 mt-1">
-                  To'lovlar jadvali
-                </h2>
-                <p className="text-sm text-slate-500 mt-0.5">
-                  Student, guruh, status va summa bo'yicha barcha to'lovlar
-                </p>
+        <PremiumTable
+          eyebrow="TO'LOVLAR REESTRI"
+          title="To'lovlar jadvali"
+          description="Student, guruh, status va summa bo'yicha barcha to'lovlarni bir joydan boshqaring."
+          summary={
+            <>
+              <PremiumBadge tone="emerald">{filteredPayments.length} ta yozuv</PremiumBadge>
+              <PremiumBadge tone="amber">{pendingPaymentsCount} ta pending</PremiumBadge>
+            </>
+          }
+          actions={
+            <>
+              <div className="relative">
+                <HiMiniMagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg" />
+                <input
+                  type="text"
+                  placeholder="Student, guruh yoki izoh qidiring..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full rounded-2xl border border-slate-200 bg-white/90 py-2.5 pl-10 pr-4 shadow-sm outline-none transition-all focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 sm:w-64"
+                />
               </div>
-
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="relative">
-                  <HiMiniMagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg" />
-                  <input
-                    type="text"
-                    placeholder="Student, guruh yoki izoh qidiring..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100 transition-all w-full sm:w-64"
-                  />
-                </div>
-
-                <select
-                  value={selectedGroupFilter}
-                  onChange={(e) => setSelectedGroupFilter(e.target.value)}
-                  className="px-4 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100 transition-all bg-white"
-                >
-                  <option value="all">Barcha guruhlar</option>
-                  {groups.map((group) => (
-                    <option key={group.id} value={group.id}>
-                      {group.name}
-                    </option>
-                  ))}
-                </select>
-
-                <select
-                  value={selectedStatusFilter}
-                  onChange={(e) =>
-                    setSelectedStatusFilter(
-                      e.target.value as "all" | PaymentStatus,
-                    )
-                  }
-                  className="px-4 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100 transition-all bg-white"
-                >
-                  <option value="all">Barcha statuslar</option>
-                  <option value="pending">To'lanmagan</option>
-                  <option value="paid">To'langan</option>
-                </select>
-              </div>
-            </div>
-          </div>
+              <select
+                value={selectedGroupFilter}
+                onChange={(e) => setSelectedGroupFilter(e.target.value)}
+                className="rounded-2xl border border-slate-200 bg-white/90 px-4 py-2.5 shadow-sm outline-none transition-all focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
+              >
+                <option value="all">Barcha guruhlar</option>
+                {groups.map((group) => (
+                  <option key={group.id} value={group.id}>
+                    {group.name}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={selectedStatusFilter}
+                onChange={(e) =>
+                  setSelectedStatusFilter(
+                    e.target.value as "all" | PaymentStatus,
+                  )
+                }
+                className="rounded-2xl border border-slate-200 bg-white/90 px-4 py-2.5 shadow-sm outline-none transition-all focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
+              >
+                <option value="all">Barcha statuslar</option>
+                <option value="pending">To'lanmagan</option>
+                <option value="paid">To'langan</option>
+              </select>
+            </>
+          }
+        >
 
           {isFetching && (
             <div className="p-4 bg-blue-50 border-b border-blue-200">
@@ -569,8 +565,8 @@ function AdminPayments() {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[1000px]">
-                <thead className="bg-slate-50 border-b border-slate-200">
-                  <tr className="text-left text-slate-500 text-sm">
+                <thead className="border-b border-slate-200 bg-slate-950/[0.035]">
+                  <tr className="text-left text-[12px] uppercase tracking-[0.18em] text-slate-500">
                     <th className="px-5 py-4 font-semibold">Student</th>
                     <th className="px-5 py-4 font-semibold">Guruh</th>
                     <th className="px-5 py-4 font-semibold">Oy</th>
@@ -592,7 +588,7 @@ function AdminPayments() {
                     return (
                       <tr
                         key={payment.id}
-                        className={`hover:bg-emerald-50/30 transition-all ${idx % 2 === 0 ? "bg-white" : "bg-slate-50/30"}`}
+                        className={`transition-all duration-200 hover:bg-[linear-gradient(90deg,rgba(236,253,245,0.9),rgba(255,255,255,0.98))] ${idx % 2 === 0 ? "bg-white" : "bg-slate-50/40"}`}
                       >
                         <td className="px-5 py-4">
                           <div className="flex items-center gap-3">
@@ -649,23 +645,30 @@ function AdminPayments() {
                           </div>
                         </td>
                         <td className="px-5 py-4">
-                          <span
-                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${statusInfo.className}`}
+                          <PremiumBadge
+                            tone={
+                              payment.status === "paid" ? "emerald" : "amber"
+                            }
                           >
                             {statusInfo.icon}
                             {statusInfo.label}
-                          </span>
+                          </PremiumBadge>
                         </td>
                         <td className="px-5 py-4 text-sm text-slate-600">
                           {new Date(payment.paid_at).toLocaleString("uz-UZ")}
                         </td>
-                        <td className="px-5 py-4 text-center">
-                          <button
-                            onClick={() => handleOpenEditDrawer(payment)}
-                            className="p-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-emerald-100 hover:text-emerald-700 transition-all"
-                          >
-                            <HiMiniPencilSquare size={18} />
-                          </button>
+                        <td className="px-5 py-4">
+                          <div className="flex justify-end">
+                            <RowActionMenu
+                              items={[
+                                {
+                                  label: "Tahrirlash",
+                                  onClick: () => handleOpenEditDrawer(payment),
+                                  icon: <HiMiniPencilSquare size={16} />,
+                                },
+                              ]}
+                            />
+                          </div>
                         </td>
                       </tr>
                     );
@@ -674,7 +677,7 @@ function AdminPayments() {
               </table>
             </div>
           )}
-        </div>
+        </PremiumTable>
 
         {/* Payment Form Drawer */}
         <Drawer anchor="right" open={isDrawerOpen} onClose={handleCloseDrawer}>

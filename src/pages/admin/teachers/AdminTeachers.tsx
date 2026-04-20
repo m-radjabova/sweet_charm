@@ -11,7 +11,6 @@ import {
   IconButton,
   Avatar,
   Chip,
-  Tooltip,
 } from "@mui/material";
 import {
   HiMiniAcademicCap,
@@ -29,6 +28,8 @@ import {
   HiMiniInformationCircle,
 } from "react-icons/hi2";
 import ConfirmActionDialog from "../../../components/ConfirmActionDialog";
+import { PremiumBadge } from "../../../components/ui/PremiumTable";
+import { RowActionMenu } from "../../../components/ui/RowActionMenu";
 import useGroups from "../../../hooks/useGroups";
 import useTeachers from "../../../hooks/useTeachers";
 import type { Group, TeacherDetail } from "../../../types/types";
@@ -839,15 +840,9 @@ function TeacherCard({
                 <h3 className="text-xl font-extrabold text-slate-900">
                   {teacher.full_name}
                 </h3>
-                <Chip
-                  label={teacher.status === "active" ? "Faol" : "Nofaol"}
-                  size="small"
-                  className={
-                    teacher.status === "active"
-                      ? "!bg-emerald-100 !text-emerald-700"
-                      : "!bg-slate-100 !text-slate-600"
-                  }
-                />
+                <PremiumBadge tone={teacher.status === "active" ? "emerald" : "slate"}>
+                  {teacher.status === "active" ? "Faol" : "Nofaol"}
+                </PremiumBadge>
               </div>
               <div className="flex flex-wrap gap-3 text-sm text-slate-600">
                 <div className="flex items-center gap-1">
@@ -926,15 +921,16 @@ function TeacherCard({
                         </p>
                       )}
                     </div>
-                    <Tooltip title="Guruhdan chiqarish">
-                      <IconButton
-                        size="small"
-                        onClick={() => onUnassign(group)}
-                        className="!text-red-500 hover:!bg-red-50"
-                      >
-                        <HiMiniNoSymbol size={16} />
-                      </IconButton>
-                    </Tooltip>
+                    <RowActionMenu
+                      items={[
+                        {
+                          label: "Guruhdan chiqarish",
+                          onClick: () => onUnassign(group),
+                          icon: <HiMiniNoSymbol size={16} />,
+                          danger: true,
+                        },
+                      ]}
+                    />
                   </div>
                 ))}
               </div>

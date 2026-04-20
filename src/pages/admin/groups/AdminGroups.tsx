@@ -12,7 +12,6 @@ import {
   IconButton,
   Avatar,
   Chip,
-  Tooltip,
 } from "@mui/material";
 import {
   HiMiniArrowRight,
@@ -34,6 +33,8 @@ import {
 } from "react-icons/hi2";
 import { Link } from "react-router-dom";
 import ConfirmActionDialog from "../../../components/ConfirmActionDialog";
+import { PremiumBadge } from "../../../components/ui/PremiumTable";
+import { RowActionMenu } from "../../../components/ui/RowActionMenu";
 import useCourses from "../../../hooks/useCourses";
 import useGroups from "../../../hooks/useGroups";
 import useContextPro from "../../../hooks/useContextPro";
@@ -180,6 +181,7 @@ function AdminGroups() {
     control,
     handleSubmit,
     reset,
+    setError,
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<GroupFormState>({
@@ -269,6 +271,19 @@ function AdminGroups() {
     let roomId: string | null = form.room_id || null;
 
     if (form.room_mode === "new") {
+      const normalizedRoomName = form.new_room_name.trim().toLowerCase();
+      const duplicateRoom = rooms.find(
+        (room) => room.name.trim().toLowerCase() === normalizedRoomName,
+      );
+
+      if (duplicateRoom) {
+        setError("new_room_name", {
+          type: "manual",
+          message: "Bu nomdagi xona allaqachon mavjud",
+        });
+        return;
+      }
+
       const createdRoom = await createRoom({
         name: form.new_room_name.trim(),
         capacity: Number(form.new_room_capacity),
@@ -1007,12 +1022,20 @@ function GroupCard({
                 <h3 className="text-xl font-extrabold text-slate-900">
                   {group.name}
                 </h3>
-                <Chip
-                  label={statusInfo.label}
-                  size="small"
-                  icon={statusInfo.icon}
-                  className={`!${statusInfo.color} !rounded-full`}
-                />
+                <PremiumBadge
+                  tone={
+                    group.status === "active"
+                      ? "emerald"
+                      : group.status === "planned"
+                        ? "amber"
+                        : group.status === "archived"
+                          ? "violet"
+                          : "slate"
+                  }
+                >
+                  {statusInfo.icon}
+                  {statusInfo.label}
+                </PremiumBadge>
               </div>
               <div className="flex flex-wrap gap-3 text-sm text-slate-500">
                 <div className="flex items-center gap-1">
@@ -1118,24 +1141,21 @@ function GroupCard({
               Jurnal
             </Link>
             {canManage && (
-              <>
-                <Tooltip title="Tahrirlash">
-                  <button
-                    onClick={onEdit}
-                    className="px-4 py-2.5 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-all"
-                  >
-                    <HiMiniPencilSquare size={18} />
-                  </button>
-                </Tooltip>
-                <Tooltip title="O'chirish">
-                  <button
-                    onClick={onDelete}
-                    className="px-4 py-2.5 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-100 transition-all"
-                  >
-                    <HiMiniTrash size={18} />
-                  </button>
-                </Tooltip>
-              </>
+              <RowActionMenu
+                items={[
+                  {
+                    label: "Tahrirlash",
+                    onClick: onEdit,
+                    icon: <HiMiniPencilSquare size={16} />,
+                  },
+                  {
+                    label: "O'chirish",
+                    onClick: onDelete,
+                    icon: <HiMiniTrash size={16} />,
+                    danger: true,
+                  },
+                ]}
+              />
             )}
           </div>
         </div>

@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { getErrorMessage } from "../api/auth";
-import { createLesson, listLessons, updateLesson, type LessonPayload } from "../api/lessons";
+import { createLesson, deleteLesson, listLessons, updateLesson, type LessonPayload } from "../api/lessons";
 import type { Lesson } from "../types/types";
 
 type LessonsParams = {
@@ -40,6 +40,10 @@ function upsertLesson(list: Lesson[], lesson: Lesson) {
   return list.map((item) => (item.id === lesson.id ? lesson : item));
 }
 
+function removeLesson(list: Lesson[], lessonId: string) {
+  return list.filter((item) => item.id !== lessonId);
+}
+
 export default function useLessons(params?: LessonsParams) {
   const queryClient = useQueryClient();
   const lessonsQueryKey = ["lessons", params?.groupId ?? "all", params?.year ?? "all-years", params?.month ?? "all-months"] as const;
@@ -62,6 +66,19 @@ export default function useLessons(params?: LessonsParams) {
 
         return list.filter((item) => item.id !== lesson.id);
       });
+    });
+  };
+
+  const removeLessonFromCaches = (lessonId: string) => {
+    const lessonQueries = queryClient.getQueriesData<Lesson[]>({ queryKey: ["lessons"] });
+
+    lessonQueries.forEach(([queryKey, previous]) => {
+      if (!Array.isArray(queryKey) || queryKey[0] !== "lessons") {
+        return;
+      }
+
+      const list = Array.isArray(previous) ? previous : [];
+      queryClient.setQueryData<Lesson[]>(queryKey, removeLesson(list, lessonId));
     });
   };
 
@@ -90,12 +107,25 @@ export default function useLessons(params?: LessonsParams) {
     onError: (error) => toast.error(getErrorMessage(error, "Darsni yangilab bo'lmadi")),
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: deleteLesson,
+    onSuccess: async (_, deletedLessonId) => {
+      toast.success("Dars o'chirildi");
+      removeLessonFromCaches(deletedLessonId);
+    },
+    onError: (error) => toast.error(getErrorMessage(error, "Darsni o'chirib bo'lmadi")),
+  });
+
   return {
     lessons: lessonsQuery.data ?? [],
     loading: lessonsQuery.isLoading,
     isFetching: lessonsQuery.isFetching,
+    creatingLesson: createMutation.isPending,
+    updatingLesson: updateMutation.isPending,
+    deletingLesson: deleteMutation.isPending,
     createLesson: (payload: LessonPayload) => createMutation.mutateAsync(payload),
     updateLesson: (lessonId: string, payload: Partial<LessonPayload>) =>
       updateMutation.mutateAsync({ lessonId, payload }),
+    deleteLesson: (lessonId: string) => deleteMutation.mutateAsync(lessonId),
   };
 }

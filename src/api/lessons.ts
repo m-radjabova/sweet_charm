@@ -30,3 +30,7 @@ export async function updateLesson(lessonId: string, payload: Partial<LessonPayl
   const { data } = await apiClient.patch<Lesson>(`/lessons/${lessonId}`, payload);
   return data;
 }
+
+export async function deleteLesson(lessonId: string) {
+  await apiClient.delete(`/lessons/${lessonId}`);
+}
