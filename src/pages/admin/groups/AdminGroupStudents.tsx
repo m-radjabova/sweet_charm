@@ -5,6 +5,7 @@ import {
   Chip,
   Drawer,
   IconButton,
+  Skeleton,
   TextField,
 } from "@mui/material";
 import {
@@ -41,6 +42,7 @@ import useGroups from "../../../hooks/useGroups";
 import useLessons from "../../../hooks/useLessons";
 import useStudents from "../../../hooks/useStudents";
 import type {
+  Attendance,
   AttendanceStatus,
   Enrollment,
   Lesson,
@@ -75,15 +77,42 @@ type MonthOption = {
   isCustom: boolean;
 };
 
-type AttendancePara = 1 | 2;
+type AttendancePara = 1 | 2 | 3 | 4;
 
-const ATTENDANCE_PARAS: AttendancePara[] = [1, 2];
+const ATTENDANCE_PARAS: AttendancePara[] = [1, 2, 3, 4];
+const DEFAULT_VISIBLE_ATTENDANCE_PARAS: AttendancePara[] = [1];
 
 const initialLessonForm: LessonFormState = {
   lesson_date: "",
   topic: "",
   homework: "",
 };
+
+function createAttendanceStatusRecord(
+  defaultStatus: AttendanceStatus = "present",
+): Record<AttendancePara, AttendanceStatus> {
+  return {
+    1: defaultStatus,
+    2: defaultStatus,
+    3: defaultStatus,
+    4: defaultStatus,
+  };
+}
+
+function createAttendanceTouchedRecord(
+  defaultValue = false,
+): Record<AttendancePara, boolean> {
+  return {
+    1: defaultValue,
+    2: defaultValue,
+    3: defaultValue,
+    4: defaultValue,
+  };
+}
+
+function sortAttendanceParas(paras: AttendancePara[]) {
+  return [...new Set(paras)].sort((a, b) => a - b) as AttendancePara[];
+}
 
 function normalizeAttendanceStatus(status?: string | null): AttendanceStatus {
   return status === "absent" ? "absent" : "present";
@@ -102,10 +131,7 @@ function normalizeDraft(
   attendanceByPara: Record<AttendancePara, AttendanceStatus>,
   grade: string,
   note: string,
-  attendanceTouchedByPara: Record<AttendancePara, boolean> = {
-    1: false,
-    2: false,
-  },
+  attendanceTouchedByPara: Record<AttendancePara, boolean> = createAttendanceTouchedRecord(),
 ): StudentRowDraft {
   const allAbsent = ATTENDANCE_PARAS.every(
     (para) => attendanceByPara[para] === "absent",
@@ -132,11 +158,35 @@ function normalizeDraft(
   return { attendanceByPara, grade, note, attendanceTouchedByPara };
 }
 
+function buildMonthlyLessonNumberMap(lessons: Lesson[]) {
+  const lessonsByMonth = new Map<string, Lesson[]>();
+
+  lessons.forEach((lesson) => {
+    const monthKey = getMonthKey(lesson.lesson_date);
+    const existingLessons = lessonsByMonth.get(monthKey) ?? [];
+    existingLessons.push(lesson);
+    lessonsByMonth.set(monthKey, existingLessons);
+  });
+
+  const lessonNumbers = new Map<string, number>();
+
+  lessonsByMonth.forEach((monthLessons) => {
+    monthLessons
+      .slice()
+      .sort((a, b) => a.lesson_date.localeCompare(b.lesson_date))
+      .forEach((lesson, index) => {
+        lessonNumbers.set(lesson.id, index + 1);
+      });
+  });
+
+  return lessonNumbers;
+}
+
 function getEnrollmentDraft(
   enrollment: Enrollment,
   attendanceMaps: Record<
     AttendancePara,
-    Map<string, { status: string | null | undefined }>
+    Map<string, Attendance>
   >,
   gradesMap: Map<
     string,
@@ -144,17 +194,18 @@ function getEnrollmentDraft(
   >,
 ): StudentRowDraft {
   return normalizeDraft(
-    {
-      1: normalizeAttendanceStatus(
-        attendanceMaps[1].get(enrollment.student_id)?.status,
-      ),
-      2: normalizeAttendanceStatus(
-        attendanceMaps[2].get(enrollment.student_id)?.status,
-      ),
-    },
+    ATTENDANCE_PARAS.reduce(
+      (result, para) => {
+        result[para] = normalizeAttendanceStatus(
+          attendanceMaps[para].get(enrollment.student_id)?.status,
+        );
+        return result;
+      },
+      createAttendanceStatusRecord(),
+    ),
     normalizeGradeValue(gradesMap.get(enrollment.student_id)?.score),
     gradesMap.get(enrollment.student_id)?.note ?? "",
-    { 1: false, 2: false },
+    createAttendanceTouchedRecord(),
   );
 }
 
@@ -348,25 +399,25 @@ function AdminGroupStudents() {
   const [attendanceEditingRows, setAttendanceEditingRows] = useState<
     Record<string, boolean>
   >({});
-  const [expandedSecondParaRows, setExpandedSecondParaRows] = useState<
-    Record<string, boolean>
-  >({});
+  const [visibleParas, setVisibleParas] = useState<AttendancePara[]>([]);
 
-  const attendanceMaps = useMemo(
-    () => ({
-      1: new Map(
-        attendance
-          .filter((item) => item.para === 1)
-          .map((item) => [item.student_id, item]),
-      ),
-      2: new Map(
-        attendance
-          .filter((item) => item.para === 2)
-          .map((item) => [item.student_id, item]),
-      ),
-    }),
-    [attendance],
-  );
+  const attendanceMaps = useMemo(() => {
+    const maps = ATTENDANCE_PARAS.reduce(
+      (result, para) => {
+        result[para] = new Map<string, Attendance>();
+        return result;
+      },
+      {} as Record<AttendancePara, Map<string, Attendance>>,
+    );
+
+    attendance.forEach((item) => {
+      if (ATTENDANCE_PARAS.includes(item.para as AttendancePara)) {
+        maps[item.para as AttendancePara].set(item.student_id, item);
+      }
+    });
+
+    return maps;
+  }, [attendance]);
   const gradesMap = useMemo(
     () => new Map(grades.map((item) => [item.student_id, item])),
     [grades],
@@ -375,6 +426,12 @@ function AdminGroupStudents() {
     () => lessons.find((lesson) => lesson.id === selectedLessonId) ?? null,
     [lessons, selectedLessonId],
   );
+  const monthlyLessonNumbers = useMemo(
+    () => buildMonthlyLessonNumberMap(allLessons),
+    [allLessons],
+  );
+  const getDisplayLessonNumber = (lesson: Lesson | null) =>
+    lesson ? monthlyLessonNumbers.get(lesson.id) ?? lesson.lesson_number : 0;
 
   const saveAttendance = async (
     enrollment: Enrollment,
@@ -438,20 +495,28 @@ function AdminGroupStudents() {
 
   const saveRow = async (
     enrollment: Enrollment,
+    visibleParas: AttendancePara[],
     attendanceByPara: Record<AttendancePara, AttendanceStatus>,
     attendanceTouchedByPara: Record<AttendancePara, boolean>,
     attendanceNote: string,
     gradeValue: string,
     gradeNote: string,
   ) => {
+    const primaryPara = visibleParas[0] ?? 1;
+    const hasSavedVisibleAttendance = visibleParas.some((para) =>
+      attendanceMaps[para].has(enrollment.student_id),
+    );
+
     for (const para of ATTENDANCE_PARAS) {
       const hasSavedAttendance = attendanceMaps[para].has(enrollment.student_id);
+      const isVisiblePara = visibleParas.includes(para);
       const shouldPersistAttendance =
-        para === 1
-          ? attendanceTouchedByPara[para] ||
-            !hasSavedAttendance ||
-            Boolean(attendanceEditingRows[enrollment.id])
-          : attendanceTouchedByPara[para] || hasSavedAttendance;
+        attendanceTouchedByPara[para] ||
+        hasSavedAttendance ||
+        (isVisiblePara &&
+          para === primaryPara &&
+          (!hasSavedVisibleAttendance ||
+            Boolean(attendanceEditingRows[enrollment.id])));
       if (!shouldPersistAttendance) continue;
       await saveAttendance(
         enrollment,
@@ -468,12 +533,28 @@ function AdminGroupStudents() {
   useEffect(() => {
     setDrafts({});
     setAttendanceEditingRows({});
-    setExpandedSecondParaRows({});
+    setVisibleParas([]);
   }, [selectedLessonId]);
 
   const getCurrentDraft = (enrollment: Enrollment) =>
     drafts[enrollment.id] ??
     getEnrollmentDraft(enrollment, attendanceMaps, gradesMap);
+  const savedLessonParas = useMemo(
+    () =>
+      ATTENDANCE_PARAS.filter((para) =>
+        attendance.some((item) => item.para === para),
+      ),
+    [attendance],
+  );
+  const activeVisibleParas = useMemo(() => {
+    const combinedParas = sortAttendanceParas([
+      ...visibleParas,
+      ...savedLessonParas,
+    ]);
+    return combinedParas.length > 0
+      ? combinedParas
+      : DEFAULT_VISIBLE_ATTENDANCE_PARAS;
+  }, [savedLessonParas, visibleParas]);
 
   const handleDraftChange = (
     enrollment: Enrollment,
@@ -540,6 +621,47 @@ function AdminGroupStudents() {
     }));
   };
 
+  const handleAddPara = (paraToAdd: AttendancePara) => {
+    setVisibleParas((prev) =>
+      sortAttendanceParas([...prev, paraToAdd]),
+    );
+  };
+
+  const handleRemovePara = (paraToRemove: AttendancePara) => {
+    if (savedLessonParas.includes(paraToRemove)) {
+      toast.info("Saqlangan parani olib tashlab bo'lmaydi");
+      return;
+    }
+
+    if (activeVisibleParas.length <= 1) {
+      toast.info("Kamida bitta para qolishi kerak");
+      return;
+    }
+
+    setVisibleParas((prev) =>
+      prev.filter((para) => para !== paraToRemove),
+    );
+    setDrafts((prev) =>
+      Object.fromEntries(
+        Object.entries(prev).map(([enrollmentId, draft]) => [
+          enrollmentId,
+          normalizeDraft(
+            {
+              ...draft.attendanceByPara,
+              [paraToRemove]: "present",
+            },
+            draft.grade,
+            draft.note,
+            {
+              ...draft.attendanceTouchedByPara,
+              [paraToRemove]: false,
+            },
+          ),
+        ]),
+      ),
+    );
+  };
+
   const handleSaveAll = async () => {
     if (!selectedLessonId) {
       toast.error("Avval darsni tanlang");
@@ -559,6 +681,7 @@ function AdminGroupStudents() {
         if (!draft) continue;
         await saveRow(
           enrollment,
+          activeVisibleParas,
           draft.attendanceByPara,
           draft.attendanceTouchedByPara,
           "",
@@ -911,17 +1034,40 @@ function AdminGroupStudents() {
 
               <div className="flex flex-wrap items-center gap-2 px-5">
                 {allLessonsLoading && (
-                  <span className="text-sm text-slate-400">
-                    Oylar tayyorlanmoqda...
-                  </span>
+                  <>
+                    {[1, 2, 3].map((item) => (
+                      <div
+                        key={item}
+                        className="inline-flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm"
+                      >
+                        <div className="space-y-2">
+                          <Skeleton
+                            variant="text"
+                            width={110}
+                            height={26}
+                            sx={{ transform: "none", borderRadius: "10px" }}
+                          />
+                        </div>
+                        <Skeleton
+                          variant="circular"
+                          width={34}
+                          height={34}
+                        />
+                        <Skeleton
+                          variant="rounded"
+                          width={32}
+                          height={32}
+                          sx={{ borderRadius: "12px" }}
+                        />
+                      </div>
+                    ))}
+                  </>
                 )}
                 {monthOptions.map((month) => {
                   const isActive = month.key === selectedMonthKey;
                   return (
-                    <button
+                    <div
                       key={month.key}
-                      type="button"
-                      onClick={() => setSelectedMonthKey(month.key)}
                       className={`group relative inline-flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-semibold transition-all duration-200 ${
                         isActive
                           ? "border-sky-400 bg-gradient-to-br from-sky-500 via-sky-500 to-cyan-500 text-white shadow-[0_18px_40px_-22px_rgba(14,165,233,0.95)] ring-2 ring-sky-100"
@@ -931,37 +1077,36 @@ function AdminGroupStudents() {
                       <span
                         className={`absolute inset-0 rounded-2xl transition-opacity ${isActive ? "opacity-100 bg-white/0" : "opacity-0 group-hover:opacity-100 bg-gradient-to-r from-sky-50/60 to-cyan-50/60"}`}
                       />
-                      <span className="relative">
-                        {formatMonthLabel(month.year, month.month)}
-                      </span>
-                      <span
-                        className={`relative rounded-full px-2.5 py-1 text-[11px] font-bold ${
-                          isActive
-                            ? "bg-white/20 text-white"
-                            : "bg-slate-100 text-slate-500 group-hover:bg-white"
-                        }`}
+                      <button
+                        type="button"
+                        onClick={() => setSelectedMonthKey(month.key)}
+                        className="relative inline-flex items-center gap-3"
                       >
-                        {month.count}
-                      </span>
-                      {month.isCustom && (
-                        <button
-                          type="button"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            setMonthToDelete(month);
-                          }}
-                          title="Oyni o'chirish"
-                          aria-label={`${formatMonthLabel(month.year, month.month)} oyini o'chirish`}
-                          className={`relative inline-flex h-8 w-8 items-center justify-center rounded-full border transition ${
+                        <span>{formatMonthLabel(month.year, month.month)}</span>
+                        <span
+                          className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${
                             isActive
-                              ? "border-white/30 bg-white/15 text-white hover:bg-white/25"
-                              : "border-slate-200 bg-white text-slate-400 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
+                              ? "bg-white/20 text-white"
+                              : "bg-slate-100 text-slate-500 group-hover:bg-white"
                           }`}
                         >
-                          <HiMiniTrash size={14} />
-                        </button>
-                      )}
-                    </button>
+                          {month.count}
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setMonthToDelete(month)}
+                        title="Oyni o'chirish"
+                        aria-label={`${formatMonthLabel(month.year, month.month)} oyini o'chirish`}
+                        className={`relative inline-flex h-8 w-8 items-center justify-center rounded-full border transition ${
+                          isActive
+                            ? "border-white/30 bg-white/15 text-white hover:bg-white/25"
+                            : "border-slate-200 bg-white text-slate-400 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
+                        }`}
+                      >
+                        <HiMiniTrash size={14} />
+                      </button>
+                    </div>
                   );
                 })}
               </div>
@@ -986,7 +1131,7 @@ function AdminGroupStudents() {
                         <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-sky-500 text-white shadow-sm">
                           <HiMiniBookmarkSquare size={12} />
                         </span>
-                        Tanlangan: {selectedLesson.lesson_number}-dars
+                        Tanlangan: {getDisplayLessonNumber(selectedLesson)}-dars
                       </div>
                     )}
                     {selectedMonthOption && (
@@ -1110,6 +1255,7 @@ function AdminGroupStudents() {
                       <LessonCompactCard
                         key={lesson.id}
                         lesson={lesson}
+                        displayLessonNumber={getDisplayLessonNumber(lesson)}
                         isActive={lesson.id === selectedLessonId}
                         canEdit={lesson.lesson_date === todayKey}
                         canDelete={lesson.lesson_date === todayKey}
@@ -1126,6 +1272,57 @@ function AdminGroupStudents() {
           </div>
 
           <div className="overflow-x-auto bg-white">
+            {selectedLessonId && (
+              <div className="border-b border-slate-100 bg-slate-50/70 px-5 py-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">
+                      Para boshqaruvi
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {ATTENDANCE_PARAS.map((para) => {
+                      const isActive = activeVisibleParas.includes(para);
+                      const isLocked = savedLessonParas.includes(para);
+
+                      return isActive ? (
+                        <button
+                          key={para}
+                          type="button"
+                          disabled={isLocked || activeVisibleParas.length === 1}
+                          onClick={() => handleRemovePara(para)}
+                          className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-semibold transition ${
+                            isLocked || activeVisibleParas.length === 1
+                              ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+                              : "border-sky-300 bg-sky-100 text-sky-800 hover:bg-sky-200"
+                          }`}
+                        >
+                          <span>{para}-para</span>
+                          {isLocked ? (
+                            <span className="text-[11px] font-bold uppercase tracking-wide">
+                              Saqlangan
+                            </span>
+                          ) : (
+                            <HiMiniXMark size={14} />
+                          )}
+                        </button>
+                      ) : (
+                        <button
+                          key={para}
+                          type="button"
+                          onClick={() => handleAddPara(para)}
+                          className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700"
+                        >
+                          <HiMiniPlus size={14} />
+                          <span>{para}-para</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
             <table className="w-full min-w-[1000px]">
               <thead className="border-b border-slate-200 bg-slate-950/[0.035]">
                 <tr className="text-left text-[12px] uppercase tracking-[0.18em] text-slate-500">
@@ -1177,12 +1374,10 @@ function AdminGroupStudents() {
                           attendanceLockedByPara={{
                             1: attendanceMaps[1].has(enrollment.student_id),
                             2: attendanceMaps[2].has(enrollment.student_id),
+                            3: attendanceMaps[3].has(enrollment.student_id),
+                            4: attendanceMaps[4].has(enrollment.student_id),
                           }}
-                          showSecondPara={
-                            attendanceMaps[2].has(enrollment.student_id) ||
-                            Boolean(expandedSecondParaRows[enrollment.id]) ||
-                            draft.attendanceTouchedByPara[2]
-                          }
+                          visibleParas={activeVisibleParas}
                           attendanceEditing={Boolean(
                             attendanceEditingRows[enrollment.id],
                           )}
@@ -1197,12 +1392,6 @@ function AdminGroupStudents() {
                           }
                           onToggleAttendanceEdit={() =>
                             handleAttendanceEditToggle(enrollment)
-                          }
-                          onAddSecondPara={() =>
-                            setExpandedSecondParaRows((prev) => ({
-                              ...prev,
-                              [enrollment.id]: true,
-                            }))
                           }
                           onRemoveStudent={() =>
                             setEnrollmentToRemove(enrollment)
@@ -1284,6 +1473,7 @@ function AdminGroupStudents() {
 
       <LessonViewDrawer
         lesson={viewingLesson}
+        displayLessonNumber={getDisplayLessonNumber(viewingLesson)}
         onClose={() => setViewingLesson(null)}
         canEdit={viewingLesson?.lesson_date === todayKey}
         canDelete={viewingLesson?.lesson_date === todayKey}
@@ -1334,7 +1524,7 @@ function AdminGroupStudents() {
         title="Darsni o'chirish"
         description={
           lessonToDelete
-            ? `${lessonToDelete.lesson_number}-darsni o'chirmoqchimisiz? Bu amalni ortga qaytarib bo'lmaydi.`
+            ? `${getDisplayLessonNumber(lessonToDelete)}-darsni o'chirmoqchimisiz? Bu amalni ortga qaytarib bo'lmaydi.`
             : ""
         }
         confirmText="Ha, o'chirish"
@@ -1392,6 +1582,7 @@ function StatCard({
 
 function LessonCompactCard({
   lesson,
+  displayLessonNumber,
   isActive,
   canEdit,
   canDelete,
@@ -1401,6 +1592,7 @@ function LessonCompactCard({
   onDelete,
 }: {
   lesson: Lesson;
+  displayLessonNumber: number;
   isActive: boolean;
   canEdit: boolean;
   canDelete: boolean;
@@ -1428,7 +1620,7 @@ function LessonCompactCard({
         >
           <div className="mb-2 flex items-center gap-2">
             <PremiumBadge tone={isActive ? "sky" : "slate"}>
-              {lesson.lesson_number}-dars
+              {displayLessonNumber}-dars
             </PremiumBadge>
             {isActive && (
               <PremiumBadge tone="emerald">
@@ -1780,6 +1972,7 @@ function MonthDrawer({
 
 function LessonViewDrawer({
   lesson,
+  displayLessonNumber,
   onClose,
   canEdit,
   canDelete,
@@ -1787,6 +1980,7 @@ function LessonViewDrawer({
   onDelete,
 }: {
   lesson: Lesson | null;
+  displayLessonNumber: number;
   onClose: () => void;
   canEdit: boolean;
   canDelete: boolean;
@@ -1832,7 +2026,7 @@ function LessonViewDrawer({
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <Chip
-                  label={`${lesson.lesson_number}-dars`}
+                  label={`${displayLessonNumber}-dars`}
                   className="!bg-sky-100 !text-sky-700"
                 />
                 <Chip
@@ -1923,7 +2117,7 @@ function StudentRow({
   attendanceByPara,
   attendanceTouchedByPara,
   attendanceLockedByPara,
-  showSecondPara,
+  visibleParas,
   attendanceEditing,
   gradeLocked,
   gradeValue,
@@ -1933,14 +2127,13 @@ function StudentRow({
   canRemove,
   onChange,
   onToggleAttendanceEdit,
-  onAddSecondPara,
   onRemoveStudent,
 }: {
   enrollment: Enrollment;
   attendanceByPara: Record<AttendancePara, AttendanceStatus>;
   attendanceTouchedByPara: Record<AttendancePara, boolean>;
   attendanceLockedByPara: Record<AttendancePara, boolean>;
-  showSecondPara: boolean;
+  visibleParas: AttendancePara[];
   attendanceEditing: boolean;
   gradeLocked: boolean;
   gradeValue: string;
@@ -1950,7 +2143,6 @@ function StudentRow({
   canRemove: boolean;
   onChange: (draft: StudentRowDraft) => void;
   onToggleAttendanceEdit: () => void;
-  onAddSecondPara: () => void;
   onRemoveStudent: () => void;
 }) {
   const hasSavedAttendance = ATTENDANCE_PARAS.some(
@@ -1958,6 +2150,9 @@ function StudentRow({
   );
   const hasSavedData = hasSavedAttendance || gradeLocked;
   const canEditAttendance = hasSavedAttendance && !disabled;
+  const allVisibleAbsent =
+    visibleParas.length > 0 &&
+    visibleParas.every((para) => attendanceByPara[para] === "absent");
 
   const statusInfo = enrollmentStatusLabels[enrollment.status] || {
     label: enrollment.status,
@@ -1998,9 +2193,20 @@ function StudentRow({
       </td>
 
       <td className="px-4 py-4">
-        <div className="grid min-w-[250px] gap-2">
-          {ATTENDANCE_PARAS.filter((para) => para === 1 || showSecondPara).map(
-            (para) => {
+        <div className="min-w-[300px] rounded-2xl border border-slate-200 bg-slate-50/60 p-3">
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            {visibleParas.map((para) => (
+              <span
+                key={para}
+                className="inline-flex items-center rounded-full bg-sky-100 px-2.5 py-1 text-[11px] font-bold text-sky-700"
+              >
+                {para}-para
+              </span>
+            ))}
+          </div>
+
+          <div className="grid gap-2">
+            {visibleParas.map((para) => {
             const attendanceValue = attendanceByPara[para];
             const attendanceLocked = attendanceLockedByPara[para];
             const attendanceTouched = attendanceTouchedByPara[para];
@@ -2018,106 +2224,102 @@ function StudentRow({
             return (
               <div
                 key={para}
-                className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50/70 px-3 py-2"
+                className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2.5"
               >
-                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                  {para}-para
-                </span>
-                {isAttendanceReadOnly ? (
-                  <div
-                    className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 ${attendanceValue === "present" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}
-                  >
-                    {attendanceValue === "present" ? (
-                      <HiMiniCheckCircle size={14} />
-                    ) : (
-                      <HiMiniXCircle size={14} />
-                    )}
-                    <span className="text-sm font-medium">
-                      {attendanceValue === "present" ? "Keldi" : "Kelmadi"}
-                    </span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      disabled={disabled}
-                      onClick={() =>
-                        onChange(
-                          normalizeDraft(
-                            {
-                              ...attendanceByPara,
-                              [para]: "present",
-                            },
-                            gradeValue,
-                            gradeNote,
-                            {
-                              ...attendanceTouchedByPara,
-                              [para]: true,
-                            },
-                          ),
-                        )
-                      }
-                      aria-label={`${para}-para keldi`}
-                      title={`${para}-para keldi`}
-                      style={{ borderRadius: "20px" }}
-                      className={`inline-flex h-11 min-w-[48px] items-center justify-center rounded-2xl border transition-all duration-200 ${
-                        presentSelected
-                          ? "border-emerald-500 bg-emerald-500 text-white shadow-[0_10px_24px_-12px_rgba(16,185,129,0.9)] scale-[1.03]"
-                          : "border-slate-200 bg-white text-slate-500 hover:border-emerald-200 hover:bg-emerald-50/60 hover:text-emerald-700"
-                      } ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer active:scale-95"}`}
+                <div className="min-w-[64px]">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                    {para}-para
+                  </p>
+                </div>
+                <div className="flex flex-1 items-center gap-2">
+                  {isAttendanceReadOnly ? (
+                    <div
+                      className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold ${attendanceValue === "present" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}
                     >
-                      <HiMiniCheckCircle size={18} />
-                    </button>
+                      {attendanceValue === "present" ? (
+                        <HiMiniCheckCircle size={15} />
+                      ) : (
+                        <HiMiniXCircle size={15} />
+                      )}
+                      <span>
+                        {attendanceValue === "present" ? "Keldi" : "Kelmadi"}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-1 items-center gap-2">
+                      <button
+                        type="button"
+                        disabled={disabled}
+                        onClick={() =>
+                          onChange(
+                            normalizeDraft(
+                              {
+                                ...attendanceByPara,
+                                [para]: "present",
+                              },
+                              gradeValue,
+                              gradeNote,
+                              {
+                                ...attendanceTouchedByPara,
+                                [para]: true,
+                              },
+                            ),
+                          )
+                        }
+                        aria-label={`${para}-para keldi`}
+                        title={`${para}-para keldi`}
+                        style={{ borderRadius: "20px" }}
+                        className={`inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl border px-3 transition-all duration-200 ${
+                          presentSelected
+                            ? "border-emerald-500 bg-emerald-500 text-white shadow-[0_10px_24px_-12px_rgba(16,185,129,0.9)]"
+                            : "border-slate-200 bg-emerald-50/40 text-slate-600 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700"
+                        } ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer active:scale-[0.98]"}`}
+                      >
+                        <HiMiniCheckCircle size={16} />
+                      </button>
 
-                    <button
-                      type="button"
-                      disabled={disabled}
-                      onClick={() =>
-                        onChange(
-                          normalizeDraft(
-                            {
-                              ...attendanceByPara,
-                              [para]: "absent",
-                            },
-                            gradeValue,
-                            gradeNote,
-                            {
-                              ...attendanceTouchedByPara,
-                              [para]: true,
-                            },
-                          ),
-                        )
-                      }
-                      aria-label={`${para}-para kelmadi`}
-                      title={`${para}-para kelmadi`}
-                      style={{ borderRadius: "20px" }}
-                      className={`inline-flex h-11 min-w-[48px] items-center justify-center rounded-2xl border transition-all duration-200 ${
-                        absentSelected
-                          ? "border-rose-500 bg-rose-500 text-white shadow-[0_10px_24px_-12px_rgba(244,63,94,0.9)] scale-[1.03]"
-                          : "border-slate-200 bg-white text-slate-500 hover:border-rose-200 hover:bg-rose-50/60 hover:text-rose-700"
-                      } ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer active:scale-95"}`}
-                    >
-                      <HiMiniXCircle size={18} />
-                    </button>
-                  </div>
+                      <button
+                        type="button"
+                        disabled={disabled}
+                        onClick={() =>
+                          onChange(
+                            normalizeDraft(
+                              {
+                                ...attendanceByPara,
+                                [para]: "absent",
+                              },
+                              gradeValue,
+                              gradeNote,
+                              {
+                                ...attendanceTouchedByPara,
+                                [para]: true,
+                              },
+                            ),
+                          )
+                        }
+                        aria-label={`${para}-para kelmadi`}
+                        title={`${para}-para kelmadi`}
+                        style={{ borderRadius: "20px" }}
+                        className={`inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl border px-3 transition-all duration-200 ${
+                          absentSelected
+                            ? "border-rose-500 bg-rose-500 text-white shadow-[0_10px_24px_-12px_rgba(244,63,94,0.9)]"
+                            : "border-slate-200 bg-rose-50/40 text-slate-600 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700"
+                        } ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer active:scale-[0.98]"}`}
+                      >
+                        <HiMiniXCircle size={16} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+                {attendanceLocked && (
+                  <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-500">
+                    Saqlangan
+                  </span>
                 )}
               </div>
             );
           })}
-          {!showSecondPara && (
-            <button
-              type="button"
-              disabled={disabled}
-              onClick={onAddSecondPara}
-              className={`inline-flex items-center justify-center rounded-2xl border border-dashed px-3 py-3 text-sm font-semibold transition ${
-                disabled
-                  ? "cursor-not-allowed border-slate-200 bg-slate-50 text-slate-300"
-                  : "border-sky-200 bg-sky-50/60 text-sky-700 hover:border-sky-300 hover:bg-sky-100/70"
-              }`}
-            >
-              + Yana para qo'shish
-            </button>
-          )}
+        </div>
         </div>
       </td>
 
@@ -2125,10 +2327,7 @@ function StudentRow({
         <input
           type="text"
           inputMode="numeric"
-          disabled={
-            disabled ||
-            ATTENDANCE_PARAS.every((para) => attendanceByPara[para] === "absent")
-          }
+          disabled={disabled || allVisibleAbsent}
           value={gradeValue}
           onChange={(e) => {
             const val = e.target.value.replace(/[^\d]/g, "");
@@ -2157,8 +2356,7 @@ function StudentRow({
           }}
           placeholder="0-100"
           className={`w-24 px-3 py-2 rounded-xl border border-slate-200 text-center focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100 ${
-            disabled ||
-            ATTENDANCE_PARAS.every((para) => attendanceByPara[para] === "absent")
+            disabled || allVisibleAbsent
               ? "bg-slate-50 text-slate-400"
               : "bg-white"
           }`}
@@ -2168,10 +2366,7 @@ function StudentRow({
       <td className="px-4 py-4">
         <input
           type="text"
-          disabled={
-            disabled ||
-            ATTENDANCE_PARAS.every((para) => attendanceByPara[para] === "absent")
-          }
+          disabled={disabled || allVisibleAbsent}
           value={gradeNote}
           onChange={(e) =>
             onChange(
@@ -2185,8 +2380,7 @@ function StudentRow({
           }
           placeholder="Izoh"
           className={`w-48 px-3 py-2 rounded-xl border border-slate-200 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100 ${
-            disabled ||
-            ATTENDANCE_PARAS.every((para) => attendanceByPara[para] === "absent")
+            disabled || allVisibleAbsent
               ? "bg-slate-50 text-slate-400"
               : "bg-white"
           }`}

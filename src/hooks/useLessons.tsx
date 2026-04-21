@@ -31,13 +31,23 @@ function lessonMatchesQuery(lesson: Lesson, queryKey: LessonsQueryKey) {
   return true;
 }
 
+function sortLessons(list: Lesson[]) {
+  return [...list].sort((a, b) => {
+    const dateCompare = a.lesson_date.localeCompare(b.lesson_date);
+    if (dateCompare !== 0) return dateCompare;
+    return a.lesson_number - b.lesson_number;
+  });
+}
+
 function upsertLesson(list: Lesson[], lesson: Lesson) {
   const existingIndex = list.findIndex((item) => item.id === lesson.id);
   if (existingIndex === -1) {
-    return [lesson, ...list];
+    return sortLessons([...list, lesson]);
   }
 
-  return list.map((item) => (item.id === lesson.id ? lesson : item));
+  return sortLessons(
+    list.map((item) => (item.id === lesson.id ? lesson : item)),
+  );
 }
 
 function removeLesson(list: Lesson[], lessonId: string) {
@@ -84,7 +94,7 @@ export default function useLessons(params?: LessonsParams) {
 
   const lessonsQuery = useQuery({
     queryKey: lessonsQueryKey,
-    queryFn: () => listLessons(params),
+    queryFn: async () => sortLessons(await listLessons(params)),
     enabled: Boolean(params?.groupId),
   });
 

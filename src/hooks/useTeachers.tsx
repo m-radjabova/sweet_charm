@@ -37,13 +37,13 @@ export default function useTeachers(enabled = true) {
     mutationFn: ({ userId, payload }: { userId: string; payload: TeacherProfilePayload }) =>
       updateTeacherProfile(userId, payload),
     onSuccess: async () => {
-      toast.success("Teacher profili yangilandi");
+      toast.success("O'qituvchi profili yangilandi");
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["teachers"] }),
         invalidateGroupDependentQueries(queryClient),
       ]);
     },
-    onError: (error) => toast.error(getErrorMessage(error, "Teacher profilini yangilab bo'lmadi")),
+    onError: (error) => toast.error(getErrorMessage(error, "O'qituvchi profilini yangilab bo'lmadi")),
   });
 
   const teachers = useMemo(() => {
