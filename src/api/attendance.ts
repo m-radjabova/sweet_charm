@@ -5,6 +5,7 @@ export type AttendancePayload = {
   lesson_id: string;
   enrollment_id: string;
   student_id: string;
+  para: number;
   status?: string;
   note?: string | null;
 };

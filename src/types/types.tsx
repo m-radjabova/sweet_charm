@@ -168,6 +168,7 @@ export interface Attendance {
   lesson_id: string;
   enrollment_id: string;
   student_id: string;
+  para: number;
   status: AttendanceStatus;
   note: string | null;
   created_at: string;

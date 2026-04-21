@@ -61,10 +61,10 @@ type LessonFormState = {
 };
 
 type StudentRowDraft = {
-  attendance: AttendanceStatus;
+  attendanceByPara: Record<AttendancePara, AttendanceStatus>;
   grade: string;
   note: string;
-  attendanceTouched: boolean;
+  attendanceTouchedByPara: Record<AttendancePara, boolean>;
 };
 
 type MonthOption = {
@@ -72,7 +72,12 @@ type MonthOption = {
   year: number;
   month: number;
   count: number;
+  isCustom: boolean;
 };
+
+type AttendancePara = 1 | 2;
+
+const ATTENDANCE_PARAS: AttendancePara[] = [1, 2];
 
 const initialLessonForm: LessonFormState = {
   lesson_date: "",
@@ -94,45 +99,62 @@ function normalizeGradeValue(score?: number | string | null) {
 }
 
 function normalizeDraft(
-  attendance: AttendanceStatus,
+  attendanceByPara: Record<AttendancePara, AttendanceStatus>,
   grade: string,
   note: string,
-  attendanceTouched = false,
+  attendanceTouchedByPara: Record<AttendancePara, boolean> = {
+    1: false,
+    2: false,
+  },
 ): StudentRowDraft {
-  if (attendance === "absent") {
+  const allAbsent = ATTENDANCE_PARAS.every(
+    (para) => attendanceByPara[para] === "absent",
+  );
+
+  if (allAbsent) {
     return {
-      attendance,
+      attendanceByPara,
       grade: "0",
       note: "Darsga kelmadi",
-      attendanceTouched,
+      attendanceTouchedByPara,
     };
   }
 
   if (grade === "0" && note === "Darsga kelmadi") {
     return {
-      attendance,
+      attendanceByPara,
       grade: "",
       note: "",
-      attendanceTouched,
+      attendanceTouchedByPara,
     };
   }
 
-  return { attendance, grade, note, attendanceTouched };
+  return { attendanceByPara, grade, note, attendanceTouchedByPara };
 }
 
 function getEnrollmentDraft(
   enrollment: Enrollment,
-  attendanceMap: Map<string, { status: string | null | undefined }>,
+  attendanceMaps: Record<
+    AttendancePara,
+    Map<string, { status: string | null | undefined }>
+  >,
   gradesMap: Map<
     string,
     { score: number | string | null | undefined; note?: string | null }
   >,
 ): StudentRowDraft {
   return normalizeDraft(
-    normalizeAttendanceStatus(attendanceMap.get(enrollment.student_id)?.status),
+    {
+      1: normalizeAttendanceStatus(
+        attendanceMaps[1].get(enrollment.student_id)?.status,
+      ),
+      2: normalizeAttendanceStatus(
+        attendanceMaps[2].get(enrollment.student_id)?.status,
+      ),
+    },
     normalizeGradeValue(gradesMap.get(enrollment.student_id)?.score),
     gradesMap.get(enrollment.student_id)?.note ?? "",
-    false,
+    { 1: false, 2: false },
   );
 }
 
@@ -180,6 +202,7 @@ function AdminGroupStudents() {
   const [newMonthValue, setNewMonthValue] = useState(() =>
     formatMonthKey(new Date()),
   );
+  const [monthToDelete, setMonthToDelete] = useState<MonthOption | null>(null);
   const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
   const [viewingLesson, setViewingLesson] = useState<Lesson | null>(null);
   const [lessonToDelete, setLessonToDelete] = useState<Lesson | null>(null);
@@ -241,14 +264,19 @@ function AdminGroupStudents() {
       if (current) {
         current.count += 1;
       } else {
-        grouped.set(key, { key, year, month, count: 1 });
+        grouped.set(key, { key, year, month, count: 1, isCustom: false });
       }
     });
 
     customMonthKeys.forEach((key) => {
       const monthInfo = parseMonthKey(key);
-      if (!monthInfo || grouped.has(key)) return;
-      grouped.set(key, { ...monthInfo, count: 0 });
+      if (!monthInfo) return;
+      const existing = grouped.get(key);
+      if (existing) {
+        existing.isCustom = true;
+        return;
+      }
+      grouped.set(key, { ...monthInfo, count: 0, isCustom: true });
     });
 
     return Array.from(grouped.values()).sort((a, b) =>
@@ -285,6 +313,9 @@ function AdminGroupStudents() {
     () => monthOptions.find((month) => month.key === selectedMonthKey) ?? null,
     [monthOptions, selectedMonthKey],
   );
+  const shouldBlockTodayLessonCreation = Boolean(
+    selectedMonthOption && selectedMonthOption.key === currentMonthKey && hasLessonToday,
+  );
 
   const { lessons, loading: filteredLessonsLoading } = useLessons({
     groupId: groupId || undefined,
@@ -317,9 +348,23 @@ function AdminGroupStudents() {
   const [attendanceEditingRows, setAttendanceEditingRows] = useState<
     Record<string, boolean>
   >({});
+  const [expandedSecondParaRows, setExpandedSecondParaRows] = useState<
+    Record<string, boolean>
+  >({});
 
-  const attendanceMap = useMemo(
-    () => new Map(attendance.map((item) => [item.student_id, item])),
+  const attendanceMaps = useMemo(
+    () => ({
+      1: new Map(
+        attendance
+          .filter((item) => item.para === 1)
+          .map((item) => [item.student_id, item]),
+      ),
+      2: new Map(
+        attendance
+          .filter((item) => item.para === 2)
+          .map((item) => [item.student_id, item]),
+      ),
+    }),
     [attendance],
   );
   const gradesMap = useMemo(
@@ -333,6 +378,7 @@ function AdminGroupStudents() {
 
   const saveAttendance = async (
     enrollment: Enrollment,
+    para: AttendancePara,
     status: AttendanceStatus,
     note: string,
   ) => {
@@ -340,9 +386,10 @@ function AdminGroupStudents() {
       toast.error("Avval darsni tanlang");
       return;
     }
-    const existing = attendanceMap.get(enrollment.student_id);
+    const existing = attendanceMaps[para].get(enrollment.student_id);
     if (existing) {
       await updateAttendance(existing.id, {
+        para,
         status,
         note,
       });
@@ -352,6 +399,7 @@ function AdminGroupStudents() {
       lesson_id: selectedLessonId,
       enrollment_id: enrollment.id,
       student_id: enrollment.student_id,
+      para,
       status,
       note,
     });
@@ -390,14 +438,27 @@ function AdminGroupStudents() {
 
   const saveRow = async (
     enrollment: Enrollment,
-    attendanceValue: AttendanceStatus,
+    attendanceByPara: Record<AttendancePara, AttendanceStatus>,
+    attendanceTouchedByPara: Record<AttendancePara, boolean>,
     attendanceNote: string,
     gradeValue: string,
     gradeNote: string,
-    shouldPersistAttendance: boolean,
   ) => {
-    if (shouldPersistAttendance) {
-      await saveAttendance(enrollment, attendanceValue, attendanceNote);
+    for (const para of ATTENDANCE_PARAS) {
+      const hasSavedAttendance = attendanceMaps[para].has(enrollment.student_id);
+      const shouldPersistAttendance =
+        para === 1
+          ? attendanceTouchedByPara[para] ||
+            !hasSavedAttendance ||
+            Boolean(attendanceEditingRows[enrollment.id])
+          : attendanceTouchedByPara[para] || hasSavedAttendance;
+      if (!shouldPersistAttendance) continue;
+      await saveAttendance(
+        enrollment,
+        para,
+        attendanceByPara[para],
+        attendanceNote,
+      );
     }
     if (gradeValue !== "") {
       await saveGrade(enrollment, gradeValue, gradeNote);
@@ -407,34 +468,42 @@ function AdminGroupStudents() {
   useEffect(() => {
     setDrafts({});
     setAttendanceEditingRows({});
+    setExpandedSecondParaRows({});
   }, [selectedLessonId]);
 
   const getCurrentDraft = (enrollment: Enrollment) =>
     drafts[enrollment.id] ??
-    getEnrollmentDraft(enrollment, attendanceMap, gradesMap);
+    getEnrollmentDraft(enrollment, attendanceMaps, gradesMap);
 
   const handleDraftChange = (
     enrollment: Enrollment,
     nextDraft: StudentRowDraft,
   ) => {
     const normalizedNextDraft = normalizeDraft(
-      nextDraft.attendance,
+      nextDraft.attendanceByPara,
       nextDraft.grade,
       nextDraft.note,
-      nextDraft.attendanceTouched,
+      nextDraft.attendanceTouchedByPara,
     );
     const initialDraft = getEnrollmentDraft(
       enrollment,
-      attendanceMap,
+      attendanceMaps,
       gradesMap,
     );
 
     setDrafts((prev) => {
       if (
-        initialDraft.attendance === normalizedNextDraft.attendance &&
+        ATTENDANCE_PARAS.every(
+          (para) =>
+            initialDraft.attendanceByPara[para] ===
+              normalizedNextDraft.attendanceByPara[para] &&
+            !normalizedNextDraft.attendanceTouchedByPara[para],
+        ) &&
         initialDraft.grade === normalizedNextDraft.grade &&
         initialDraft.note === normalizedNextDraft.note &&
-        !normalizedNextDraft.attendanceTouched
+        ATTENDANCE_PARAS.every(
+          (para) => !normalizedNextDraft.attendanceTouchedByPara[para],
+        )
       ) {
         if (!(enrollment.id in prev)) return prev;
         const { [enrollment.id]: _removed, ...rest } = prev;
@@ -454,7 +523,7 @@ function AdminGroupStudents() {
     if (isEditing) {
       const initialDraft = getEnrollmentDraft(
         enrollment,
-        attendanceMap,
+        attendanceMaps,
         gradesMap,
       );
       handleDraftChange(enrollment, initialDraft);
@@ -488,16 +557,13 @@ function AdminGroupStudents() {
       for (const enrollment of changedEnrollments) {
         const draft = drafts[enrollment.id];
         if (!draft) continue;
-        const hasSavedAttendance = attendanceMap.has(enrollment.student_id);
-        const shouldPersistAttendance =
-          !hasSavedAttendance || Boolean(attendanceEditingRows[enrollment.id]);
         await saveRow(
           enrollment,
-          draft.attendance,
+          draft.attendanceByPara,
+          draft.attendanceTouchedByPara,
           "",
           draft.grade,
           draft.note,
-          shouldPersistAttendance,
         );
         savedEnrollmentIds.push(enrollment.id);
       }
@@ -520,7 +586,7 @@ function AdminGroupStudents() {
   };
 
   const openCreateLessonDrawer = (monthKey = selectedMonthKey) => {
-    if (hasLessonToday) {
+    if (monthKey === currentMonthKey && hasLessonToday) {
       toast.info(
         "Bugungi dars allaqachon qo'shilgan. Yangi darsni ertaga qo'shasiz.",
       );
@@ -671,6 +737,23 @@ function AdminGroupStudents() {
       }),
     [drafts, visibleEnrollments],
   );
+
+  const handleDeleteMonth = () => {
+    if (!monthToDelete) return;
+    if (monthToDelete.count > 0) {
+      toast.info("Ichida darslari bor oyni o'chirib bo'lmaydi");
+      setMonthToDelete(null);
+      return;
+    }
+
+    setCustomMonthKeys((prev) => prev.filter((key) => key !== monthToDelete.key));
+    if (selectedMonthKey === monthToDelete.key) {
+      const fallbackMonth = monthOptions.find((month) => month.key !== monthToDelete.key);
+      setSelectedMonthKey(fallbackMonth?.key ?? "");
+    }
+    setMonthToDelete(null);
+    toast.success("Oy ro'yxatdan olib tashlandi");
+  };
 
   const handleRemoveEnrollment = async () => {
     if (!enrollmentToRemove) return;
@@ -860,6 +943,24 @@ function AdminGroupStudents() {
                       >
                         {month.count}
                       </span>
+                      {month.isCustom && (
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setMonthToDelete(month);
+                          }}
+                          title="Oyni o'chirish"
+                          aria-label={`${formatMonthLabel(month.year, month.month)} oyini o'chirish`}
+                          className={`relative inline-flex h-8 w-8 items-center justify-center rounded-full border transition ${
+                            isActive
+                              ? "border-white/30 bg-white/15 text-white hover:bg-white/25"
+                              : "border-slate-200 bg-white text-slate-400 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
+                          }`}
+                        >
+                          <HiMiniTrash size={14} />
+                        </button>
+                      )}
                     </button>
                   );
                 })}
@@ -897,7 +998,7 @@ function AdminGroupStudents() {
                             onClick={() =>
                               openCreateLessonDrawer(selectedMonthOption.key)
                             }
-                            disabled={hasLessonToday}
+                            disabled={shouldBlockTodayLessonCreation}
                             sx={{
                               minWidth: 240,
                               minHeight: 56,
@@ -907,11 +1008,11 @@ function AdminGroupStudents() {
                               fontSize: "1rem",
                               fontWeight: 800,
                               letterSpacing: "-0.01em",
-                              boxShadow: hasLessonToday
+                              boxShadow: shouldBlockTodayLessonCreation
                                 ? "none"
                                 : "0 20px 40px -24px rgba(14,165,233,0.95)",
                               bgcolor: "#0ea5e9",
-                              backgroundImage: hasLessonToday
+                              backgroundImage: shouldBlockTodayLessonCreation
                                 ? "linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%)"
                                 : "linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)",
                               "&:hover": {
@@ -929,7 +1030,7 @@ function AdminGroupStudents() {
                           >
                             Yangi dars qo'shish
                           </Button>
-                          {hasLessonToday && (
+                          {shouldBlockTodayLessonCreation && (
                             <p className="text-xs font-medium text-slate-500">
                               Bugun uchun dars qo'shildi.
                             </p>
@@ -978,7 +1079,7 @@ function AdminGroupStudents() {
                       onClick={() =>
                         openCreateLessonDrawer(selectedMonthOption.key)
                       }
-                      disabled={hasLessonToday}
+                      disabled={shouldBlockTodayLessonCreation}
                       sx={{
                         mt: 2,
                         borderRadius: "14px",
@@ -994,7 +1095,7 @@ function AdminGroupStudents() {
                     >
                       Birinchi darsni qo'shish
                     </Button>
-                    {hasLessonToday && (
+                    {shouldBlockTodayLessonCreation && (
                       <p className="mt-2 text-xs font-semibold text-slate-500">
                         Bugungi dars qo'shilgan. Yangi darsni ertaga qo'shasiz.
                       </p>
@@ -1069,11 +1170,19 @@ function AdminGroupStudents() {
                         <StudentRow
                           key={enrollment.id}
                           enrollment={enrollment}
-                          attendanceValue={draft.attendance}
-                          attendanceTouched={draft.attendanceTouched}
-                          attendanceLocked={attendanceMap.has(
-                            enrollment.student_id,
-                          )}
+                          attendanceByPara={draft.attendanceByPara}
+                          attendanceTouchedByPara={
+                            draft.attendanceTouchedByPara
+                          }
+                          attendanceLockedByPara={{
+                            1: attendanceMaps[1].has(enrollment.student_id),
+                            2: attendanceMaps[2].has(enrollment.student_id),
+                          }}
+                          showSecondPara={
+                            attendanceMaps[2].has(enrollment.student_id) ||
+                            Boolean(expandedSecondParaRows[enrollment.id]) ||
+                            draft.attendanceTouchedByPara[2]
+                          }
                           attendanceEditing={Boolean(
                             attendanceEditingRows[enrollment.id],
                           )}
@@ -1088,6 +1197,12 @@ function AdminGroupStudents() {
                           }
                           onToggleAttendanceEdit={() =>
                             handleAttendanceEditToggle(enrollment)
+                          }
+                          onAddSecondPara={() =>
+                            setExpandedSecondParaRows((prev) => ({
+                              ...prev,
+                              [enrollment.id]: true,
+                            }))
                           }
                           onRemoveStudent={() =>
                             setEnrollmentToRemove(enrollment)
@@ -1177,6 +1292,23 @@ function AdminGroupStudents() {
           openEditLessonDrawer(lesson);
         }}
         onDelete={(lesson) => setLessonToDelete(lesson)}
+      />
+
+      <ConfirmActionDialog
+        open={Boolean(monthToDelete)}
+        title="Oyni o'chirish"
+        description={
+          monthToDelete
+            ? monthToDelete.count > 0
+              ? `${formatMonthLabel(monthToDelete.year, monthToDelete.month)} oyida ${monthToDelete.count} ta dars bor. Avval darslarni olib tashlang.`
+              : `${formatMonthLabel(monthToDelete.year, monthToDelete.month)} oyini ro'yxatdan olib tashirmoqchimisiz?`
+            : ""
+        }
+        confirmText={monthToDelete?.count ? "Tushundim" : "Ha, o'chirish"}
+        cancelText="Bekor qilish"
+        tone={monthToDelete?.count ? "warning" : "danger"}
+        onClose={() => setMonthToDelete(null)}
+        onConfirm={handleDeleteMonth}
       />
 
       {!isTeacher && (
@@ -1788,9 +1920,10 @@ function LessonViewDrawer({
 
 function StudentRow({
   enrollment,
-  attendanceValue,
-  attendanceTouched,
-  attendanceLocked,
+  attendanceByPara,
+  attendanceTouchedByPara,
+  attendanceLockedByPara,
+  showSecondPara,
   attendanceEditing,
   gradeLocked,
   gradeValue,
@@ -1800,12 +1933,14 @@ function StudentRow({
   canRemove,
   onChange,
   onToggleAttendanceEdit,
+  onAddSecondPara,
   onRemoveStudent,
 }: {
   enrollment: Enrollment;
-  attendanceValue: AttendanceStatus;
-  attendanceTouched: boolean;
-  attendanceLocked: boolean;
+  attendanceByPara: Record<AttendancePara, AttendanceStatus>;
+  attendanceTouchedByPara: Record<AttendancePara, boolean>;
+  attendanceLockedByPara: Record<AttendancePara, boolean>;
+  showSecondPara: boolean;
   attendanceEditing: boolean;
   gradeLocked: boolean;
   gradeValue: string;
@@ -1815,25 +1950,20 @@ function StudentRow({
   canRemove: boolean;
   onChange: (draft: StudentRowDraft) => void;
   onToggleAttendanceEdit: () => void;
+  onAddSecondPara: () => void;
   onRemoveStudent: () => void;
 }) {
-  const hasSavedData = attendanceLocked || gradeLocked;
-  const canEditAttendance = attendanceLocked && !disabled;
-  const isAttendanceReadOnly = attendanceLocked && !attendanceEditing;
+  const hasSavedAttendance = ATTENDANCE_PARAS.some(
+    (para) => attendanceLockedByPara[para],
+  );
+  const hasSavedData = hasSavedAttendance || gradeLocked;
+  const canEditAttendance = hasSavedAttendance && !disabled;
 
   const statusInfo = enrollmentStatusLabels[enrollment.status] || {
     label: enrollment.status,
     color: "bg-slate-100 text-slate-600",
   };
   const canRemoveStudent = canRemove && enrollment.status !== "left";
-  const presentSelected =
-    isAttendanceReadOnly || attendanceTouched || attendanceEditing
-      ? attendanceValue === "present"
-      : false;
-  const absentSelected =
-    isAttendanceReadOnly || attendanceTouched || attendanceEditing
-      ? attendanceValue === "absent"
-      : false;
 
   return (
     <tr className="border-t border-slate-100 hover:bg-sky-50/30 transition-all">
@@ -1868,80 +1998,167 @@ function StudentRow({
       </td>
 
       <td className="px-4 py-4">
-        {isAttendanceReadOnly ? (
-          <div
-            className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl ${attendanceValue === "present" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}
-          >
-            {attendanceValue === "present" ? (
-              <HiMiniCheckCircle size={14} />
-            ) : (
-              <HiMiniXCircle size={14} />
-            )}
-            <span className="text-sm font-medium">
-              {attendanceValue === "present" ? "Keldi" : "Kelmadi"}
-            </span>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              disabled={disabled}
-              onClick={() =>
-                onChange(normalizeDraft("present", gradeValue, gradeNote, true))
-              }
-              aria-label="Keldi"
-              title="Keldi"
-              style={{ borderRadius: "20px" }}
-              className={`inline-flex h-11 min-w-[48px] items-center justify-center rounded-2xl border transition-all duration-200 ${
-                presentSelected
-                  ? "border-emerald-500 bg-emerald-500 text-white shadow-[0_10px_24px_-12px_rgba(16,185,129,0.9)] scale-[1.03]"
-                  : "border-slate-200 bg-white text-slate-500 hover:border-emerald-200 hover:bg-emerald-50/60 hover:text-emerald-700"
-              } ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer active:scale-95"}`}
-            >
-              <HiMiniCheckCircle size={18} />
-            </button>
+        <div className="grid min-w-[250px] gap-2">
+          {ATTENDANCE_PARAS.filter((para) => para === 1 || showSecondPara).map(
+            (para) => {
+            const attendanceValue = attendanceByPara[para];
+            const attendanceLocked = attendanceLockedByPara[para];
+            const attendanceTouched = attendanceTouchedByPara[para];
+            const isAttendanceReadOnly =
+              attendanceLocked && !attendanceEditing;
+            const presentSelected =
+              isAttendanceReadOnly || attendanceTouched || attendanceEditing
+                ? attendanceValue === "present"
+                : false;
+            const absentSelected =
+              isAttendanceReadOnly || attendanceTouched || attendanceEditing
+                ? attendanceValue === "absent"
+                : false;
 
+            return (
+              <div
+                key={para}
+                className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50/70 px-3 py-2"
+              >
+                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                  {para}-para
+                </span>
+                {isAttendanceReadOnly ? (
+                  <div
+                    className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 ${attendanceValue === "present" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}
+                  >
+                    {attendanceValue === "present" ? (
+                      <HiMiniCheckCircle size={14} />
+                    ) : (
+                      <HiMiniXCircle size={14} />
+                    )}
+                    <span className="text-sm font-medium">
+                      {attendanceValue === "present" ? "Keldi" : "Kelmadi"}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={disabled}
+                      onClick={() =>
+                        onChange(
+                          normalizeDraft(
+                            {
+                              ...attendanceByPara,
+                              [para]: "present",
+                            },
+                            gradeValue,
+                            gradeNote,
+                            {
+                              ...attendanceTouchedByPara,
+                              [para]: true,
+                            },
+                          ),
+                        )
+                      }
+                      aria-label={`${para}-para keldi`}
+                      title={`${para}-para keldi`}
+                      style={{ borderRadius: "20px" }}
+                      className={`inline-flex h-11 min-w-[48px] items-center justify-center rounded-2xl border transition-all duration-200 ${
+                        presentSelected
+                          ? "border-emerald-500 bg-emerald-500 text-white shadow-[0_10px_24px_-12px_rgba(16,185,129,0.9)] scale-[1.03]"
+                          : "border-slate-200 bg-white text-slate-500 hover:border-emerald-200 hover:bg-emerald-50/60 hover:text-emerald-700"
+                      } ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer active:scale-95"}`}
+                    >
+                      <HiMiniCheckCircle size={18} />
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={disabled}
+                      onClick={() =>
+                        onChange(
+                          normalizeDraft(
+                            {
+                              ...attendanceByPara,
+                              [para]: "absent",
+                            },
+                            gradeValue,
+                            gradeNote,
+                            {
+                              ...attendanceTouchedByPara,
+                              [para]: true,
+                            },
+                          ),
+                        )
+                      }
+                      aria-label={`${para}-para kelmadi`}
+                      title={`${para}-para kelmadi`}
+                      style={{ borderRadius: "20px" }}
+                      className={`inline-flex h-11 min-w-[48px] items-center justify-center rounded-2xl border transition-all duration-200 ${
+                        absentSelected
+                          ? "border-rose-500 bg-rose-500 text-white shadow-[0_10px_24px_-12px_rgba(244,63,94,0.9)] scale-[1.03]"
+                          : "border-slate-200 bg-white text-slate-500 hover:border-rose-200 hover:bg-rose-50/60 hover:text-rose-700"
+                      } ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer active:scale-95"}`}
+                    >
+                      <HiMiniXCircle size={18} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {!showSecondPara && (
             <button
               type="button"
               disabled={disabled}
-              onClick={() =>
-                onChange(normalizeDraft("absent", gradeValue, gradeNote, true))
-              }
-              aria-label="Kelmadi"
-              title="Kelmadi"
-              style={{ borderRadius: "20px" }}
-              className={`inline-flex h-11 min-w-[48px] items-center justify-center rounded-2xl border transition-all duration-200 ${
-                absentSelected
-                  ? "border-rose-500 bg-rose-500 text-white shadow-[0_10px_24px_-12px_rgba(244,63,94,0.9)] scale-[1.03]"
-                  : "border-slate-200 bg-white text-slate-500 hover:border-rose-200 hover:bg-rose-50/60 hover:text-rose-700"
-              } ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer active:scale-95"}`}
+              onClick={onAddSecondPara}
+              className={`inline-flex items-center justify-center rounded-2xl border border-dashed px-3 py-3 text-sm font-semibold transition ${
+                disabled
+                  ? "cursor-not-allowed border-slate-200 bg-slate-50 text-slate-300"
+                  : "border-sky-200 bg-sky-50/60 text-sky-700 hover:border-sky-300 hover:bg-sky-100/70"
+              }`}
             >
-              <HiMiniXCircle size={18} />
+              + Yana para qo'shish
             </button>
-          </div>
-        )}
+          )}
+        </div>
       </td>
 
       <td className="px-4 py-4">
         <input
           type="text"
           inputMode="numeric"
-          disabled={disabled || attendanceValue === "absent"}
+          disabled={
+            disabled ||
+            ATTENDANCE_PARAS.every((para) => attendanceByPara[para] === "absent")
+          }
           value={gradeValue}
           onChange={(e) => {
             const val = e.target.value.replace(/[^\d]/g, "");
             if (val === "") {
-              onChange(normalizeDraft(attendanceValue, "", gradeNote, false));
+              onChange(
+                normalizeDraft(
+                  attendanceByPara,
+                  "",
+                  gradeNote,
+                  attendanceTouchedByPara,
+                ),
+              );
               return;
             }
             const num = Number(val);
             if (!Number.isNaN(num) && num >= 0 && num <= 100) {
-              onChange(normalizeDraft(attendanceValue, val, gradeNote, false));
+              onChange(
+                normalizeDraft(
+                  attendanceByPara,
+                  val,
+                  gradeNote,
+                  attendanceTouchedByPara,
+                ),
+              );
             }
           }}
           placeholder="0-100"
           className={`w-24 px-3 py-2 rounded-xl border border-slate-200 text-center focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100 ${
-            disabled || attendanceValue === "absent"
+            disabled ||
+            ATTENDANCE_PARAS.every((para) => attendanceByPara[para] === "absent")
               ? "bg-slate-50 text-slate-400"
               : "bg-white"
           }`}
@@ -1951,21 +2168,25 @@ function StudentRow({
       <td className="px-4 py-4">
         <input
           type="text"
-          disabled={disabled || attendanceValue === "absent"}
+          disabled={
+            disabled ||
+            ATTENDANCE_PARAS.every((para) => attendanceByPara[para] === "absent")
+          }
           value={gradeNote}
           onChange={(e) =>
             onChange(
               normalizeDraft(
-                attendanceValue,
+                attendanceByPara,
                 gradeValue,
                 e.target.value,
-                false,
+                attendanceTouchedByPara,
               ),
             )
           }
           placeholder="Izoh"
           className={`w-48 px-3 py-2 rounded-xl border border-slate-200 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100 ${
-            disabled || attendanceValue === "absent"
+            disabled ||
+            ATTENDANCE_PARAS.every((para) => attendanceByPara[para] === "absent")
               ? "bg-slate-50 text-slate-400"
               : "bg-white"
           }`}
