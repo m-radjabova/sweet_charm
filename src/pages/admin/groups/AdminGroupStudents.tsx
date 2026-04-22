@@ -448,10 +448,6 @@ function AdminGroupStudents() {
       return { attendanceRecords: [], gradeRecord: null };
     }
 
-    const primaryPara = visibleParas[0] ?? 1;
-    const hasSavedVisibleAttendance = visibleParas.some((para) =>
-      attendanceMaps[para].has(enrollment.student_id),
-    );
     const attendanceRecords: Array<{
       lesson_id: string;
       enrollment_id: string;
@@ -462,16 +458,9 @@ function AdminGroupStudents() {
     }> = [];
 
     for (const para of ATTENDANCE_PARAS) {
-      const hasSavedAttendance = attendanceMaps[para].has(enrollment.student_id);
-      const isVisiblePara = visibleParas.includes(para);
-      const shouldPersistAttendance =
-        attendanceTouchedByPara[para] ||
-        hasSavedAttendance ||
-        (isVisiblePara &&
-          para === primaryPara &&
-          (!hasSavedVisibleAttendance ||
-            Boolean(attendanceEditingRows[enrollment.id])));
-      if (!shouldPersistAttendance) continue;
+      if (!visibleParas.includes(para) || !attendanceTouchedByPara[para]) {
+        continue;
+      }
       attendanceRecords.push({
         lesson_id: selectedLessonId,
         enrollment_id: enrollment.id,

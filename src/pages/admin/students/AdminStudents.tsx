@@ -12,6 +12,9 @@ import {
   Chip,
   Pagination,
   PaginationItem,
+  FormControl,
+  InputLabel,
+  Select as MuiSelect,
 } from "@mui/material";
 import {
   HiMiniCheckBadge,
@@ -32,6 +35,10 @@ import {
   HiMiniLink,
   HiMiniPaperAirplane,
   HiMiniPencilSquare,
+  HiMiniChevronLeft,
+  HiMiniChevronRight,
+  HiMiniChevronDown,
+  HiMiniChevronUp,
 } from "react-icons/hi2";
 import Select from "react-select";
 import { PremiumBadge, PremiumTable, TableSkeleton } from "../../../components/ui/PremiumTable";
@@ -476,7 +483,7 @@ function AdminStudents() {
             }
           >
             {studentsLoading ? (
-              <TableSkeleton columns={7} rows={5} />
+              <TableSkeleton columns={5} rows={5} />
             ) : students.length === 0 ? (
               <div className="p-12 text-center">
                 <HiMiniUsers size={64} className="mx-auto text-slate-300" />
@@ -489,15 +496,13 @@ function AdminStudents() {
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[1000px]">
+                <table className="w-full min-w-[1100px]">
                   <thead className="border-b border-slate-200 bg-slate-950/[0.035] backdrop-blur">
                     <tr className="text-left text-[12px] uppercase tracking-[0.18em] text-slate-500">
                       <th className="px-6 py-4 font-semibold">Student</th>
-                      <th className="px-4 py-4 font-semibold">Kontakt</th>
-                      <th className="px-4 py-4 font-semibold">Holat</th>
-                      <th className="px-4 py-4 font-semibold">Telegram</th>
-                      <th className="px-4 py-4 font-semibold">Ma'lumotlar</th>
-                      <th className="px-4 py-4 font-semibold">Izohlar</th>
+                      <th className="px-4 py-4 font-semibold">Asosiy aloqa</th>
+                      <th className="px-4 py-4 font-semibold">Holat va badge</th>
+                      <th className="px-4 py-4 font-semibold">Qisqa ko'rinish</th>
                       <th className="px-4 py-4 font-semibold">Amallar</th>
                     </tr>
                   </thead>
@@ -523,54 +528,137 @@ function AdminStudents() {
 
             {!studentsLoading && studentsTotal > 0 && (
               <div className="border-t border-slate-200 px-4 py-4 sm:px-6">
-                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                  <div className="flex items-center gap-2 text-sm text-slate-600">
-                    <span>Sahifadagi yozuvlar:</span>
-                    <select
-                      value={pageSize}
-                      onChange={(event) => {
-                        setPageSize(Number(event.target.value));
-                        setCurrentPage(1);
-                      }}
-                      className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm font-medium text-slate-700 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
-                    >
-                      <option value={10}>10 ta</option>
-                      <option value={20}>20 ta</option>
-                      <option value={30}>30 ta</option>
-                    </select>
-                    <span className="text-slate-400">Jami: {studentsTotal}</span>
+                <div className="flex flex-col gap-4 rounded-[28px] border border-slate-200/80 bg-[linear-gradient(135deg,rgba(255,255,255,0.96),rgba(241,247,255,0.92))] px-4 py-4 shadow-[0_18px_50px_-28px_rgba(15,23,42,0.28)] backdrop-blur md:flex-row md:items-center md:justify-between md:px-5">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+                    <div className="rounded-2xl border border-sky-100 bg-white/90 px-3 py-2 shadow-[0_12px_30px_-24px_rgba(37,99,235,0.7)]">
+                      <FormControl
+                        size="small"
+                        sx={{
+                          minWidth: 138,
+                          "& .MuiInputLabel-root": {
+                            fontSize: "0.8rem",
+                            fontWeight: 800,
+                            letterSpacing: "0.08em",
+                            color: "#64748b",
+                          },
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: "16px",
+                            backgroundColor: "#f8fafc",
+                            fontWeight: 700,
+                            color: "#0f172a",
+                            "& fieldset": {
+                              borderColor: "rgba(148,163,184,0.28)",
+                            },
+                            "&:hover fieldset": {
+                              borderColor: "rgba(59,130,246,0.45)",
+                            },
+                            "&.Mui-focused fieldset": {
+                              borderColor: "#3b82f6",
+                              borderWidth: "1px",
+                            },
+                          },
+                        }}
+                      >
+                        <InputLabel id="students-page-size-label">
+                          Ko'rsatish
+                        </InputLabel>
+                        <MuiSelect
+                          labelId="students-page-size-label"
+                          value={pageSize}
+                          label="Ko'rsatish"
+                          onChange={(event) => {
+                            setPageSize(Number(event.target.value));
+                            setCurrentPage(1);
+                          }}
+                        >
+                          <MenuItem value={10}>10 ta</MenuItem>
+                          <MenuItem value={20}>20 ta</MenuItem>
+                          <MenuItem value={30}>30 ta</MenuItem>
+                        </MuiSelect>
+                      </FormControl>
+                    </div>
+
+                    <div className="inline-flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white/85 px-3.5 py-2.5 shadow-[0_12px_30px_-26px_rgba(15,23,42,0.4)]">
+                      <div className="h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_0_6px_rgba(52,211,153,0.15)]" />
+                      <div className="flex flex-col leading-tight">
+                        <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                          Jami student
+                        </span>
+                        <span className="text-base font-black text-slate-800">
+                          {studentsTotal}
+                        </span>
+                      </div>
+                    </div>
                   </div>
 
-                  <Pagination
-                    count={Math.max(studentsPages, 1)}
-                    page={currentPage}
-                    onChange={(_, page) => setCurrentPage(page)}
-                    shape="rounded"
-                    color="primary"
-                    siblingCount={1}
-                    boundaryCount={1}
-                    renderItem={(item) => (
-                      <PaginationItem
-                        {...item}
-                        slots={{ previous: undefined, next: undefined }}
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+                    <div className="text-sm text-slate-500">
+                      Sahifa <span className="font-bold text-slate-800">{currentPage}</span> / {Math.max(studentsPages, 1)}
+                    </div>
+
+                    <div className="rounded-[24px] border border-slate-200/80 bg-white/90 px-2 py-2 shadow-[0_16px_36px_-24px_rgba(37,99,235,0.45)]">
+                      <Pagination
+                        count={Math.max(studentsPages, 1)}
+                        page={currentPage}
+                        onChange={(_, page) => setCurrentPage(page)}
+                        shape="rounded"
+                        color="primary"
+                        siblingCount={1}
+                        boundaryCount={1}
+                        showFirstButton
+                        showLastButton
+                        renderItem={(item) => (
+                          <PaginationItem
+                            {...item}
+                            slots={{
+                              previous: HiMiniChevronLeft,
+                              next: HiMiniChevronRight,
+                            }}
+                          />
+                        )}
+                        sx={{
+                          "& .MuiPagination-ul": {
+                            gap: { xs: "6px", sm: "8px" },
+                            flexWrap: "nowrap",
+                          },
+                          "& .MuiPaginationItem-root": {
+                            borderRadius: "16px",
+                            fontWeight: 800,
+                            minWidth: 42,
+                            height: 42,
+                            color: "#334155",
+                            border: "1px solid rgba(148, 163, 184, 0.2)",
+                            backgroundColor: "rgba(248, 250, 252, 0.88)",
+                            transition: "all 180ms ease",
+                          },
+                          "& .MuiPaginationItem-root:hover": {
+                            backgroundColor: "rgba(239, 246, 255, 1)",
+                            borderColor: "rgba(96, 165, 250, 0.45)",
+                            color: "#1d4ed8",
+                          },
+                          "& .MuiPaginationItem-previousNext": {
+                            background:
+                              "linear-gradient(135deg, rgba(255,255,255,0.98), rgba(241,245,249,0.94))",
+                          },
+                          "& .MuiPaginationItem-firstLast": {
+                            background:
+                              "linear-gradient(135deg, rgba(255,255,255,0.98), rgba(241,245,249,0.94))",
+                          },
+                          "& .MuiPaginationItem-root.Mui-selected": {
+                            background:
+                              "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+                            color: "#fff",
+                            borderColor: "transparent",
+                            boxShadow: "0 14px 30px -18px rgba(37, 99, 235, 0.95)",
+                          },
+                          "& .MuiPaginationItem-root.Mui-selected:hover": {
+                            background:
+                              "linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%)",
+                          },
+                        }}
                       />
-                    )}
-                    sx={{
-                      "& .MuiPaginationItem-root": {
-                        borderRadius: "10px",
-                        fontWeight: 700,
-                        minWidth: 36,
-                        height: 36,
-                      },
-                      "& .MuiPaginationItem-root.Mui-selected": {
-                        backgroundColor: "#2563eb",
-                        color: "#fff",
-                      },
-                      "& .MuiPaginationItem-root.Mui-selected:hover": {
-                        backgroundColor: "#1d4ed8",
-                      },
-                    }}
-                  />
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -1395,113 +1483,244 @@ function StudentRow({
   const hasExtraInfo = !!student.student_profile?.extra_info;
   const hasParentPhone = !!student.student_profile?.parent_phone;
   const isTelegramConnected = Boolean(student.student_profile?.telegram_chat_id);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const detailCards = [
+    {
+      title: "Kontaktlar",
+      tone: "sky" as const,
+      items: [
+        {
+          icon: <HiMiniEnvelope size={14} className="text-sky-600" />,
+          label: "Email",
+          value: student.email,
+        },
+        {
+          icon: <HiMiniPhone size={14} className="text-sky-600" />,
+          label: "Telefon",
+          value: student.phone || "Kiritilmagan",
+          muted: !student.phone,
+        },
+        {
+          icon: <HiMiniUser size={14} className="text-sky-600" />,
+          label: "Ota-ona",
+          value: student.student_profile?.parent_phone || "Kiritilmagan",
+          muted: !student.student_profile?.parent_phone,
+        },
+      ],
+    },
+    {
+      title: "Telegram",
+      tone: isTelegramConnected ? ("emerald" as const) : ("amber" as const),
+      items: [
+        {
+          icon: <HiMiniChatBubbleLeftRight size={14} className={isTelegramConnected ? "text-emerald-600" : "text-amber-600"} />,
+          label: "Holat",
+          value: isTelegramConnected ? "Bot ulangan" : "Bot ulanmagan",
+        },
+        {
+          icon: <HiMiniLink size={14} className={isTelegramConnected ? "text-emerald-600" : "text-amber-600"} />,
+          label: "Username",
+          value: student.student_profile?.telegram_username
+            ? `@${student.student_profile.telegram_username}`
+            : "Username yo'q",
+          muted: !student.student_profile?.telegram_username,
+        },
+      ],
+    },
+    {
+      title: "Profil ma'lumotlari",
+      tone: hasNotes || hasExtraInfo ? ("violet" as const) : ("slate" as const),
+      items: [
+        {
+          icon: <HiMiniInformationCircle size={14} className="text-violet-600" />,
+          label: "Izoh",
+          value: student.student_profile?.notes || "Izoh kiritilmagan",
+          muted: !student.student_profile?.notes,
+        },
+        {
+          icon: <HiMiniClipboardDocument size={14} className="text-violet-600" />,
+          label: "Qo'shimcha",
+          value: student.student_profile?.extra_info || "Qo'shimcha ma'lumot yo'q",
+          muted: !student.student_profile?.extra_info,
+        },
+      ],
+    },
+  ];
+  const infoCount = [hasParentPhone, hasNotes, hasExtraInfo].filter(Boolean).length;
 
   return (
-    <tr
-      className={`border-b border-slate-100/80 transition-all duration-200 hover:bg-[linear-gradient(90deg,rgba(239,246,255,0.72),rgba(255,255,255,0.96))] ${index % 2 === 0 ? "bg-white" : "bg-slate-50/40"}`}
-    >
-      <td className="px-6 py-4">
-        <div className="flex items-center gap-3">
-          <Avatar
-            sx={{ width: 48, height: 48, bgcolor: "#dbeafe", color: "#2563eb" }}
+    <>
+      <tr
+        className={`border-b border-slate-100/80 transition-all duration-200 hover:bg-[linear-gradient(90deg,rgba(239,246,255,0.72),rgba(255,255,255,0.96))] ${index % 2 === 0 ? "bg-white" : "bg-slate-50/40"}`}
+      >
+        <td className="px-6 py-4">
+          <button
+            type="button"
+            onClick={() => setIsExpanded((prev) => !prev)}
+            className="group flex w-full items-center gap-3 text-left"
           >
-            {student.full_name.charAt(0).toUpperCase()}
-          </Avatar>
-          <div>
-            <p className="font-bold text-slate-900">{student.full_name}</p>
-            <p className="text-xs text-slate-400">
-              ID: {student.id.slice(0, 8)}...
+            <Avatar
+              sx={{ width: 52, height: 52, bgcolor: "#dbeafe", color: "#2563eb" }}
+            >
+              {student.full_name.charAt(0).toUpperCase()}
+            </Avatar>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <p className="truncate text-base font-black text-slate-900">
+                  {student.full_name}
+                </p>
+                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
+                  ID {student.id.slice(0, 8)}
+                </span>
+              </div>
+              <p className="mt-1 text-sm text-slate-500">
+                Batafsil ko'rish uchun bosing
+              </p>
+            </div>
+          </button>
+        </td>
+        <td className="px-4 py-4">
+          <div className="space-y-2 text-sm">
+            <div className="flex items-center gap-2 text-slate-700">
+              <HiMiniEnvelope size={15} className="text-slate-400" />
+              <span className="truncate">{student.email}</span>
+            </div>
+            <div className="flex items-center gap-2 text-slate-600">
+              <HiMiniPhone size={15} className="text-slate-400" />
+              <span>{student.phone || "Telefon yo'q"}</span>
+            </div>
+          </div>
+        </td>
+        <td className="px-4 py-4">
+          <div className="flex flex-wrap gap-2">
+            <PremiumBadge tone={student.status === "active" ? "emerald" : "slate"}>
+              {student.status === "active" ? (
+                <HiMiniCheckCircle size={12} />
+              ) : (
+                <HiMiniXCircle size={12} />
+              )}
+              {student.status === "active" ? "Faol" : "Nofaol"}
+            </PremiumBadge>
+            <PremiumBadge tone={isTelegramConnected ? "sky" : "amber"}>
+              <HiMiniChatBubbleLeftRight size={12} />
+              {isTelegramConnected ? "Bot ulangan" : "Bot ulanmagan"}
+            </PremiumBadge>
+            <PremiumBadge tone={hasParentPhone ? "emerald" : "slate"}>
+              {hasParentPhone ? "Ota-ona bor" : "Ota-ona yo'q"}
+            </PremiumBadge>
+          </div>
+        </td>
+        <td className="px-4 py-4">
+          <div className="space-y-2">
+            <div className="flex flex-wrap gap-2">
+              <PremiumBadge tone={hasNotes ? "violet" : "slate"}>
+                {hasNotes ? "Izoh bor" : "Izoh yo'q"}
+              </PremiumBadge>
+              <PremiumBadge tone={hasExtraInfo ? "cyan" : "slate"}>
+                {hasExtraInfo ? "Qo'shimcha bor" : "Qo'shimcha yo'q"}
+              </PremiumBadge>
+            </div>
+            <p className="text-xs text-slate-500">
+              {infoCount > 0
+                ? `${infoCount} ta profil ma'lumoti to'ldirilgan`
+                : "Profil ma'lumotlari hali kam"}
             </p>
           </div>
-        </div>
-      </td>
-      <td className="px-4 py-4">
-        <div className="space-y-1 text-sm">
-          <div className="flex items-center gap-1">
-            <HiMiniEnvelope size={14} className="text-slate-400" />{" "}
-            {student.email}
+        </td>
+        <td className="px-4 py-4">
+          <div className="flex items-center justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setIsExpanded((prev) => !prev)}
+              className={`inline-flex h-11 items-center gap-2 rounded-2xl border px-3.5 text-sm font-bold transition-all ${
+                isExpanded
+                  ? "border-blue-200 bg-blue-50 text-blue-700 shadow-[0_12px_28px_-22px_rgba(37,99,235,0.9)]"
+                  : "border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:bg-blue-50/70 hover:text-blue-700"
+              }`}
+            >
+              {isExpanded ? <HiMiniChevronUp size={16} /> : <HiMiniChevronDown size={16} />}
+              {isExpanded ? "Yopish" : "Batafsil"}
+            </button>
+            <RowActionMenu
+              items={[
+                {
+                  label: "Tahrirlash",
+                  onClick: onEdit,
+                  icon: <HiMiniPencilSquare size={16} />,
+                },
+                {
+                  label: "Telegram",
+                  onClick: onOpenTelegram,
+                  icon: <HiMiniPaperAirplane size={16} />,
+                },
+              ]}
+            />
           </div>
-          {student.phone && (
-            <div className="flex items-center gap-1">
-              <HiMiniPhone size={14} className="text-slate-400" />{" "}
-              {student.phone}
+        </td>
+      </tr>
+      {isExpanded && (
+        <tr className={index % 2 === 0 ? "bg-white" : "bg-slate-50/40"}>
+          <td colSpan={5} className="px-5 pb-5 pt-0">
+            <div className="rounded-[26px] border border-slate-200/80 bg-[linear-gradient(135deg,rgba(248,250,252,0.94),rgba(255,255,255,0.98),rgba(239,246,255,0.72))] p-4 shadow-[0_24px_70px_-42px_rgba(15,23,42,0.4)] sm:p-5">
+              <div className="mb-4 flex flex-col gap-3 border-b border-slate-200/80 pb-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-[11px] font-black uppercase tracking-[0.28em] text-sky-700">
+                    Student Tafsilotlari
+                  </p>
+                  <h4 className="mt-1 text-lg font-black text-slate-900">
+                    {student.full_name} uchun to'liq ma'lumot
+                  </h4>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <PremiumBadge tone={student.status === "active" ? "emerald" : "slate"}>
+                    {student.status === "active" ? "Faol student" : "Nofaol student"}
+                  </PremiumBadge>
+                  <PremiumBadge tone={isTelegramConnected ? "sky" : "amber"}>
+                    {isTelegramConnected ? "Telegram tayyor" : "Telegram ulanmagan"}
+                  </PremiumBadge>
+                </div>
+              </div>
+
+              <div className="grid gap-4 lg:grid-cols-3">
+                {detailCards.map((card) => (
+                  <div
+                    key={card.title}
+                    className="rounded-3xl border border-slate-200/80 bg-white/90 p-4 shadow-[0_18px_42px_-34px_rgba(15,23,42,0.45)]"
+                  >
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <h5 className="text-sm font-black uppercase tracking-[0.16em] text-slate-700">
+                        {card.title}
+                      </h5>
+                      <PremiumBadge tone={card.tone}>{card.items.length} qator</PremiumBadge>
+                    </div>
+                    <div className="space-y-3">
+                      {card.items.map((item) => (
+                        <div
+                          key={`${card.title}-${item.label}`}
+                          className="rounded-2xl border border-slate-100 bg-slate-50/80 px-3.5 py-3"
+                        >
+                          <div className="mb-1 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-slate-400">
+                            {item.icon}
+                            {item.label}
+                          </div>
+                          <p
+                            className={`text-sm leading-6 ${
+                              item.muted ? "text-slate-400" : "font-semibold text-slate-700"
+                            }`}
+                          >
+                            {item.value}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-          )}
-          {student.student_profile?.parent_phone && (
-            <div className="flex items-center gap-1">
-              <HiMiniUser size={14} className="text-slate-400" /> Ota-ona:{" "}
-              {student.student_profile.parent_phone}
-            </div>
-          )}
-        </div>
-      </td>
-      <td className="px-4 py-4">
-        <PremiumBadge tone={student.status === "active" ? "emerald" : "slate"}>
-          {student.status === "active" ? (
-            <HiMiniCheckCircle size={12} />
-          ) : (
-            <HiMiniXCircle size={12} />
-          )}
-          {student.status === "active" ? "Faol" : "Nofaol"}
-        </PremiumBadge>
-      </td>
-      <td className="px-4 py-4">
-        <div className="space-y-2">
-          <PremiumBadge tone={isTelegramConnected ? "sky" : "amber"}>
-            <HiMiniChatBubbleLeftRight size={12} />
-            {isTelegramConnected ? "Bot ulangan" : "Ulanmagan"}
-          </PremiumBadge>
-          <p className="text-xs text-slate-500">
-            {student.student_profile?.telegram_username
-              ? `@${student.student_profile.telegram_username}`
-              : "Telegram username yo'q"}
-          </p>
-        </div>
-      </td>
-      <td className="px-4 py-4">
-        <div className="flex gap-1 flex-wrap">
-          <PremiumBadge tone={hasParentPhone ? "emerald" : "amber"}>
-            {hasParentPhone ? "Kontakt to'liq" : "Kontakt kiritilmagan"}
-          </PremiumBadge>
-          <PremiumBadge tone={hasNotes ? "sky" : "slate"}>
-            {hasNotes ? "Izoh bor" : "Izoh yo'q"}
-          </PremiumBadge>
-          <PremiumBadge tone={hasExtraInfo ? "violet" : "slate"}>
-            {hasExtraInfo ? "Qo'shimcha bor" : "Qo'shimcha yo'q"}
-          </PremiumBadge>
-        </div>
-      </td>
-      <td className="px-4 py-4 max-w-xs">
-        {student.student_profile?.notes ? (
-          <p className="text-xs text-slate-600 flex items-center gap-1">
-            <HiMiniInformationCircle size={12} />
-            {student.student_profile.notes.length > 50
-              ? `${student.student_profile.notes.slice(0, 50)}...`
-              : student.student_profile.notes}
-          </p>
-        ) : (
-          <p className="text-xs text-slate-400">Ma'lumot kiritilmagan</p>
-        )}
-      </td>
-      <td className="px-4 py-4">
-        <div className="flex justify-end">
-          <RowActionMenu
-            items={[
-              {
-                label: "Tahrirlash",
-                onClick: onEdit,
-                icon: <HiMiniPencilSquare size={16} />,
-              },
-              {
-                label: "Telegram",
-                onClick: onOpenTelegram,
-                icon: <HiMiniPaperAirplane size={16} />,
-              },
-            ]}
-          />
-        </div>
-      </td>
-    </tr>
+          </td>
+        </tr>
+      )}
+    </>
   );
 }
 
