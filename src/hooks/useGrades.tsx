@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
-import { createGrade, listGrades, updateGrade, type GradePayload } from "../api/grades";
+import { bulkUpsertGrades, createGrade, listGrades, updateGrade, type GradeBulkPayload, type GradePayload } from "../api/grades";
 import { getErrorMessage } from "../api/auth";
+import type { Grade } from "../types/types";
 
 type GradesParams = {
   lessonId?: string;
@@ -22,6 +23,15 @@ export default function useGrades(params?: GradesParams, options?: GradesHookOpt
     queryFn: () => listGrades(params),
     enabled: Boolean(params?.lessonId || params?.studentId),
   });
+
+  const mergeGrades = (previous: unknown, changedGrades: Grade[]) => {
+    const list = Array.isArray(previous) ? (previous as Grade[]) : [];
+    const next = new Map(list.map((grade) => [grade.id, grade]));
+    changedGrades.forEach((grade) => {
+      next.set(grade.id, grade);
+    });
+    return Array.from(next.values());
+  };
 
   const createMutation = useMutation({
     mutationFn: createGrade,
@@ -52,11 +62,25 @@ export default function useGrades(params?: GradesParams, options?: GradesHookOpt
     onError: (error) => toast.error(getErrorMessage(error, "Bahoni yangilab bo'lmadi")),
   });
 
+  const bulkMutation = useMutation({
+    mutationFn: (payload: GradeBulkPayload) => bulkUpsertGrades(payload),
+    onSuccess: (changedGrades) => {
+      if (shouldShowSuccessToast) {
+        toast.success("Baholar saqlandi");
+      }
+      queryClient.setQueryData(gradesQueryKey, (previous: unknown) =>
+        mergeGrades(previous, changedGrades),
+      );
+    },
+    onError: (error) => toast.error(getErrorMessage(error, "Baholarni saqlab bo'lmadi")),
+  });
+
   return {
     grades: gradesQuery.data ?? [],
     loading: gradesQuery.isLoading,
     isFetching: gradesQuery.isFetching,
     createGrade: (payload: GradePayload) => createMutation.mutateAsync(payload),
+    bulkUpsertGrades: (payload: GradeBulkPayload) => bulkMutation.mutateAsync(payload),
     updateGrade: (gradeId: string, payload: Partial<GradePayload>) =>
       updateMutation.mutateAsync({ gradeId, payload }),
   };

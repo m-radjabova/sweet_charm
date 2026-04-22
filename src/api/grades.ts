@@ -10,6 +10,10 @@ export type GradePayload = {
   note?: string | null;
 };
 
+export type GradeBulkPayload = {
+  records: GradePayload[];
+};
+
 export async function listGrades(params?: { lessonId?: string; studentId?: string }) {
   const { data } = await apiClient.get<Grade[]>("/grades/", {
     params: {
@@ -27,5 +31,10 @@ export async function createGrade(payload: GradePayload) {
 
 export async function updateGrade(gradeId: string, payload: Partial<GradePayload>) {
   const { data } = await apiClient.patch<Grade>(`/grades/${gradeId}`, payload);
+  return data;
+}
+
+export async function bulkUpsertGrades(payload: GradeBulkPayload) {
+  const { data } = await apiClient.post<Grade[]>("/grades/save-many", payload);
   return data;
 }

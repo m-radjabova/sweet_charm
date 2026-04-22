@@ -387,11 +387,13 @@ function AdminGroupStudents() {
     }
   }, [lessons, selectedLessonId]);
 
-  const { attendance, createAttendance, updateAttendance } = useAttendance(
-    selectedLessonId || undefined,
-    { successToast: false },
-  );
-  const { grades, createGrade, updateGrade } = useGrades(
+  const {
+    attendance,
+    bulkUpsertAttendance,
+  } = useAttendance(selectedLessonId || undefined, {
+    successToast: false,
+  });
+  const { grades, bulkUpsertGrades } = useGrades(
     { lessonId: selectedLessonId || undefined },
     { successToast: false },
   );
@@ -433,67 +435,7 @@ function AdminGroupStudents() {
   const getDisplayLessonNumber = (lesson: Lesson | null) =>
     lesson ? monthlyLessonNumbers.get(lesson.id) ?? lesson.lesson_number : 0;
 
-  const saveAttendance = async (
-    enrollment: Enrollment,
-    para: AttendancePara,
-    status: AttendanceStatus,
-    note: string,
-  ) => {
-    if (!selectedLessonId) {
-      toast.error("Avval darsni tanlang");
-      return;
-    }
-    const existing = attendanceMaps[para].get(enrollment.student_id);
-    if (existing) {
-      await updateAttendance(existing.id, {
-        para,
-        status,
-        note,
-      });
-      return;
-    }
-    await createAttendance({
-      lesson_id: selectedLessonId,
-      enrollment_id: enrollment.id,
-      student_id: enrollment.student_id,
-      para,
-      status,
-      note,
-    });
-  };
-
-  const saveGrade = async (
-    enrollment: Enrollment,
-    scoreValue: string,
-    note: string,
-  ) => {
-    if (!selectedLessonId || scoreValue === "") return;
-    const numericScore = Math.trunc(
-      Number(String(scoreValue).replace(",", ".")),
-    );
-    if (Number.isNaN(numericScore) || numericScore < 0 || numericScore > 100) {
-      toast.error("Baho 0 dan 100 gacha bo'lishi kerak");
-      return;
-    }
-    const existing = gradesMap.get(enrollment.student_id);
-    if (existing) {
-      await updateGrade(existing.id, {
-        score: numericScore,
-        note,
-      });
-      return;
-    }
-    await createGrade({
-      lesson_id: selectedLessonId,
-      enrollment_id: enrollment.id,
-      student_id: enrollment.student_id,
-      teacher_id: state.user?.id ?? null,
-      score: numericScore,
-      note,
-    });
-  };
-
-  const saveRow = async (
+  const buildRowSavePayloads = (
     enrollment: Enrollment,
     visibleParas: AttendancePara[],
     attendanceByPara: Record<AttendancePara, AttendanceStatus>,
@@ -502,10 +444,22 @@ function AdminGroupStudents() {
     gradeValue: string,
     gradeNote: string,
   ) => {
+    if (!selectedLessonId) {
+      return { attendanceRecords: [], gradeRecord: null };
+    }
+
     const primaryPara = visibleParas[0] ?? 1;
     const hasSavedVisibleAttendance = visibleParas.some((para) =>
       attendanceMaps[para].has(enrollment.student_id),
     );
+    const attendanceRecords: Array<{
+      lesson_id: string;
+      enrollment_id: string;
+      student_id: string;
+      para: AttendancePara;
+      status: AttendanceStatus;
+      note: string;
+    }> = [];
 
     for (const para of ATTENDANCE_PARAS) {
       const hasSavedAttendance = attendanceMaps[para].has(enrollment.student_id);
@@ -518,16 +472,38 @@ function AdminGroupStudents() {
           (!hasSavedVisibleAttendance ||
             Boolean(attendanceEditingRows[enrollment.id])));
       if (!shouldPersistAttendance) continue;
-      await saveAttendance(
-        enrollment,
+      attendanceRecords.push({
+        lesson_id: selectedLessonId,
+        enrollment_id: enrollment.id,
+        student_id: enrollment.student_id,
         para,
-        attendanceByPara[para],
-        attendanceNote,
-      );
+        status: attendanceByPara[para],
+        note: attendanceNote,
+      });
     }
-    if (gradeValue !== "") {
-      await saveGrade(enrollment, gradeValue, gradeNote);
+
+    if (gradeValue === "") {
+      return { attendanceRecords, gradeRecord: null };
     }
+
+    const numericScore = Math.trunc(
+      Number(String(gradeValue).replace(",", ".")),
+    );
+    if (Number.isNaN(numericScore) || numericScore < 0 || numericScore > 100) {
+      throw new Error("Baho 0 dan 100 gacha bo'lishi kerak");
+    }
+
+    return {
+      attendanceRecords,
+      gradeRecord: {
+        lesson_id: selectedLessonId,
+        enrollment_id: enrollment.id,
+        student_id: enrollment.student_id,
+        teacher_id: state.user?.id ?? null,
+        score: numericScore,
+        note: gradeNote,
+      },
+    };
   };
 
   useEffect(() => {
@@ -676,10 +652,27 @@ function AdminGroupStudents() {
     setIsSavingAll(true);
     try {
       const savedEnrollmentIds: string[] = [];
+      const attendanceRecords: Array<{
+        lesson_id: string;
+        enrollment_id: string;
+        student_id: string;
+        para: AttendancePara;
+        status: AttendanceStatus;
+        note: string;
+      }> = [];
+      const gradeRecords: Array<{
+        lesson_id: string;
+        enrollment_id: string;
+        student_id: string;
+        teacher_id: string | null;
+        score: number;
+        note: string;
+      }> = [];
+
       for (const enrollment of changedEnrollments) {
         const draft = drafts[enrollment.id];
         if (!draft) continue;
-        await saveRow(
+        const rowPayloads = buildRowSavePayloads(
           enrollment,
           activeVisibleParas,
           draft.attendanceByPara,
@@ -688,8 +681,21 @@ function AdminGroupStudents() {
           draft.grade,
           draft.note,
         );
+        attendanceRecords.push(...rowPayloads.attendanceRecords);
+        if (rowPayloads.gradeRecord) {
+          gradeRecords.push(rowPayloads.gradeRecord);
+        }
         savedEnrollmentIds.push(enrollment.id);
       }
+
+      await Promise.all([
+        attendanceRecords.length > 0
+          ? bulkUpsertAttendance({ records: attendanceRecords })
+          : Promise.resolve([]),
+        gradeRecords.length > 0
+          ? bulkUpsertGrades({ records: gradeRecords })
+          : Promise.resolve([]),
+      ]);
 
       setDrafts({});
       setAttendanceEditingRows((prev) => {
