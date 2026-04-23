@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import type { MouseEvent } from "react";
 import {
   Avatar,
   Button,
@@ -1596,9 +1597,22 @@ function LessonCompactCard({
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  const handleActionClick = (event: MouseEvent) => {
+    event.stopPropagation();
+  };
+
   return (
     <div
-      className={`group relative w-[280px] min-w-[280px] overflow-hidden rounded-2xl border px-3 py-3 transition-all duration-200 ${
+      role="button"
+      tabIndex={0}
+      onClick={onSelect}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onSelect();
+        }
+      }}
+      className={`group relative w-[280px] min-w-[280px] cursor-pointer overflow-hidden rounded-2xl border px-3 py-3 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-sky-300 focus:ring-offset-2 ${
         isActive
           ? "border-sky-300 bg-gradient-to-br from-sky-50 via-white to-cyan-50"
           : "border-slate-200 bg-white hover:-translate-y-0.5 hover:border-sky-200 hover:shadow-[0_18px_45px_-32px_rgba(15,23,42,0.35)]"
@@ -1608,11 +1622,7 @@ function LessonCompactCard({
         className={`pointer-events-none absolute inset-x-0 top-0 h-1.5 ${isActive ? "bg-gradient-to-r from-sky-500 via-cyan-400 to-emerald-400" : "bg-transparent"}`}
       />
       <div className="flex items-start justify-between gap-1">
-        <button
-          type="button"
-          onClick={onSelect}
-          className="min-w-0 flex-1 text-left"
-        >
+        <div className="min-w-0 flex-1 text-left">
           <div className="mb-2 flex items-center gap-2">
             <PremiumBadge tone={isActive ? "sky" : "slate"}>
               {displayLessonNumber}-dars
@@ -1633,9 +1643,12 @@ function LessonCompactCard({
           >
             {lesson.lesson_date}
           </p>
-        </button>
+        </div>
 
-        <div className="flex shrink-0 items-center gap-1">
+        <div
+          className="flex shrink-0 items-center gap-1"
+          onClick={handleActionClick}
+        >
           <IconButton
             size="small"
             onClick={onView}
