@@ -77,13 +77,13 @@ export default function StudentSettings() {
   ];
 
   return (
-    <div className="mx-auto max-w-[1500px] space-y-6 p-4 pb-8 lg:p-6">
-      <section className="relative overflow-hidden rounded-[36px] bg-[linear-gradient(135deg,#20124d_0%,#1d4ed8_48%,#0ea5e9_100%)] px-6 py-8 text-white shadow-[0_26px_90px_rgba(29,78,216,0.18)] md:px-8 md:py-10">
+    <div className="mx-auto max-w-[1500px] space-y-5 p-3 pb-8 sm:p-4 lg:space-y-6 lg:p-6">
+      <section className="relative overflow-hidden rounded-[28px] bg-[linear-gradient(135deg,#20124d_0%,#1d4ed8_48%,#0ea5e9_100%)] px-4 py-6 text-white shadow-[0_26px_90px_rgba(29,78,216,0.18)] sm:rounded-[36px] sm:px-6 sm:py-8 md:px-8 md:py-10">
         <div className="absolute -right-10 top-0 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
             <Chip label="SETTINGS" className="!mb-4 !bg-white/16 !text-white !font-bold" />
-            <h1 className="text-4xl font-black sm:text-5xl">Student sozlamalari</h1>
+            <h1 className="text-3xl font-black sm:text-4xl lg:text-5xl">Student sozlamalari</h1>
             <p className="mt-4 text-sm leading-7 text-sky-50/82 sm:text-base">
               Profil ma'lumotlaringiz faqat ko'rish uchun ochiq. Bu bo'limda faqat parolingizni xavfsiz almashtira olasiz.
             </p>
@@ -105,7 +105,7 @@ export default function StudentSettings() {
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-        <div className="rounded-[30px] border border-white/70 bg-white/92 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.07)]">
+        <div className="rounded-[24px] border border-white/70 bg-white/92 p-4 shadow-[0_18px_50px_rgba(15,23,42,0.07)] sm:rounded-[30px] sm:p-6">
           <div className="flex items-center gap-3">
             <HiMiniShieldCheck className="text-3xl text-sky-500" />
             <div>
@@ -134,7 +134,7 @@ export default function StudentSettings() {
           </div>
         </div>
 
-        <div className="rounded-[30px] border border-white/70 bg-white/92 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.07)]">
+        <div className="rounded-[24px] border border-white/70 bg-white/92 p-4 shadow-[0_18px_50px_rgba(15,23,42,0.07)] sm:rounded-[30px] sm:p-6">
           <div className="flex items-center gap-3">
             <HiMiniKey className="text-3xl text-fuchsia-500" />
             <div>

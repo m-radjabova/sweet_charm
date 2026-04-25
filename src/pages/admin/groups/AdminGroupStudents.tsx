@@ -48,6 +48,7 @@ import type {
   Enrollment,
   Lesson,
 } from "../../../types/types";
+import { formatDate } from "../../../utils/date";
 import { formatDateKey, formatMonthKey, formatMonthLabel, formatMonthLabelFromKey, getMonthEndDate, getMonthKey, getNextMonthKey, getSuggestedLessonDate, isEnrollmentVisibleInRange, isValidMonthKey, parseMonthKey, truncateText } from "./utils";
 
 const enrollmentStatusLabels: Record<string, { label: string; color: string }> =
@@ -1641,7 +1642,7 @@ function LessonCompactCard({
           <p
             className={`mt-2 text-[12px] font-medium ${isActive ? "text-sky-700" : "text-slate-500"}`}
           >
-            {lesson.lesson_date}
+            {formatDate(lesson.lesson_date)}
           </p>
         </div>
 
@@ -2038,7 +2039,7 @@ function LessonViewDrawer({
                   className="!bg-sky-100 !text-sky-700"
                 />
                 <Chip
-                  label={lesson.lesson_date}
+                  label={formatDate(lesson.lesson_date)}
                   className="!bg-slate-100 !text-slate-700"
                 />
               </div>

@@ -5,34 +5,28 @@ import {
   HiMiniBookOpen,
   HiMiniCalendar,
   HiMiniCheckBadge,
+  HiMiniClipboardDocumentCheck,
   HiMiniClock,
   HiMiniUserCircle,
 } from "react-icons/hi2";
 import useContextPro from "../../hooks/useContextPro";
 import useStudentOverview from "../../hooks/useStudentOverview";
+import { formatDate } from "../../utils/date";
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat("uz-UZ").format(amount);
-}
-
-function formatDate(value?: string | null) {
-  if (!value) return "Belgilanmagan";
-  return new Date(value).toLocaleDateString("uz-UZ", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  });
 }
 
 export default function StudentDashboard() {
   const {
     state: { user },
   } = useContextPro();
-  const { enrollments, lessons, payments, grades, loading } = useStudentOverview(user?.id);
+  const { enrollments, lessons, attendance, payments, grades, loading } = useStudentOverview(user?.id);
 
   const totalPaid = payments.reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
   const currentGroups = enrollments.filter((enrollment) => enrollment.status === "active");
   const recentLessons = lessons.slice(0, 6);
+  const absentCount = attendance.filter((record) => record.status === "absent").length;
   const averageScore =
     grades.length > 0
       ? Math.round(grades.reduce((sum, grade) => sum + Number(grade.score || 0), 0) / grades.length)
@@ -90,8 +84,8 @@ export default function StudentDashboard() {
 }
 
   return (
-    <div className="mx-auto max-w-[1700px] space-y-6 p-4 pb-8 lg:p-6">
-      <section className="relative overflow-hidden rounded-[36px] bg-[linear-gradient(135deg,#0f3b36_0%,#0c5f5e_50%,#0f766e_100%)] px-6 py-8 text-white shadow-[0_28px_90px_rgba(15,118,110,0.18)] md:px-8 md:py-10 lg:px-10">
+    <div className="mx-auto max-w-[1700px] space-y-5 p-3 pb-8 sm:p-4 lg:space-y-6 lg:p-6">
+      <section className="relative overflow-hidden rounded-[28px] bg-[linear-gradient(135deg,#0f3b36_0%,#0c5f5e_50%,#0f766e_100%)] px-4 py-6 text-white shadow-[0_28px_90px_rgba(15,118,110,0.18)] sm:rounded-[32px] sm:px-6 sm:py-8 md:px-8 md:py-10 lg:rounded-[36px] lg:px-10">
         <div className="absolute -right-8 -top-12 h-52 w-52 rounded-full bg-amber-300/15 blur-3xl" />
         <div className="absolute bottom-0 left-0 h-40 w-40 rounded-full bg-white/8 blur-3xl" />
         <div className="relative flex flex-col gap-8 xl:flex-row xl:items-end xl:justify-between">
@@ -100,7 +94,7 @@ export default function StudentDashboard() {
               label="STUDENT PANEL"
               className="!mb-4 !bg-white/15 !text-white !font-bold !tracking-wide"
             />
-            <h1 className="text-4xl font-black leading-tight sm:text-5xl">
+            <h1 className="text-3xl font-black leading-tight sm:text-4xl lg:text-5xl">
               Salom, {user?.full_name?.split(" ")[0] ?? "student"}
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-emerald-50/82 sm:text-base">
@@ -132,7 +126,7 @@ export default function StudentDashboard() {
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-3 sm:gap-4 md:grid-cols-2 xl:grid-cols-5">
         {[
           {
             label: "Faol guruhlar",
@@ -153,27 +147,33 @@ export default function StudentDashboard() {
             tone: "from-amber-400 to-orange-500",
           },
           {
+            label: "Davomatim",
+            value: `${absentCount} ta NB`,
+            icon: HiMiniClipboardDocumentCheck,
+            tone: "from-rose-500 to-pink-500",
+          },
+          {
             label: "O'rtacha natija",
             value: grades.length ? `${averageScore} ball` : "Baholanmagan",
             icon: HiMiniCheckBadge,
-            tone: "from-fuchsia-500 to-pink-500",
+            tone: "from-violet-500 to-fuchsia-500",
           },
         ].map((item) => {
           const Icon = item.icon;
           return (
-            <div key={item.label} className="overflow-hidden rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
-              <div className={`mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${item.tone} text-white shadow-lg`}>
+            <div key={item.label} className="overflow-hidden rounded-[24px] border border-white/70 bg-white/90 p-4 shadow-[0_18px_50px_rgba(15,23,42,0.08)] sm:rounded-[28px] sm:p-5">
+              <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${item.tone} text-white shadow-lg sm:h-14 sm:w-14`}>
                 <Icon className="text-[28px]" />
               </div>
               <p className="text-sm font-semibold text-slate-500">{item.label}</p>
-              <p className="mt-2 text-2xl font-black text-slate-900">{item.value}</p>
+              <p className="mt-2 break-words text-xl font-black text-slate-900 sm:text-2xl">{item.value}</p>
             </div>
           );
         })}
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <div className="rounded-[30px] border border-white/70 bg-white/90 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.07)]">
+        <div className="rounded-[24px] border border-white/70 bg-white/90 p-4 shadow-[0_18px_50px_rgba(15,23,42,0.07)] sm:rounded-[30px] sm:p-6">
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-xs uppercase tracking-[0.28em] text-emerald-600">Mening guruhlarim</p>
@@ -189,7 +189,7 @@ export default function StudentDashboard() {
               </div>
             ) : (
               enrollments.map((enrollment) => (
-                <div key={enrollment.id} className="rounded-[24px] border border-slate-100 bg-[linear-gradient(135deg,#f8fffd_0%,#f7fbff_100%)] p-5">
+                <div key={enrollment.id} className="rounded-[22px] border border-slate-100 bg-[linear-gradient(135deg,#f8fffd_0%,#f7fbff_100%)] p-4 sm:rounded-[24px] sm:p-5">
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div>
                       <h3 className="text-xl font-black text-slate-900">{enrollment.group.name}</h3>
@@ -199,7 +199,7 @@ export default function StudentDashboard() {
                       {enrollment.status === "active" ? "Faol" : enrollment.status}
                     </span>
                   </div>
-                  <div className="mt-4 grid gap-3 md:grid-cols-3">
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                     <div className="rounded-2xl bg-white p-4">
                       <p className="text-xs uppercase tracking-wide text-slate-400">O'qituvchi</p>
                       <p className="mt-2 font-bold text-slate-900">{enrollment.group.teacher?.full_name ?? "Biriktirilmagan"}</p>
@@ -219,7 +219,7 @@ export default function StudentDashboard() {
           </div>
         </div>
 
-        <div className="rounded-[30px] border border-white/70 bg-white/90 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.07)]">
+        <div className="rounded-[24px] border border-white/70 bg-white/90 p-4 shadow-[0_18px_50px_rgba(15,23,42,0.07)] sm:rounded-[30px] sm:p-6">
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-xs uppercase tracking-[0.28em] text-cyan-600">So'nggi vazifalar</p>
@@ -261,7 +261,7 @@ export default function StudentDashboard() {
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-        <div className="rounded-[30px] border border-white/70 bg-white/90 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.07)]">
+        <div className="rounded-[24px] border border-white/70 bg-white/90 p-4 shadow-[0_18px_50px_rgba(15,23,42,0.07)] sm:rounded-[30px] sm:p-6">
           <div className="flex items-center gap-3">
             <HiMiniClock className="text-3xl text-amber-500" />
             <div>
@@ -271,7 +271,7 @@ export default function StudentDashboard() {
           </div>
           <div className="mt-5 space-y-3">
             {payments.slice(0, 5).map((payment) => (
-              <div key={payment.id} className="flex items-center justify-between rounded-[22px] border border-slate-100 bg-slate-50 px-4 py-3">
+                <div key={payment.id} className="flex flex-col gap-3 rounded-[22px] border border-slate-100 bg-slate-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="font-bold text-slate-900">{formatCurrency(Number(payment.amount || 0))} so'm</p>
                   <p className="text-xs text-slate-500">
@@ -291,7 +291,7 @@ export default function StudentDashboard() {
           </div>
         </div>
 
-        <div className="rounded-[30px] border border-white/70 bg-white/90 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.07)]">
+        <div className="rounded-[24px] border border-white/70 bg-white/90 p-4 shadow-[0_18px_50px_rgba(15,23,42,0.07)] sm:rounded-[30px] sm:p-6">
           <div className="flex items-center gap-3">
             <HiMiniCheckBadge className="text-3xl text-fuchsia-500" />
             <div>

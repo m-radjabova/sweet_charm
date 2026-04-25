@@ -142,22 +142,22 @@ function Login() {
         </div>
 
         {/* Right side */}
-        <div className="relative flex min-h-screen items-center justify-center px-4 py-8 sm:px-6 lg:px-10">
+        <div className="relative flex min-h-screen items-center justify-center px-3 py-6 sm:px-6 sm:py-8 lg:px-10">
           <Paper
             elevation={0}
-            className="relative w-full max-w-[540px] overflow-hidden rounded-[32px] border border-white/60 bg-white/85 shadow-[0_24px_80px_rgba(15,23,42,0.10)] backdrop-blur-xl"
+            className="relative w-full max-w-[540px] overflow-hidden rounded-[24px] border border-white/60 bg-white/85 shadow-[0_24px_80px_rgba(15,23,42,0.10)] backdrop-blur-xl sm:rounded-[32px]"
           >
             <div className="absolute left-0 right-0 top-0 h-1.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-violet-500" />
             <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-blue-100/50 blur-3xl" />
             <div className="absolute -bottom-16 -left-16 h-40 w-40 rounded-full bg-indigo-100/40 blur-3xl" />
 
-            <div className="relative p-8 sm:p-10 md:p-12">
+            <div className="relative p-5 sm:p-8 md:p-10 lg:p-12">
               {/* Mobile header */}
-              <div className="mb-8 text-center lg:hidden">
-                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-600 shadow-[0_16px_36px_rgba(37,99,235,0.28)]">
-                  <HiOutlineAcademicCap className="text-4xl text-white" />
+              <div className="mb-6 text-center lg:hidden">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[22px] bg-gradient-to-br from-blue-600 to-indigo-600 shadow-[0_16px_36px_rgba(37,99,235,0.28)] sm:h-20 sm:w-20 sm:rounded-3xl">
+                  <HiOutlineAcademicCap className="text-3xl text-white sm:text-4xl" />
                 </div>
-                <p className="mt-4 text-[11px] uppercase tracking-[0.35em] text-slate-400">
+                <p className="mt-4 text-[10px] uppercase tracking-[0.3em] text-slate-400 sm:text-[11px] sm:tracking-[0.35em]">
                   Course Center
                 </p>
               </div>
@@ -168,7 +168,7 @@ function Login() {
                   <HiOutlineAcademicCap className="text-4xl text-white" />
                 </div>
 
-                <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-900 sm:text-4xl lg:mt-6">
+                <h1 className="mt-2 text-2xl font-black tracking-tight text-slate-900 sm:text-3xl lg:mt-6 lg:text-4xl">
                   Xush kelibsiz
                 </h1>
                 <p className="mt-3 text-sm leading-6 text-slate-500 sm:text-[15px]">
@@ -179,21 +179,21 @@ function Login() {
               {/* Form */}
               <form
                 onSubmit={handleSubmit(onSubmit)}
-                className="mt-8 space-y-5"
+                className="mt-6 space-y-4 sm:mt-8 sm:space-y-5"
               >
                 {/* Email */}
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
                     Email
                   </label>
-                  <div className="group flex h-16 items-center rounded-[20px] border border-slate-200 bg-slate-50 px-4 transition-all duration-200 focus-within:border-blue-500 focus-within:bg-white focus-within:shadow-[0_0_0_4px_rgba(59,130,246,0.08)]">
+                  <div className="group flex h-14 items-center rounded-[18px] border border-slate-200 bg-slate-50 px-4 transition-all duration-200 focus-within:border-blue-500 focus-within:bg-white focus-within:shadow-[0_0_0_4px_rgba(59,130,246,0.08)] sm:h-16 sm:rounded-[20px]">
                     <HiOutlineEnvelope className="mr-3 shrink-0 text-[22px] text-slate-400 transition-colors group-focus-within:text-blue-500" />
                     <input
                       type="email"
                       autoComplete="email"
                       placeholder="admin@coursecenter.uz"
                       {...register("email")}
-                      className="h-full w-full border-none bg-transparent text-[17px] font-medium text-slate-800 outline-none placeholder:text-slate-400"
+                      className="h-full w-full border-none bg-transparent text-base font-medium text-slate-800 outline-none placeholder:text-slate-400 sm:text-[17px]"
                     />
                   </div>
                   {errors.email && (
@@ -208,7 +208,7 @@ function Login() {
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
                     Parol
                   </label>
-                  <div className="group flex h-16 items-center rounded-[20px] border border-slate-200 bg-slate-50 px-4 transition-all duration-200 focus-within:border-blue-500 focus-within:bg-white focus-within:shadow-[0_0_0_4px_rgba(59,130,246,0.08)]">
+                  <div className="group flex h-14 items-center rounded-[18px] border border-slate-200 bg-slate-50 px-4 transition-all duration-200 focus-within:border-blue-500 focus-within:bg-white focus-within:shadow-[0_0_0_4px_rgba(59,130,246,0.08)] sm:h-16 sm:rounded-[20px]">
                     <HiOutlineLockClosed className="mr-3 shrink-0 text-[22px] text-slate-400 transition-colors group-focus-within:text-blue-500" />
 
                     <input
@@ -216,7 +216,7 @@ function Login() {
                       autoComplete="current-password"
                       placeholder="••••••••"
                       {...register("password")}
-                      className="h-full w-full border-none bg-transparent text-[17px] font-medium text-slate-800 outline-none placeholder:text-slate-400"
+                      className="h-full w-full border-none bg-transparent text-base font-medium text-slate-800 outline-none placeholder:text-slate-400 sm:text-[17px]"
                     />
 
                     <button
@@ -230,9 +230,9 @@ function Login() {
                       }
                     >
                       {showPassword ? (
-                        <HiOutlineEyeSlash size={22} />
+                        <HiOutlineEyeSlash size={20} />
                       ) : (
-                        <HiOutlineEye size={22} />
+                        <HiOutlineEye size={20} />
                       )}
                     </button>
                   </div>
@@ -257,8 +257,8 @@ function Login() {
                   className="group"
                   sx={{
                     mt: 1,
-                    py: 2,
-                    borderRadius: "20px",
+                    py: { xs: 1.65, sm: 2 },
+                    borderRadius: { xs: "18px", sm: "20px" },
                     textTransform: "none",
                     fontWeight: 800,
                     fontSize: "1rem",
@@ -294,7 +294,7 @@ function Login() {
                 </Button>
 
                 {isSubmitting ? (
-                  <div className="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+                  <div className="rounded-2xl mt-4 border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
                     <div className="flex items-center gap-3">
                       <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-blue-500" />
                       <span className="font-medium">

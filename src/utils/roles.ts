@@ -13,6 +13,11 @@ export function getPrimaryRole(user: Pick<User, "role" | "roles"> | null | undef
   return rolePriority.find((role) => normalizedRoles.includes(role)) ?? user?.role;
 }
 
+export function isSuperAdmin(user: Pick<User, "role" | "roles"> | null | undefined) {
+  const normalizedRoles = user?.roles?.length ? user.roles : user?.role ? [user.role] : [];
+  return normalizedRoles.includes("super_admin");
+}
+
 export function hasAnyRole(
   user: Pick<User, "role" | "roles"> | null | undefined,
   roles: UserRole[],

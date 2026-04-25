@@ -163,23 +163,23 @@ function AdminCourses() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-amber-50/20 to-orange-50/20">
-      <div className="max-w-[1800px] mx-auto p-4 lg:p-6 space-y-6">
+      <div className="mx-auto max-w-[1800px] space-y-5 p-3 sm:p-4 lg:space-y-6 lg:p-6">
         {/* Hero Section */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-900 via-orange-800 to-amber-500 text-white">
-          <div className="absolute top-0 right-0 w-80 h-80 opacity-10">
+        <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-amber-900 via-orange-800 to-amber-500 text-white sm:rounded-3xl">
+          <div className="absolute right-0 top-0 h-48 w-48 opacity-10 sm:h-80 sm:w-80">
             <HiMiniSquares2X2 size={350} />
           </div>
-          <div className="absolute bottom-0 left-0 w-60 h-60 opacity-5">
+          <div className="absolute bottom-0 left-0 h-36 w-36 opacity-5 sm:h-60 sm:w-60">
             <HiMiniBanknotes size={250} />
           </div>
-          <div className="relative px-6 py-10 md:px-10 md:py-14 lg:px-12 lg:py-16">
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8">
+          <div className="relative px-4 py-6 sm:px-6 sm:py-8 md:px-10 md:py-14 lg:px-12 lg:py-16">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between lg:gap-8">
               <div className="max-w-3xl">
                 <Chip 
                   label="KURS MARKAZI" 
                   className="!mb-4 !bg-white/20 !text-white !font-bold !text-sm !py-1 !px-4"
                 />
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight">
+                <h1 className="text-3xl font-black leading-tight tracking-tight sm:text-5xl lg:text-6xl">
                   Kurslarni boshqarish
                 </h1>
                 <p className="mt-4 text-amber-100 text-base sm:text-lg max-w-xl leading-relaxed">
@@ -187,7 +187,7 @@ function AdminCourses() {
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="grid w-full gap-3 sm:grid-cols-2 lg:w-auto lg:grid-cols-3 lg:gap-4">
                 <StatCard label="Jami kurs" value={courses.length} icon={<HiMiniSquares2X2 size={22} />} color="amber" />
                 <StatCard label="Faol kurs" value={activeCoursesCount} icon={<HiMiniCheckCircle size={22} />} color="emerald" />
                 <StatCard label="Jami tarif" value={totalMonthlyFees.toLocaleString()} icon={<HiMiniBanknotes size={22} />} color="orange" suffix="so'm" />
@@ -197,27 +197,27 @@ function AdminCourses() {
         </div>
 
         {/* Action Bar */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 shadow-sm hover:shadow-md transition-all">
+        <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:shadow-md sm:p-5 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="text-xs font-bold text-amber-600 uppercase tracking-wider">KURS BOSHQARUVI</p>
             <h3 className="text-xl font-bold text-slate-900 mt-1">Kurs qo'shish va tahrirlash</h3>
             <p className="text-sm text-slate-500 mt-1">Kurs ma'lumotlarini boshqaring va guruhlarga ajrating</p>
           </div>
-          <div className="flex gap-3">
-            <div className="relative">
+          <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto">
+            <div className="relative w-full sm:max-w-xs">
               <HiMiniMagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg" />
               <input
                 type="text"
                 placeholder="Kurs qidirish..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100 transition-all w-64"
+                className="w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-4 transition-all focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100 sm:w-64"
               />
             </div>
             <button
               onClick={() => handleOpenDrawer()}
               style={{borderRadius : "20px"}}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl sm:w-auto"
             >
               <HiMiniPlus size={20} />
               Yangi kurs qo'shish
@@ -226,12 +226,12 @@ function AdminCourses() {
         </div>
 
         {/* Courses List Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-2xl font-black text-slate-900">Kurslar ro'yxati</h2>
             <p className="text-sm text-slate-500 mt-0.5">Barcha kurslar va ularga tegishli ma'lumotlar</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <span className="px-3 py-1.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-full">
               {courses.length} ta kurs
             </span>
@@ -243,9 +243,9 @@ function AdminCourses() {
 
         {/* Courses Grid/Cards */}
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="bg-white rounded-2xl border border-slate-200 p-5">
+              <div key={i} className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
                 <Skeleton variant="rounded" height={100} className="rounded-xl mb-3" />
                 <Skeleton variant="text" width="80%" height={24} className="mb-2" />
                 <Skeleton variant="text" width="60%" height={20} />
@@ -253,13 +253,13 @@ function AdminCourses() {
             ))}
           </div>
         ) : courses.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
+          <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center sm:p-12">
             <HiMiniSquares2X2 size={64} className="mx-auto text-slate-300 mb-4" />
             <h3 className="text-lg font-semibold text-slate-700 mb-2">Kurs topilmadi</h3>
             <p className="text-sm text-slate-400">Yangi kurs yaratish uchun yuqoridagi tugmani bosing</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-3">
             {courses.map((course) => (
               <CourseCard
                 key={course.id}
@@ -311,7 +311,7 @@ function AdminCourses() {
           </div>
 
           {/* Form Body */}
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6">
             <form onSubmit={handleSubmit(handleSubmitCourse)} className="space-y-5">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
@@ -464,7 +464,7 @@ function AdminCourses() {
                 Tariflar tarix bilan saqlanadi. Narxni yangilasangiz, eski oylar o'zgarmaydi.
               </div>
 
-              <div className="flex gap-3 pt-4">
+              <div className="flex flex-col gap-3 pt-4 sm:flex-row">
                 <button
                   type="submit"
                   disabled={isSubmitting}
@@ -478,7 +478,7 @@ function AdminCourses() {
                     setSelectedCourseId(null);
                     reset(initialCourseForm());
                   }}
-                  className="px-5 py-3 border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 transition-all"
+                  className="rounded-xl border border-slate-200 px-5 py-3 font-semibold text-slate-700 transition-all hover:bg-slate-50"
                 >
                   Tozalash
                 </button>
@@ -515,12 +515,12 @@ function StatCard({ label, value, icon, color, suffix = "" }: { label: string; v
     orange: "bg-orange-500/10 border-orange-500/20 text-orange-400",
   };
   return (
-    <div className={`p-4 rounded-xl border min-w-[130px] ${colors[color as keyof typeof colors]}`}>
+    <div className={`min-w-0 rounded-xl border p-4 ${colors[color as keyof typeof colors]}`}>
       <div className="flex items-center gap-2">
         <div>{icon}</div>
         <div>
-          <p className="text-[11px] font-bold text-white/70 uppercase">{label}</p>
-          <p className="text-xl font-black text-white">
+          <p className="text-[11px] font-bold uppercase text-white/70">{label}</p>
+          <p className="break-words text-lg font-black text-white sm:text-xl">
             {typeof value === "number" ? value.toLocaleString() : value} {suffix && <span className="text-xs font-normal">{suffix}</span>}
           </p>
         </div>
@@ -535,10 +535,10 @@ function CourseCard({ course, groupsCount, onEdit, onDelete }: { course: Course;
   const courseWasUpdated = isCourseUpdated(course);
 
   return (
-    <div className="group bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+    <div className="group overflow-hidden rounded-2xl border border-slate-200 bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
       {/* Card Header */}
-      <div className="relative h-28 bg-gradient-to-r from-amber-500 to-orange-600 p-4">
-        <div className="absolute right-3 top-3 flex items-center gap-2">
+      <div className="relative min-h-28 bg-gradient-to-r from-amber-500 to-orange-600 p-4">
+        <div className="absolute right-3 top-3 flex max-w-[calc(100%-24px)] flex-wrap items-center justify-end gap-2">
           {courseWasUpdated && (
             <PremiumBadge tone="amber">
               <HiMiniClock size={12} />
@@ -564,12 +564,12 @@ function CourseCard({ course, groupsCount, onEdit, onDelete }: { course: Course;
             ]}
           />
         </div>
-        <div className="flex items-center gap-3 mt-8">
-          <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur text-white flex items-center justify-center text-xl font-black">
+        <div className="mt-10 flex items-center gap-3 pr-10">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/20 text-xl font-black text-white backdrop-blur sm:h-12 sm:w-12">
             {course.name.charAt(0).toUpperCase()}
           </div>
-          <div>
-            <h3 className="text-lg font-black text-white">{course.name}</h3>
+          <div className="min-w-0">
+            <h3 className="truncate text-base font-black text-white sm:text-lg">{course.name}</h3>
             <p className="text-xs text-amber-100">Kurs</p>
           </div>
         </div>
@@ -577,12 +577,12 @@ function CourseCard({ course, groupsCount, onEdit, onDelete }: { course: Course;
 
       {/* Card Body */}
       <div className="p-4">
-        <div className="flex items-center justify-between mb-3">
+        <div className="mb-3 flex items-start justify-between gap-3">
           <div className="flex items-center gap-2">
             <HiMiniBanknotes size={16} className="text-amber-500" />
             <span className="text-sm text-slate-500">Oylik to'lov</span>
           </div>
-          <span className="text-lg font-black text-amber-600">{Number(course.default_monthly_fee).toLocaleString()} so'm</span>
+          <span className="text-right text-base font-black text-amber-600 sm:text-lg">{Number(course.default_monthly_fee).toLocaleString()} so'm</span>
         </div>
 
         {courseWasUpdated && (
@@ -592,7 +592,7 @@ function CourseCard({ course, groupsCount, onEdit, onDelete }: { course: Course;
           </div>
         )}
 
-        <div className="flex items-center justify-between mb-3">
+        <div className="mb-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <HiMiniSquares2X2 size={16} className="text-slate-400" />
             <span className="text-sm text-slate-500">Guruhlar</span>

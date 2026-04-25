@@ -26,8 +26,11 @@ import {
   HiMiniCalendar,
   HiMiniBookOpen,
   HiMiniInformationCircle,
+  HiMiniArrowUpRight,
 } from "react-icons/hi2";
+import { useNavigate } from "react-router-dom";
 import ConfirmActionDialog from "../../../components/ConfirmActionDialog";
+import SelectActionMenuItem from "../../../components/forms/SelectActionMenuItem";
 import { PremiumBadge } from "../../../components/ui/PremiumTable";
 import { RowActionMenu } from "../../../components/ui/RowActionMenu";
 import useGroups from "../../../hooks/useGroups";
@@ -92,6 +95,7 @@ const initialTeacherAssignmentForm = (): TeacherAssignmentFormState => ({
 });
 
 function AdminTeachers() {
+  const navigate = useNavigate();
   const { groups, updateGroup } = useGroups();
   const {
     teachers,
@@ -558,38 +562,50 @@ function AdminTeachers() {
                     `${teachers.filter((teacher) => !assignedTeacherIds.has(teacher.id)).length} ta bo'sh o'qituvchi mavjud`
                   }
                 >
-                  {teachers.map((teacher) => (
-                    <MenuItem
-                      key={teacher.id}
-                      value={teacher.id}
-                      disabled={assignedTeacherIds.has(teacher.id)}
-                    >
-                      <div className="flex items-center justify-between w-full">
-                        <div className="flex items-center gap-2">
-                          <Avatar className="!w-8 !h-8 !bg-teal-100 !text-teal-600">
-                            {teacher.full_name.charAt(0).toUpperCase()}
-                          </Avatar>
-                          <div>
-                            <p className="font-semibold text-sm">
-                              {teacher.full_name}
-                            </p>
-                            {teacher.teacher_profile?.specialization && (
-                              <p className="text-xs text-slate-500">
-                                {teacher.teacher_profile.specialization}
+                  {teachers.length > 0 ? (
+                    teachers.map((teacher) => (
+                      <MenuItem
+                        key={teacher.id}
+                        value={teacher.id}
+                        disabled={assignedTeacherIds.has(teacher.id)}
+                      >
+                        <div className="flex items-center justify-between w-full">
+                          <div className="flex items-center gap-2">
+                            <Avatar className="!w-8 !h-8 !bg-teal-100 !text-teal-600">
+                              {teacher.full_name.charAt(0).toUpperCase()}
+                            </Avatar>
+                            <div>
+                              <p className="font-semibold text-sm">
+                                {teacher.full_name}
                               </p>
-                            )}
+                              {teacher.teacher_profile?.specialization && (
+                                <p className="text-xs text-slate-500">
+                                  {teacher.teacher_profile.specialization}
+                                </p>
+                              )}
+                            </div>
                           </div>
+                          {assignedTeacherIds.has(teacher.id) && (
+                            <Chip
+                              label="Band"
+                              size="small"
+                              className="!bg-amber-100 !text-amber-700"
+                            />
+                          )}
                         </div>
-                        {assignedTeacherIds.has(teacher.id) && (
-                          <Chip
-                            label="Band"
-                            size="small"
-                            className="!bg-amber-100 !text-amber-700"
-                          />
-                        )}
-                      </div>
-                    </MenuItem>
-                  ))}
+                      </MenuItem>
+                    ))
+                  ) : (
+                    <SelectActionMenuItem
+                      title="Teacher yo'q, yangi teacher qo'shish"
+                      description="Avval o'qituvchi yarating, keyin uni guruhga biriktirasiz."
+                      icon={<HiMiniPlus className="text-lg" />}
+                      onClick={() => {
+                        setIsAssignmentDrawerOpen(false);
+                        setIsTeacherDrawerOpen(true);
+                      }}
+                    />
+                  )}
                 </TextField>
               )}
             />
@@ -613,31 +629,43 @@ function AdminTeachers() {
                       : `${availableGroupsCount} ta bo'sh guruh mavjud`)
                   }
                 >
-                  {groups.map((group) => (
-                    <MenuItem
-                      key={group.id}
-                      value={group.id}
-                      disabled={Boolean(group.teacher_id)}
-                    >
-                      <div className="flex items-center justify-between w-full">
-                        <div>
-                          <p className="font-semibold text-sm">{group.name}</p>
-                          {group.course?.name && (
-                            <p className="text-xs text-slate-500">
-                              {group.course.name}
-                            </p>
+                  {groups.length > 0 ? (
+                    groups.map((group) => (
+                      <MenuItem
+                        key={group.id}
+                        value={group.id}
+                        disabled={Boolean(group.teacher_id)}
+                      >
+                        <div className="flex items-center justify-between w-full">
+                          <div>
+                            <p className="font-semibold text-sm">{group.name}</p>
+                            {group.course?.name && (
+                              <p className="text-xs text-slate-500">
+                                {group.course.name}
+                              </p>
+                            )}
+                          </div>
+                          {group.teacher_id && (
+                            <Chip
+                              label="Biriktirilgan"
+                              size="small"
+                              className="!bg-emerald-100 !text-emerald-700"
+                            />
                           )}
                         </div>
-                        {group.teacher_id && (
-                          <Chip
-                            label="Biriktirilgan"
-                            size="small"
-                            className="!bg-emerald-100 !text-emerald-700"
-                          />
-                        )}
-                      </div>
-                    </MenuItem>
-                  ))}
+                      </MenuItem>
+                    ))
+                  ) : (
+                    <SelectActionMenuItem
+                      title="Guruh yo'q, yangi guruh qo'shish"
+                      description="Guruhlar bo'limiga o'tib teacher biriktiriladigan guruh yarating."
+                      icon={<HiMiniArrowUpRight className="text-lg" />}
+                      onClick={() => {
+                        setIsAssignmentDrawerOpen(false);
+                        navigate("/admin/groups");
+                      }}
+                    />
+                  )}
                 </TextField>
               )}
             />

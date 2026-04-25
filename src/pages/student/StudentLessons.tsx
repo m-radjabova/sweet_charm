@@ -1,15 +1,7 @@
 import { HiMiniBookOpen, HiMiniCheckBadge, HiMiniClipboardDocumentList } from "react-icons/hi2";
 import useContextPro from "../../hooks/useContextPro";
 import useStudentOverview from "../../hooks/useStudentOverview";
-
-function formatDate(value?: string | null) {
-  if (!value) return "Belgilanmagan";
-  return new Date(value).toLocaleDateString("uz-UZ", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  });
-}
+import { formatDate } from "../../utils/date";
 
 export default function StudentLessons() {
   const {
@@ -28,8 +20,8 @@ export default function StudentLessons() {
   }
 
   return (
-    <div className="mx-auto max-w-[1500px] space-y-6 p-4 pb-8 lg:p-6">
-      <section className="rounded-[34px] bg-[linear-gradient(135deg,#10243f_0%,#0f4c81_50%,#0ea5e9_100%)] p-6 text-white shadow-[0_26px_90px_rgba(14,116,144,0.18)] md:p-8">
+    <div className="mx-auto max-w-[1500px] space-y-5 p-3 pb-8 sm:p-4 lg:space-y-6 lg:p-6">
+      <section className="rounded-[26px] bg-[linear-gradient(135deg,#10243f_0%,#0f4c81_50%,#0ea5e9_100%)] p-5 text-white shadow-[0_26px_90px_rgba(14,116,144,0.18)] sm:rounded-[34px] sm:p-6 md:p-8">
         <p className="text-xs uppercase tracking-[0.32em] text-sky-100/80">Assignments</p>
         <h1 className="mt-3 text-4xl font-black">Darslar va vazifalar</h1>
         <p className="mt-3 max-w-2xl text-sm leading-7 text-sky-50/80">
@@ -37,18 +29,18 @@ export default function StudentLessons() {
         </p>
       </section>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-lg">
+      <div className="grid gap-3 sm:gap-4 md:grid-cols-3">
+        <div className="rounded-[24px] border border-white/70 bg-white/90 p-4 shadow-lg sm:rounded-[28px] sm:p-5">
           <HiMiniBookOpen className="text-3xl text-sky-500" />
           <p className="mt-4 text-sm font-semibold text-slate-500">Jami darslar</p>
           <p className="mt-1 text-3xl font-black text-slate-900">{lessons.length}</p>
         </div>
-        <div className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-lg">
+        <div className="rounded-[24px] border border-white/70 bg-white/90 p-4 shadow-lg sm:rounded-[28px] sm:p-5">
           <HiMiniClipboardDocumentList className="text-3xl text-emerald-500" />
           <p className="mt-4 text-sm font-semibold text-slate-500">Vazifali lessonlar</p>
           <p className="mt-1 text-3xl font-black text-slate-900">{lessons.filter((lesson) => lesson.homework).length}</p>
         </div>
-        <div className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-lg">
+        <div className="rounded-[24px] border border-white/70 bg-white/90 p-4 shadow-lg sm:rounded-[28px] sm:p-5">
           <HiMiniCheckBadge className="text-3xl text-fuchsia-500" />
           <p className="mt-4 text-sm font-semibold text-slate-500">Baholangan lessonlar</p>
           <p className="mt-1 text-3xl font-black text-slate-900">{grades.length}</p>
@@ -67,7 +59,7 @@ export default function StudentLessons() {
             return (
               <article
                 key={lesson.id}
-                className="rounded-[28px] border border-white/70 bg-white/92 p-5 shadow-[0_18px_48px_rgba(15,23,42,0.06)]"
+                className="rounded-[24px] border border-white/70 bg-white/92 p-4 shadow-[0_18px_48px_rgba(15,23,42,0.06)] sm:rounded-[28px] sm:p-5"
               >
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div>

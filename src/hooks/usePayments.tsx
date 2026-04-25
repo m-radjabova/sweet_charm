@@ -52,6 +52,7 @@ import { getErrorMessage } from "../api/auth";
 import { createPayment, listPayments, updatePayment, type PaymentPayload } from "../api/payments";
 import { invalidateStudentDependentQueries } from "./queryInvalidation";
 import useContextPro from "./useContextPro";
+import { isSuperAdmin } from "../utils/roles";
 
 type PaymentsParams = {
   studentId?: string;
@@ -96,7 +97,7 @@ export default function usePayments(params?: PaymentsParams) {
   });
 
   const payments = (paymentsQuery.data ?? []).filter((payment) => {
-    if (!user?.course_center_id || user.role === "super_admin") return true;
+    if (!user?.course_center_id || isSuperAdmin(user)) return true;
     return payment.student?.course_center_id === user.course_center_id;
   });
 

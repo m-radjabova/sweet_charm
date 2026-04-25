@@ -21,6 +21,7 @@ import {
 import { PremiumBadge, PremiumTable, TableSkeleton } from "../../components/ui/PremiumTable";
 import useCourseCenters from "../../hooks/useCourseCenters";
 import useUsers from "../../hooks/useUsers";
+import { formatDate } from "../../utils/date";
 
 const optionalPhoneSchema = z
   .string()
@@ -78,17 +79,6 @@ function slugifyCourseCenterName(value: string) {
     .slice(0, 120);
 }
 
-function formatDate(value?: string) {
-  if (!value) return "Sana yo'q";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Sana yo'q";
-  return new Intl.DateTimeFormat("uz-UZ", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(date);
-}
-
 export default function SuperAdminAdmins() {
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
   const {
@@ -112,6 +102,7 @@ export default function SuperAdminAdmins() {
     handleSubmit,
     reset,
     control,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<AdminFormValues>({
     resolver: zodResolver(adminFormSchema),
@@ -130,6 +121,18 @@ export default function SuperAdminAdmins() {
 
   const activeAdmins = admins.filter((user) => user.status === "active");
   const attachedAdmins = admins.filter((user) => user.course_center_id || user.course_center_name);
+  const occupiedCourseCenters = useMemo(
+    () =>
+      new Map(
+        admins
+          .filter((user) => user.course_center_id)
+          .map((user) => [
+            user.course_center_id as string,
+            user.full_name,
+          ]),
+      ),
+    [admins],
+  );
 
   const handleCloseDrawer = () => {
     setIsCreateDrawerOpen(false);
@@ -146,6 +149,14 @@ export default function SuperAdminAdmins() {
       );
 
       if (existingCourseCenter) {
+        const occupiedBy = occupiedCourseCenters.get(existingCourseCenter.id);
+        if (occupiedBy) {
+          setError("new_course_center_name", {
+            type: "manual",
+            message: `${existingCourseCenter.name} allaqachon ${occupiedBy} ga biriktirilgan`,
+          });
+          return;
+        }
         courseCenterId = existingCourseCenter.id;
       } else {
         const createdCourseCenter = await createCourseCenter({
@@ -155,6 +166,17 @@ export default function SuperAdminAdmins() {
           is_active: true,
         });
         courseCenterId = createdCourseCenter.id;
+      }
+    }
+
+    if (courseCenterId) {
+      const occupiedBy = occupiedCourseCenters.get(courseCenterId);
+      if (occupiedBy) {
+        setError("course_center_id", {
+          type: "manual",
+          message: `Bu course center allaqachon ${occupiedBy} ga biriktirilgan`,
+        });
+        return;
       }
     }
 
@@ -195,6 +217,7 @@ export default function SuperAdminAdmins() {
                 <button
                   type="button"
                   onClick={() => setIsCreateDrawerOpen(true)}
+                  style={{borderRadius: "20px"}}
                   className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-white px-5 text-sm font-black text-slate-950 shadow-lg shadow-slate-950/10 transition hover:-translate-y-0.5"
                 >
                   <HiMiniPlus className="text-lg" />
@@ -510,8 +533,14 @@ export default function SuperAdminAdmins() {
                       >
                         <option value="">Course center tanlang</option>
                         {courseCenters.map((courseCenter) => (
-                          <option key={courseCenter.id} value={courseCenter.id}>
-                            {courseCenter.name}
+                          <option
+                            key={courseCenter.id}
+                            value={courseCenter.id}
+                            disabled={occupiedCourseCenters.has(courseCenter.id)}
+                          >
+                            {occupiedCourseCenters.has(courseCenter.id)
+                              ? `${courseCenter.name} - band`
+                              : courseCenter.name}
                           </option>
                         ))}
                       </select>
@@ -526,6 +555,10 @@ export default function SuperAdminAdmins() {
                   <p>
                     Agar ayni nomli course center avval yaratilgan bo'lsa, admin o'sha centerga
                     ulanadi. Yangi nom kiritsangiz, alohida workspace ochiladi.
+                  </p>
+                  <p className="mt-2">
+                    Har bir course centerga faqat bitta admin biriktiriladi. Band centerlar tanlovda
+                    bloklanadi.
                   </p>
                 </div>
               </div>

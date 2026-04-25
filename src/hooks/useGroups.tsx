@@ -6,6 +6,7 @@ import { createGroup, deleteGroup, listGroups, updateGroup, type GroupPayload } 
 import { invalidateGroupDependentQueries } from "./queryInvalidation";
 import type { Group } from "../types/types";
 import useContextPro from "./useContextPro";
+import { isSuperAdmin } from "../utils/roles";
 
 export default function useGroups() {
   const queryClient = useQueryClient();
@@ -59,7 +60,7 @@ export default function useGroups() {
 
   const groups = useMemo(() => {
     const list = (groupsQuery.data ?? []).filter((group) => {
-      if (!user?.course_center_id || user.role === "super_admin") return true;
+      if (!user?.course_center_id || isSuperAdmin(user)) return true;
       return group.course_center_id === user.course_center_id;
     });
     const term = searchTerm.trim().toLowerCase();
@@ -70,7 +71,7 @@ export default function useGroups() {
         .filter(Boolean)
         .some((value) => value?.toLowerCase().includes(term)),
     );
-  }, [groupsQuery.data, searchTerm, user?.course_center_id, user?.role]);
+  }, [groupsQuery.data, searchTerm, user?.course_center_id, user?.role, user?.roles]);
 
   return {
     groups,

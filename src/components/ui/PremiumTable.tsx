@@ -62,7 +62,7 @@ export function TableSkeleton({
 }: TableSkeletonProps) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[960px]">
+      <table className="w-full min-w-[720px] md:min-w-[960px]">
         <thead className="border-b border-slate-200 bg-slate-950/[0.025]">
           <tr>
             {Array.from({ length: columns }).map((_, index) => (

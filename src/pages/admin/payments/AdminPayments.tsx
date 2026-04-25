@@ -3,9 +3,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
-import { Chip, Drawer, IconButton, Skeleton } from "@mui/material";
+import { Chip, Drawer, IconButton, MenuItem, Skeleton, TextField } from "@mui/material";
 import {
   HiMiniArrowPath,
+  HiMiniAcademicCap,
   HiMiniBanknotes,
   HiMiniCheckCircle,
   HiMiniClock,
@@ -17,12 +18,15 @@ import {
   HiMiniXMark,
   HiMiniWallet
 } from "react-icons/hi2";
+import { useNavigate } from "react-router-dom";
 import { listGroupEnrollments } from "../../../api/students";
+import SelectActionMenuItem from "../../../components/forms/SelectActionMenuItem";
 import { PremiumBadge, PremiumTable } from "../../../components/ui/PremiumTable";
 import { RowActionMenu } from "../../../components/ui/RowActionMenu";
 import useCourses from "../../../hooks/useCourses";
 import useGroups from "../../../hooks/useGroups";
 import usePayments from "../../../hooks/usePayments";
+import { formatDate, formatDateTime } from "../../../utils/date";
 import type {
   Enrollment,
   Payment,
@@ -119,6 +123,7 @@ function normalizeMonthFor(value: string) {
 }
 
 function AdminPayments() {
+  const navigate = useNavigate();
   const { groups, loading: groupsLoading } = useGroups();
   const { courses, loading: coursesLoading } = useCourses();
   const {
@@ -618,18 +623,10 @@ function AdminPayments() {
                         <td className="px-5 py-4 text-sm text-slate-600">
                           <div className="flex flex-col">
                             <span className="font-medium">
-                              {new Date(payment.paid_at).toLocaleDateString(
-                                "uz-UZ",
-                              )}
+                              {formatDate(payment.paid_at)}
                             </span>
                             <span className="text-xs text-slate-400">
-                              {new Date(payment.paid_at).toLocaleTimeString(
-                                "uz-UZ",
-                                {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                },
-                              )}
+                              {formatDateTime(payment.paid_at).split(" ")[1]}
                             </span>
                           </div>
                         </td>
@@ -654,9 +651,7 @@ function AdminPayments() {
                             {statusInfo.label}
                           </PremiumBadge>
                         </td>
-                        <td className="px-5 py-4 text-sm text-slate-600">
-                          {new Date(payment.paid_at).toLocaleString("uz-UZ")}
-                        </td>
+                        <td className="px-5 py-4 text-sm text-slate-600">{formatDateTime(payment.paid_at)}</td>
                         <td className="px-5 py-4">
                           <div className="flex justify-end">
                             <RowActionMenu
@@ -718,21 +713,36 @@ function AdminPayments() {
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">
                     Guruh <span className="text-rose-500">*</span>
                   </label>
-                  <select
+                  <TextField
                     {...register("group_id")}
-                    className={`w-full px-4 py-2.5 rounded-xl border ${
-                      errors.group_id
-                        ? "border-rose-500 focus:border-rose-500"
-                        : "border-slate-200 focus:border-emerald-400"
-                    } focus:outline-none focus:ring-2 focus:ring-emerald-100 transition-all bg-white`}
+                    select
+                    fullWidth
+                    error={!!errors.group_id}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "14px",
+                      },
+                    }}
                   >
-                    <option value="">Guruh tanlang</option>
-                    {groups.map((group) => (
-                      <option key={group.id} value={group.id}>
-                        {group.name} - {group.course?.name}
-                      </option>
-                    ))}
-                  </select>
+                    <MenuItem value="">Guruh tanlang</MenuItem>
+                    {groups.length > 0 ? (
+                      groups.map((group) => (
+                        <MenuItem key={group.id} value={group.id}>
+                          {group.name} - {group.course?.name}
+                        </MenuItem>
+                      ))
+                    ) : (
+                      <SelectActionMenuItem
+                        title="Guruh yo'q, yangi guruh qo'shish"
+                        description="Avval guruh yaratilsa, to'lovni shu yerda kiritasiz."
+                        icon={<HiMiniAcademicCap className="text-lg" />}
+                        onClick={() => {
+                          handleCloseDrawer();
+                          navigate("/admin/groups");
+                        }}
+                      />
+                    )}
+                  </TextField>
                   {errors.group_id && (
                     <p className="mt-1 text-sm text-rose-600">
                       {errors.group_id.message}
@@ -744,26 +754,46 @@ function AdminPayments() {
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">
                     Student <span className="text-rose-500">*</span>
                   </label>
-                  <select
+                  <TextField
                     {...register("student_id")}
-                    disabled={
-                      !selectedGroupId ||
-                      enrollmentsQuery.isLoading ||
-                      studentSelectEnrollments.length === 0
-                    }
-                    className={`w-full px-4 py-2.5 rounded-xl border ${
-                      errors.student_id
-                        ? "border-rose-500 focus:border-rose-500"
-                        : "border-slate-200 focus:border-emerald-400"
-                    } focus:outline-none focus:ring-2 focus:ring-emerald-100 transition-all bg-white disabled:bg-slate-50 disabled:cursor-not-allowed`}
+                    select
+                    fullWidth
+                    disabled={!selectedGroupId || enrollmentsQuery.isLoading}
+                    error={!!errors.student_id}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "14px",
+                        backgroundColor:
+                          !selectedGroupId || enrollmentsQuery.isLoading ? "#f8fafc" : "#fff",
+                      },
+                    }}
                   >
-                    <option value="">Student tanlang</option>
-                    {studentSelectEnrollments.map((enrollment: Enrollment) => (
-                      <option key={enrollment.id} value={enrollment.student_id}>
-                        {enrollment.student.full_name}
-                      </option>
-                    ))}
-                  </select>
+                    <MenuItem value="">Student tanlang</MenuItem>
+                    {studentSelectEnrollments.length > 0 ? (
+                      studentSelectEnrollments.map((enrollment: Enrollment) => (
+                        <MenuItem key={enrollment.id} value={enrollment.student_id}>
+                          {enrollment.student.full_name}
+                        </MenuItem>
+                      ))
+                    ) : selectedGroupId ? (
+                      <SelectActionMenuItem
+                        title="Bu guruhda student yo'q, student qo'shish"
+                        description="Studentlar bo'limiga o'tib student yaratib yoki guruhga biriktirib keling."
+                        icon={<HiMiniCreditCard className="text-lg" />}
+                        onClick={() => {
+                          handleCloseDrawer();
+                          navigate("/admin/students");
+                        }}
+                      />
+                    ) : (
+                      <SelectActionMenuItem
+                        title="Avval guruhni tanlang"
+                        description="Studentlar ro'yxati tanlangan guruh bo'yicha ochiladi."
+                        onClick={() => {}}
+                        disabled
+                      />
+                    )}
+                  </TextField>
                   {errors.student_id && (
                     <p className="mt-1 text-sm text-rose-600">
                       {errors.student_id.message}

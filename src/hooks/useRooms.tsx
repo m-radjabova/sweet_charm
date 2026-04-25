@@ -6,6 +6,7 @@ import { createRoom, deleteRoom, listRooms, updateRoom, type RoomPayload } from 
 import { invalidateGroupDependentQueries } from "./queryInvalidation";
 import type { Room } from "../types/types";
 import useContextPro from "./useContextPro";
+import { isSuperAdmin } from "../utils/roles";
 
 export default function useRooms() {
   const queryClient = useQueryClient();
@@ -55,7 +56,7 @@ export default function useRooms() {
 
   const rooms = useMemo(() => {
     const list = (roomsQuery.data ?? []).filter((room) => {
-      if (!user?.course_center_id || user.role === "super_admin") return true;
+      if (!user?.course_center_id || isSuperAdmin(user)) return true;
       return room.course_center_id === user.course_center_id;
     });
     const term = searchTerm.trim().toLowerCase();
@@ -65,7 +66,7 @@ export default function useRooms() {
         .filter(Boolean)
         .some((value) => value?.toLowerCase().includes(term)),
     );
-  }, [roomsQuery.data, searchTerm, user?.course_center_id, user?.role]);
+  }, [roomsQuery.data, searchTerm, user?.course_center_id, user?.role, user?.roles]);
 
   return {
     rooms,

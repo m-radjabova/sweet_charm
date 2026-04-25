@@ -39,8 +39,10 @@ import {
   HiMiniChevronRight,
   HiMiniChevronDown,
   HiMiniChevronUp,
+  HiMiniArrowUpRight,
 } from "react-icons/hi2";
 import Select from "react-select";
+import SelectActionMenuItem from "../../../components/forms/SelectActionMenuItem";
 import { PremiumBadge, PremiumTable, TableSkeleton } from "../../../components/ui/PremiumTable";
 import { RowActionMenu } from "../../../components/ui/RowActionMenu";
 import useContextPro from "../../../hooks/useContextPro";
@@ -48,6 +50,8 @@ import useGroups from "../../../hooks/useGroups";
 import useStudents from "../../../hooks/useStudents";
 import useTelegramStudents from "../../../hooks/useTelegramStudents";
 import type { StudentDetail } from "../../../types/types";
+import { formatDate } from "../../../utils/date";
+import { useNavigate } from "react-router-dom";
 
 type StudentFormState = {
   full_name: string;
@@ -153,6 +157,7 @@ type ActionCardProps = {
 };
 
 function AdminStudents() {
+  const navigate = useNavigate();
   const { state } = useContextPro();
   const { groups } = useGroups();
   const [searchTerm, setSearchTerm] = useState("");
@@ -953,19 +958,31 @@ function AdminStudents() {
                     },
                   }}
                 >
-                  {activeGroups.map((group) => (
-                    <MenuItem key={group.id} value={group.id}>
-                      <div className="flex items-center justify-between w-full">
-                        <span>{group.name}</span>
-                        <span
-                          className={`text-xs px-2 py-0.5 rounded-full ml-2 ${groupStatusColors[group.status] || "bg-slate-100 text-slate-600"}`}
-                        >
-                          {groupStatusLabels[group.status]?.label ||
-                            group.status}
-                        </span>
-                      </div>
-                    </MenuItem>
-                  ))}
+                  {activeGroups.length > 0 ? (
+                    activeGroups.map((group) => (
+                      <MenuItem key={group.id} value={group.id}>
+                        <div className="flex items-center justify-between w-full">
+                          <span>{group.name}</span>
+                          <span
+                            className={`text-xs px-2 py-0.5 rounded-full ml-2 ${groupStatusColors[group.status] || "bg-slate-100 text-slate-600"}`}
+                          >
+                            {groupStatusLabels[group.status]?.label ||
+                              group.status}
+                          </span>
+                        </div>
+                      </MenuItem>
+                    ))
+                  ) : (
+                    <SelectActionMenuItem
+                      title="Faol guruh yo'q, avval guruh yarating"
+                      description="Guruhlar bo'limiga o'tib active holatdagi guruh oching."
+                      icon={<HiMiniAcademicCap className="text-lg" />}
+                      onClick={() => {
+                        setIsAssignmentDrawerOpen(false);
+                        navigate("/admin/groups");
+                      }}
+                    />
+                  )}
                 </TextField>
               )}
             />
@@ -1010,7 +1027,9 @@ function AdminStudents() {
                     noOptionsMessage={() =>
                       !selectedAssignmentGroupId
                         ? "Avval guruhni tanlang"
-                        : "Student topilmadi"
+                        : visibleStudentSelectOptions.length === 0
+                          ? "Student yo'q, avval yangi student qo'shing"
+                          : "Student topilmadi"
                     }
                     blurInputOnSelect={false}
                     closeMenuOnSelect={false}
@@ -1200,10 +1219,14 @@ function AdminStudents() {
 
                       noOptionsMessage: (base) => ({
                         ...base,
-                        padding: "12px",
-                        color: "#64748b",
+                        padding: "14px",
+                        color: "#475569",
                         fontSize: "13px",
-                        fontWeight: "500",
+                        fontWeight: "700",
+                        background:
+                          "linear-gradient(135deg,rgba(248,250,252,0.92),rgba(239,246,255,0.9))",
+                        borderRadius: "12px",
+                        margin: "6px",
                       }),
 
                       loadingMessage: (base) => ({
@@ -1224,6 +1247,22 @@ function AdminStudents() {
                       },
                     })}
                   />
+
+                  {selectedAssignmentGroupId &&
+                  visibleStudentSelectOptions.length === 0 &&
+                  !assignableStudentsLoading ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsAssignmentDrawerOpen(false);
+                        openCreateStudentDrawer();
+                      }}
+                      className="inline-flex items-center gap-2 rounded-2xl border border-sky-200 bg-sky-50 px-3.5 py-2 text-xs font-bold text-sky-700 transition hover:bg-sky-100"
+                    >
+                      <HiMiniArrowUpRight className="text-sm" />
+                      Student yo'q, yangi student qo'shish
+                    </button>
+                  ) : null}
 
                   {selectedAssignmentStudentIds.length > 2 && (
                     <p className="text-[11px] text-slate-500">
@@ -1841,7 +1880,7 @@ function TelegramStudentDrawer({
             </span>
             {student.student_profile?.telegram_last_credentials_sent_at && (
               <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-3 py-1 text-xs font-bold text-sky-700">
-                Oxirgi yuborilgan: {new Date(student.student_profile.telegram_last_credentials_sent_at).toLocaleDateString("uz-UZ")}
+                Oxirgi yuborilgan: {formatDate(student.student_profile.telegram_last_credentials_sent_at)}
               </span>
             )}
           </div>

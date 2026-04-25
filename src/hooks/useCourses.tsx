@@ -6,6 +6,7 @@ import { createCourse, deleteCourse, listCourses, updateCourse, type CoursePaylo
 import { invalidateGroupDependentQueries } from "./queryInvalidation";
 import type { Course } from "../types/types";
 import useContextPro from "./useContextPro";
+import { isSuperAdmin } from "../utils/roles";
 
 export default function useCourses() {
   const queryClient = useQueryClient();
@@ -59,7 +60,7 @@ export default function useCourses() {
 
   const courses = useMemo(() => {
     const list = (coursesQuery.data ?? []).filter((course) => {
-      if (!user?.course_center_id || user.role === "super_admin") return true;
+      if (!user?.course_center_id || isSuperAdmin(user)) return true;
       return course.course_center_id === user.course_center_id;
     });
     const term = searchTerm.trim().toLowerCase();
@@ -67,7 +68,7 @@ export default function useCourses() {
     return list.filter((course) =>
       [course.name, course.description].filter(Boolean).some((value) => value?.toLowerCase().includes(term)),
     );
-  }, [coursesQuery.data, searchTerm, user?.course_center_id, user?.role]);
+  }, [coursesQuery.data, searchTerm, user?.course_center_id, user?.role, user?.roles]);
 
   return {
     courses,

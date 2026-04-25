@@ -1,18 +1,10 @@
 import { HiMiniBanknotes, HiMiniCalendarDays, HiMiniCreditCard } from "react-icons/hi2";
 import useContextPro from "../../hooks/useContextPro";
 import useStudentOverview from "../../hooks/useStudentOverview";
+import { formatDate, formatMonthYear } from "../../utils/date";
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat("uz-UZ").format(amount);
-}
-
-function formatDate(value?: string | null) {
-  if (!value) return "Belgilanmagan";
-  return new Date(value).toLocaleDateString("uz-UZ", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  });
 }
 
 export default function StudentPayments() {
@@ -34,8 +26,8 @@ export default function StudentPayments() {
   }
 
   return (
-    <div className="mx-auto max-w-[1400px] space-y-6 p-4 pb-8 lg:p-6">
-      <section className="rounded-[34px] bg-[linear-gradient(135deg,#3b2205_0%,#8b5e07_50%,#f59e0b_100%)] p-6 text-white shadow-[0_26px_90px_rgba(217,119,6,0.18)] md:p-8">
+    <div className="mx-auto max-w-[1400px] space-y-5 p-3 pb-8 sm:p-4 lg:space-y-6 lg:p-6">
+      <section className="rounded-[26px] bg-[linear-gradient(135deg,#3b2205_0%,#8b5e07_50%,#f59e0b_100%)] p-5 text-white shadow-[0_26px_90px_rgba(217,119,6,0.18)] sm:rounded-[34px] sm:p-6 md:p-8">
         <p className="text-xs uppercase tracking-[0.32em] text-amber-100/80">Payments</p>
         <h1 className="mt-3 text-4xl font-black">To'lovlar tarixi</h1>
         <p className="mt-3 max-w-2xl text-sm leading-7 text-amber-50/80">
@@ -43,18 +35,18 @@ export default function StudentPayments() {
         </p>
       </section>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-lg">
+      <div className="grid gap-3 sm:gap-4 md:grid-cols-3">
+        <div className="rounded-[24px] border border-white/70 bg-white/90 p-4 shadow-lg sm:rounded-[28px] sm:p-5">
           <HiMiniBanknotes className="text-3xl text-amber-500" />
           <p className="mt-4 text-sm font-semibold text-slate-500">Jami to'langan summa</p>
           <p className="mt-1 text-3xl font-black text-slate-900">{formatCurrency(totalPaid)} so'm</p>
         </div>
-        <div className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-lg">
+        <div className="rounded-[24px] border border-white/70 bg-white/90 p-4 shadow-lg sm:rounded-[28px] sm:p-5">
           <HiMiniCreditCard className="text-3xl text-emerald-500" />
           <p className="mt-4 text-sm font-semibold text-slate-500">To'lovlar soni</p>
           <p className="mt-1 text-3xl font-black text-slate-900">{payments.length}</p>
         </div>
-        <div className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-lg">
+        <div className="rounded-[24px] border border-white/70 bg-white/90 p-4 shadow-lg sm:rounded-[28px] sm:p-5">
           <HiMiniCalendarDays className="text-3xl text-sky-500" />
           <p className="mt-4 text-sm font-semibold text-slate-500">Oxirgi to'lov</p>
           <p className="mt-1 text-xl font-black text-slate-900">{formatDate(payments[0]?.paid_at)}</p>
@@ -70,7 +62,7 @@ export default function StudentPayments() {
           payments.map((payment) => (
             <article
               key={payment.id}
-              className="rounded-[28px] border border-white/70 bg-white/92 p-5 shadow-[0_18px_48px_rgba(15,23,42,0.06)]"
+              className="rounded-[24px] border border-white/70 bg-white/92 p-4 shadow-[0_18px_48px_rgba(15,23,42,0.06)] sm:rounded-[28px] sm:p-5"
             >
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
@@ -88,7 +80,7 @@ export default function StudentPayments() {
                     {payment.method === "card" ? "Karta" : "Naqd"}
                   </span>
                   <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">
-                    Oy: {payment.month_for.slice(0, 7)}
+                    Oy: {formatMonthYear(payment.month_for)}
                   </span>
                 </div>
               </div>

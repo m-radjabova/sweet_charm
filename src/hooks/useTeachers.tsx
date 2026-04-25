@@ -11,6 +11,7 @@ import {
 } from "../api/teachers";
 import { invalidateGroupDependentQueries } from "./queryInvalidation";
 import useContextPro from "./useContextPro";
+import { isSuperAdmin } from "../utils/roles";
 
 export default function useTeachers(enabled = true) {
   const queryClient = useQueryClient();
@@ -53,7 +54,7 @@ export default function useTeachers(enabled = true) {
 
   const teachers = useMemo(() => {
     const list = (teachersQuery.data ?? []).filter((teacher) => {
-      if (!user?.course_center_id || user.role === "super_admin") return true;
+      if (!user?.course_center_id || isSuperAdmin(user)) return true;
       return teacher.course_center_id === user.course_center_id;
     });
     const term = searchTerm.trim().toLowerCase();
@@ -64,7 +65,7 @@ export default function useTeachers(enabled = true) {
         .filter(Boolean)
         .some((value) => value?.toLowerCase().includes(term)),
     );
-  }, [searchTerm, teachersQuery.data, user?.course_center_id, user?.role]);
+  }, [searchTerm, teachersQuery.data, user?.course_center_id, user?.role, user?.roles]);
 
   return {
     teachers,

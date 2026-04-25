@@ -20,6 +20,7 @@ import AdminTeachers from "./pages/admin/teachers/AdminTeachers";
 import Login from "./pages/login/Login";
 import useContextPro from "./hooks/useContextPro";
 import StudentDashboard from "./pages/student/StudentDashboard";
+import StudentAttendance from "./pages/student/StudentAttendance";
 import StudentLessons from "./pages/student/StudentLessons";
 import StudentPayments from "./pages/student/StudentPayments";
 import StudentSettings from "./pages/student/StudentSettings";
@@ -135,6 +136,7 @@ function App() {
       >
         <Route index element={<StudentDashboard />} />
         <Route path="lessons" element={<StudentLessons />} />
+        <Route path="attendance" element={<StudentAttendance />} />
         <Route path="payments" element={<StudentPayments />} />
         <Route path="settings" element={<StudentSettings />} />
       </Route>

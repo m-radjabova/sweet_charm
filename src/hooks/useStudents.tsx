@@ -20,6 +20,7 @@ import {
   syncGroupEnrollmentQueries,
 } from "./queryInvalidation";
 import useContextPro from "./useContextPro";
+import { isSuperAdmin } from "../utils/roles";
 type UseStudentsOptions = {
   includeStudentLists?: boolean;
   studentListParams?: ListStudentsParams;
@@ -121,17 +122,17 @@ export default function useStudents(groupId?: string, options?: UseStudentsOptio
   });
 
   const filteredStudents = (studentsQuery.data?.items ?? []).filter((student) => {
-    if (!user?.course_center_id || user.role === "super_admin") return true;
+    if (!user?.course_center_id || isSuperAdmin(user)) return true;
     return student.course_center_id === user.course_center_id;
   });
 
   const filteredAssignableStudents = (assignableStudentsQuery.data?.items ?? []).filter((student) => {
-    if (!user?.course_center_id || user.role === "super_admin") return true;
+    if (!user?.course_center_id || isSuperAdmin(user)) return true;
     return student.course_center_id === user.course_center_id;
   });
 
   const filteredEnrollments = (enrollmentsQuery.data ?? []).filter((enrollment) => {
-    if (!user?.course_center_id || user.role === "super_admin") return true;
+    if (!user?.course_center_id || isSuperAdmin(user)) return true;
     return enrollment.group.course_center_id === user.course_center_id;
   });
 

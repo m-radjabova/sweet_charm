@@ -15,6 +15,7 @@ import {
 } from "@mui/material";
 import {
   HiMiniArrowRight,
+  HiMiniBuildingOffice2,
   HiMiniPencilSquare,
   HiMiniPlus,
   HiMiniTrash,
@@ -31,8 +32,9 @@ import {
   HiMiniInformationCircle,
   HiMiniMapPin,
 } from "react-icons/hi2";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ConfirmActionDialog from "../../../components/ConfirmActionDialog";
+import SelectActionMenuItem from "../../../components/forms/SelectActionMenuItem";
 import { PremiumBadge } from "../../../components/ui/PremiumTable";
 import { RowActionMenu } from "../../../components/ui/RowActionMenu";
 import useCourses from "../../../hooks/useCourses";
@@ -152,6 +154,7 @@ const initialGroupForm = (): GroupFormState => ({
 });
 
 function AdminGroups() {
+  const navigate = useNavigate();
   const {
     state: { user },
   } = useContextPro();
@@ -332,23 +335,23 @@ function AdminGroups() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50/30 to-teal-50/20">
-      <div className="max-w-[1800px] mx-auto p-4 lg:p-6 space-y-6">
+      <div className="mx-auto max-w-[1800px] space-y-5 p-3 sm:p-4 lg:space-y-6 lg:p-6">
         {/* Hero Section */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-900 via-teal-800 to-cyan-600 text-white">
-          <div className="absolute top-0 right-0 w-80 h-80 opacity-10">
+        <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-emerald-900 via-teal-800 to-cyan-600 text-white sm:rounded-3xl">
+          <div className="absolute right-0 top-0 h-48 w-48 opacity-10 sm:h-80 sm:w-80">
             <HiMiniUserGroup size={350} />
           </div>
-          <div className="absolute bottom-0 left-0 w-60 h-60 opacity-5">
+          <div className="absolute bottom-0 left-0 h-36 w-36 opacity-5 sm:h-60 sm:w-60">
             <HiMiniAcademicCap size={250} />
           </div>
-          <div className="relative px-6 py-10 md:px-10 md:py-14 lg:px-12 lg:py-16">
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8">
+          <div className="relative px-4 py-6 sm:px-6 sm:py-8 md:px-10 md:py-14 lg:px-12 lg:py-16">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between lg:gap-8">
               <div className="max-w-3xl">
                 <Chip
                   label="GURUHLAR MARKAZI"
                   className="!mb-4 !bg-white/20 !text-white !font-bold !text-sm !py-1 !px-4"
                 />
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight">
+                <h1 className="text-3xl font-black leading-tight tracking-tight sm:text-5xl lg:text-6xl">
                   {isTeacher ? "Mening guruhlarim" : "Guruhlarni boshqarish"}
                 </h1>
                 <p className="mt-4 text-emerald-100 text-base sm:text-lg max-w-xl leading-relaxed">
@@ -358,7 +361,7 @@ function AdminGroups() {
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="grid w-full gap-3 sm:grid-cols-2 lg:w-auto lg:grid-cols-3 lg:gap-4">
                 <StatCard
                   label="Jami guruhlar"
                   value={totalGroups}
@@ -383,7 +386,7 @@ function AdminGroups() {
         </div>
 
         {/* Action Bar */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 shadow-sm">
+        <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider">
               GURUH BOSHQARUVI
@@ -397,21 +400,21 @@ function AdminGroups() {
                 : "Kurs asosida guruh yarating, teacher biriktiring va kurs to'lovini avtomatik qo'llang"}
             </p>
           </div>
-          <div className="flex gap-3">
-            <div className="relative">
+          <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto">
+            <div className="relative w-full sm:max-w-xs">
               <HiMiniMagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg" />
               <input
                 type="text"
                 placeholder="Guruh qidirish..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100 transition-all w-64"
+                className="w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-4 transition-all focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100 sm:w-64"
               />
             </div>
             {!isTeacher && (
               <button
                 onClick={() => handleOpenDrawer()}
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200"
+                className="inline-flex w-full items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl sm:w-auto"
                 style={{ borderRadius: "20px" }}
               >
                 <HiMiniPlus size={20} />
@@ -423,7 +426,7 @@ function AdminGroups() {
 
         {/* Groups List */}
         <div>
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-2xl font-black text-slate-900">
                 Guruhlar ro'yxati
@@ -434,7 +437,7 @@ function AdminGroups() {
                   : "Barcha guruhlar va ularning ma'lumotlari"}
               </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <span className="px-3 py-1.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-full">
                 {totalGroups} ta guruh
               </span>
@@ -444,9 +447,9 @@ function AdminGroups() {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
             {loading ? (
-              <div className="p-6 space-y-3">
+              <div className="space-y-3 p-4 sm:p-6">
                 {[1, 2, 3, 4].map((i) => (
                   <Skeleton
                     key={i}
@@ -457,17 +460,27 @@ function AdminGroups() {
                 ))}
               </div>
             ) : visibleGroups.length === 0 ? (
-              <div className="p-12 text-center">
-                <HiMiniUserGroup size={64} className="mx-auto text-slate-300" />
-                <h3 className="text-lg font-semibold text-slate-700 mt-3">
-                  {isTeacher ? "Sizga hali guruh biriktirilmagan" : "Guruh topilmadi"}
-                </h3>
-                <p className="text-sm text-slate-400 mt-1">
-                  {isTeacher
-                    ? "Admin teacher profilingizga guruh biriktirgandan keyin shu yerda ko'rinadi"
-                    : "Yangi guruh yaratish uchun yuqoridagi tugmani bosing"}
-                </p>
-              </div>
+              isTeacher ? (
+                <div className="p-8 text-center sm:p-12">
+                  <HiMiniUserGroup size={64} className="mx-auto text-slate-300" />
+                  <h3 className="text-lg font-semibold text-slate-700 mt-3">
+                    Sizga hali guruh biriktirilmagan
+                  </h3>
+                  <p className="text-sm text-slate-400 mt-1">
+                    Admin teacher profilingizga guruh biriktirgandan keyin shu yerda ko'rinadi
+                  </p>
+                </div>
+              ) : (
+                <div className="p-8 text-center sm:p-12">
+                  <HiMiniUserGroup size={64} className="mx-auto text-slate-300" />
+                  <h3 className="text-lg font-semibold text-slate-700 mt-3">
+                    Guruh topilmadi
+                  </h3>
+                  <p className="text-sm text-slate-400 mt-1">
+                    Yangi guruh yaratish uchun yuqoridagi tugmani bosing
+                  </p>
+                </div>
+              )
             ) : (
               <div className="divide-y divide-slate-100">
                 {visibleGroups.map((group) => (
@@ -539,7 +552,7 @@ function AdminGroups() {
             </div>
 
             {/* Form */}
-            <div className="flex-1 overflow-y-auto p-6">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6">
               <form
                 onSubmit={handleSubmit(handleSubmitGroup)}
                 className="space-y-5"
@@ -583,11 +596,23 @@ function AdminGroups() {
                         },
                       }}
                     >
-                      {courses.map((course) => (
-                        <MenuItem key={course.id} value={course.id}>
-                          {course.name}
-                        </MenuItem>
-                      ))}
+                      {courses.length > 0 ? (
+                        courses.map((course) => (
+                          <MenuItem key={course.id} value={course.id}>
+                            {course.name}
+                          </MenuItem>
+                        ))
+                      ) : (
+                        <SelectActionMenuItem
+                          title="Kurs yo'q, yangi kurs qo'shish"
+                          description="Kurslar bo'limiga o'tib birinchi kursni yarating."
+                          icon={<HiMiniAcademicCap className="text-lg" />}
+                          onClick={() => {
+                            handleCloseDrawer();
+                            navigate("/admin/courses");
+                          }}
+                        />
+                      )}
                     </TextField>
                   )}
                 />
@@ -611,11 +636,23 @@ function AdminGroups() {
                       }}
                     >
                       <MenuItem value="">Biriktirilmagan</MenuItem>
-                      {teachers.map((teacher) => (
-                        <MenuItem key={teacher.id} value={teacher.id}>
-                          {teacher.full_name}
-                        </MenuItem>
-                      ))}
+                      {teachers.length > 0 ? (
+                        teachers.map((teacher) => (
+                          <MenuItem key={teacher.id} value={teacher.id}>
+                            {teacher.full_name}
+                          </MenuItem>
+                        ))
+                      ) : (
+                        <SelectActionMenuItem
+                          title="Teacher yo'q, yangi teacher qo'shish"
+                          description="O'qituvchilar bo'limiga o'tib yangi teacher yarating."
+                          icon={<HiMiniUsers className="text-lg" />}
+                          onClick={() => {
+                            handleCloseDrawer();
+                            navigate("/admin/teachers");
+                          }}
+                        />
+                      )}
                     </TextField>
                   )}
                 />
@@ -668,11 +705,25 @@ function AdminGroups() {
                       }}
                     >
                       <MenuItem value="">Biriktirilmagan</MenuItem>
-                      {rooms.map((room) => (
-                        <MenuItem key={room.id} value={room.id}>
-                          {room.name} ({room.capacity} ta joy)
-                        </MenuItem>
-                      ))}
+                      {rooms.length > 0 ? (
+                        rooms.map((room) => (
+                          <MenuItem key={room.id} value={room.id}>
+                            {room.name} ({room.capacity} ta joy)
+                          </MenuItem>
+                        ))
+                      ) : (
+                        <SelectActionMenuItem
+                          title="Xona yo'q, shu yerning o'zida yangi xona qo'shish"
+                          description="Forma rejimi avtomatik yangi xona yaratishga o'tadi."
+                          icon={<HiMiniBuildingOffice2 className="text-lg" />}
+                          onClick={() => {
+                            setValue("room_mode", "new", {
+                              shouldDirty: true,
+                              shouldValidate: true,
+                            });
+                          }}
+                        />
+                      )}
                     </TextField>
                   )}
                 />
@@ -892,7 +943,7 @@ function AdminGroups() {
                 Guruh kursga bog'langan, shuning uchun oylik to'lov ham kursning standart narxidan olinadi
               </div>
 
-              <div className="flex gap-3 pt-4">
+              <div className="flex flex-col gap-3 pt-4 sm:flex-row">
                 <Button
                   type="submit"
                   variant="contained"
@@ -921,7 +972,8 @@ function AdminGroups() {
                   }}
                   sx={{
                     borderRadius: "14px",
-                    px: 4,
+                    px: { xs: 2, sm: 4 },
+                    py: { xs: 1.4, sm: 0 },
                     textTransform: "none",
                     fontWeight: 600,
                   }}
@@ -975,15 +1027,15 @@ function StatCard({
   };
   return (
     <div
-      className={`p-4 rounded-xl border min-w-[120px] ${colors[color as keyof typeof colors]}`}
+      className={`min-w-0 rounded-xl border p-4 ${colors[color as keyof typeof colors]}`}
     >
       <div className="flex items-center gap-2">
         <div>{icon}</div>
         <div>
-          <p className="text-[11px] font-bold text-white/70 uppercase">
+          <p className="text-[11px] font-bold uppercase text-white/70">
             {label}
           </p>
-          <p className="text-2xl font-black text-white">
+          <p className="break-words text-xl font-black text-white sm:text-2xl">
             {value.toLocaleString()}
           </p>
         </div>
@@ -1009,17 +1061,17 @@ function GroupCard({
   const statusInfo = statusLabels[group.status];
 
   return (
-    <div className="p-5 hover:bg-emerald-50/20 transition-all duration-200">
-      <div className="flex flex-col lg:flex-row gap-5">
+    <div className="p-4 transition-all duration-200 hover:bg-emerald-50/20 sm:p-5">
+      <div className="flex flex-col gap-5 lg:flex-row">
         {/* Group Info */}
         <div className="flex-1">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center text-2xl font-black shadow-md">
+          <div className="flex items-start gap-3 sm:items-center sm:gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-xl font-black text-white shadow-md sm:h-14 sm:w-14 sm:text-2xl">
               {group.name.charAt(0).toUpperCase()}
             </div>
-            <div className="flex-1">
-              <div className="flex flex-wrap items-center gap-2 mb-1">
-                <h3 className="text-xl font-extrabold text-slate-900">
+            <div className="min-w-0 flex-1">
+              <div className="mb-1 flex flex-wrap items-center gap-2">
+                <h3 className="text-lg font-extrabold text-slate-900 sm:text-xl">
                   {group.name}
                 </h3>
                 <PremiumBadge
@@ -1037,7 +1089,7 @@ function GroupCard({
                   {statusInfo.label}
                 </PremiumBadge>
               </div>
-              <div className="flex flex-wrap gap-3 text-sm text-slate-500">
+              <div className="flex flex-wrap gap-2 text-sm text-slate-500 sm:gap-3">
                 <div className="flex items-center gap-1">
                   <HiMiniAcademicCap size={14} />
                   <span>{group.course?.name || "Kurs tanlanmagan"}</span>
@@ -1059,7 +1111,7 @@ function GroupCard({
           </div>
 
           {isExpanded && (
-            <div className="mt-4 ml-[72px] space-y-2">
+            <div className="mt-4 space-y-2 sm:ml-[72px]">
               <div className="flex items-center gap-2 text-sm text-slate-600">
                 <HiMiniCalendar size={14} />
                 <span>Boshlanish: {group.start_date}</span>
@@ -1095,7 +1147,7 @@ function GroupCard({
 
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="mt-2 ml-[72px] text-xs text-emerald-600 hover:text-emerald-700 font-semibold"
+            className="mt-2 text-xs font-semibold text-emerald-600 hover:text-emerald-700 sm:ml-[72px]"
           >
             {isExpanded ? "Yopish" : "Ko'proq ma'lumot"}
           </button>
@@ -1103,7 +1155,7 @@ function GroupCard({
 
         {/* Stats and Actions */}
         <div className="lg:w-1/3">
-          <div className="bg-slate-50 rounded-2xl p-4 space-y-3">
+          <div className="space-y-3 rounded-2xl bg-slate-50 p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
@@ -1126,16 +1178,16 @@ function GroupCard({
                   Kurs oylik to'lovi
                 </span>
               </div>
-              <span className="text-xl font-black text-slate-900">
+              <span className="pl-3 text-right text-lg font-black text-slate-900 sm:text-xl">
                 {Number(group.course?.default_monthly_fee ?? group.monthly_fee).toLocaleString()} so'm
               </span>
             </div>
           </div>
 
-          <div className="mt-3 flex gap-2">
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
             <Link
               to={`/admin/groups/${group.id}`}
-              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition-all"
+              className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-slate-800 px-4 py-2.5 font-bold text-white transition-all hover:bg-slate-700"
             >
               <HiMiniArrowRight size={16} />
               Jurnal

@@ -1,15 +1,17 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { listAttendance } from "../api/attendance";
 import { listGrades } from "../api/grades";
 import { listGroups } from "../api/groups";
 import { listLessons } from "../api/lessons";
 import { listPayments } from "../api/payments";
 import { listGroupEnrollments } from "../api/students";
-import type { Enrollment, Grade, Lesson, Payment } from "../types/types";
+import type { Attendance, Enrollment, Grade, Lesson, Payment } from "../types/types";
 
 type StudentOverview = {
   enrollments: Enrollment[];
   lessons: Lesson[];
+  attendance: Attendance[];
   grades: Grade[];
   payments: Payment[];
 };
@@ -48,7 +50,11 @@ async function getStudentOverview(studentId: string): Promise<StudentOverview> {
     groupIds.map(async (groupId) => listLessons({ groupId })),
   );
 
-  const lessons = lessonCollections
+  const groupLessons = lessonCollections
+    .flat()
+    .sort((left, right) => right.lesson_date.localeCompare(left.lesson_date));
+
+  const lessons = groupLessons
     .flat()
     .filter((lesson) =>
       enrollments.some((enrollment) => isLessonWithinEnrollment(lesson, enrollment)),
@@ -73,9 +79,28 @@ async function getStudentOverview(studentId: string): Promise<StudentOverview> {
     )
     .sort((left, right) => right.paid_at.localeCompare(left.paid_at));
 
+  const attendanceCollections = await Promise.all(
+    groupLessons.map(async (lesson) => listAttendance(lesson.id)),
+  );
+
+  const lessonDateById = new Map(groupLessons.map((lesson) => [lesson.id, lesson.lesson_date]));
+  const attendance = attendanceCollections
+    .flat()
+    .filter(
+      (record) =>
+        record.student_id === studentId &&
+        enrollmentIds.has(record.enrollment_id),
+    )
+    .sort((left, right) =>
+      (lessonDateById.get(right.lesson_id) ?? right.created_at).localeCompare(
+        lessonDateById.get(left.lesson_id) ?? left.created_at,
+      ),
+    );
+
   return {
     enrollments,
     lessons,
+    attendance,
     grades: studentGrades,
     payments: studentPayments,
   };
@@ -94,6 +119,7 @@ export default function useStudentOverview(studentId?: string) {
     () => ({
       enrollments: overview?.enrollments ?? [],
       lessons: overview?.lessons ?? [],
+      attendance: overview?.attendance ?? [],
       grades: overview?.grades ?? [],
       payments: overview?.payments ?? [],
       loading: overviewQuery.isLoading,
