@@ -58,7 +58,10 @@ export default function useGroups() {
   });
 
   const groups = useMemo(() => {
-    const list = groupsQuery.data ?? [];
+    const list = (groupsQuery.data ?? []).filter((group) => {
+      if (!user?.course_center_id || user.role === "super_admin") return true;
+      return group.course_center_id === user.course_center_id;
+    });
     const term = searchTerm.trim().toLowerCase();
     if (!term) return list;
 
@@ -67,7 +70,7 @@ export default function useGroups() {
         .filter(Boolean)
         .some((value) => value?.toLowerCase().includes(term)),
     );
-  }, [groupsQuery.data, searchTerm]);
+  }, [groupsQuery.data, searchTerm, user?.course_center_id, user?.role]);
 
   return {
     groups,

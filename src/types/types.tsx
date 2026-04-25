@@ -46,6 +46,7 @@ export interface User {
 
 export interface Course {
   id: string;
+  course_center_id: string;
   name: string;
   description: string | null;
   default_monthly_fee: string;
@@ -65,6 +66,7 @@ export interface CourseFeeHistory {
 
 export interface Room {
   id: string;
+  course_center_id: string;
   name: string;
   capacity: number;
   location_note: string | null;
@@ -74,6 +76,7 @@ export interface Room {
 
 export interface Group {
   id: string;
+  course_center_id: string;
   name: string;
   course_id: string;
   teacher_id: string | null;

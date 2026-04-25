@@ -52,7 +52,10 @@ export default function useTeachers(enabled = true) {
   });
 
   const teachers = useMemo(() => {
-    const list = teachersQuery.data ?? [];
+    const list = (teachersQuery.data ?? []).filter((teacher) => {
+      if (!user?.course_center_id || user.role === "super_admin") return true;
+      return teacher.course_center_id === user.course_center_id;
+    });
     const term = searchTerm.trim().toLowerCase();
     if (!term) return list;
 
@@ -61,7 +64,7 @@ export default function useTeachers(enabled = true) {
         .filter(Boolean)
         .some((value) => value?.toLowerCase().includes(term)),
     );
-  }, [searchTerm, teachersQuery.data]);
+  }, [searchTerm, teachersQuery.data, user?.course_center_id, user?.role]);
 
   return {
     teachers,

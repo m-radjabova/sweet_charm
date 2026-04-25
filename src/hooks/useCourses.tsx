@@ -58,13 +58,16 @@ export default function useCourses() {
   });
 
   const courses = useMemo(() => {
-    const list = coursesQuery.data ?? [];
+    const list = (coursesQuery.data ?? []).filter((course) => {
+      if (!user?.course_center_id || user.role === "super_admin") return true;
+      return course.course_center_id === user.course_center_id;
+    });
     const term = searchTerm.trim().toLowerCase();
     if (!term) return list;
     return list.filter((course) =>
       [course.name, course.description].filter(Boolean).some((value) => value?.toLowerCase().includes(term)),
     );
-  }, [coursesQuery.data, searchTerm]);
+  }, [coursesQuery.data, searchTerm, user?.course_center_id, user?.role]);
 
   return {
     courses,

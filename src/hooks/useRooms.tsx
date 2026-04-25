@@ -54,7 +54,10 @@ export default function useRooms() {
   });
 
   const rooms = useMemo(() => {
-    const list = roomsQuery.data ?? [];
+    const list = (roomsQuery.data ?? []).filter((room) => {
+      if (!user?.course_center_id || user.role === "super_admin") return true;
+      return room.course_center_id === user.course_center_id;
+    });
     const term = searchTerm.trim().toLowerCase();
     if (!term) return list;
     return list.filter((room) =>
@@ -62,7 +65,7 @@ export default function useRooms() {
         .filter(Boolean)
         .some((value) => value?.toLowerCase().includes(term)),
     );
-  }, [roomsQuery.data, searchTerm]);
+  }, [roomsQuery.data, searchTerm, user?.course_center_id, user?.role]);
 
   return {
     rooms,

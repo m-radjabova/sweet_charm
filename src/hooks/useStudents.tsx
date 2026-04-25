@@ -120,15 +120,30 @@ export default function useStudents(groupId?: string, options?: UseStudentsOptio
     onError: (error) => toast.error(getErrorMessage(error, "Studentni chetlashtirib bo'lmadi")),
   });
 
+  const filteredStudents = (studentsQuery.data?.items ?? []).filter((student) => {
+    if (!user?.course_center_id || user.role === "super_admin") return true;
+    return student.course_center_id === user.course_center_id;
+  });
+
+  const filteredAssignableStudents = (assignableStudentsQuery.data?.items ?? []).filter((student) => {
+    if (!user?.course_center_id || user.role === "super_admin") return true;
+    return student.course_center_id === user.course_center_id;
+  });
+
+  const filteredEnrollments = (enrollmentsQuery.data ?? []).filter((enrollment) => {
+    if (!user?.course_center_id || user.role === "super_admin") return true;
+    return enrollment.group.course_center_id === user.course_center_id;
+  });
+
   return {
-    students: studentsQuery.data?.items ?? [],
+    students: filteredStudents,
     studentsTotal: studentsQuery.data?.total ?? 0,
     activeStudentsTotal: studentsQuery.data?.active_total ?? 0,
     studentsPage: studentsQuery.data?.page ?? 1,
     studentsPages: studentsQuery.data?.pages ?? 1,
     studentsLimit: studentsQuery.data?.limit ?? studentListParams.limit ?? 20,
-    assignableStudents: assignableStudentsQuery.data?.items ?? [],
-    enrollments: enrollmentsQuery.data ?? [],
+    assignableStudents: filteredAssignableStudents,
+    enrollments: filteredEnrollments,
     loading: studentsQuery.isLoading || assignableStudentsQuery.isLoading || enrollmentsQuery.isLoading,
     studentsLoading: studentsQuery.isLoading,
     assignableStudentsLoading: assignableStudentsQuery.isLoading,

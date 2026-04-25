@@ -95,8 +95,13 @@ export default function usePayments(params?: PaymentsParams) {
     onError: (error) => toast.error(getErrorMessage(error, "To'lovni yangilab bo'lmadi")),
   });
 
+  const payments = (paymentsQuery.data ?? []).filter((payment) => {
+    if (!user?.course_center_id || user.role === "super_admin") return true;
+    return payment.student?.course_center_id === user.course_center_id;
+  });
+
   return {
-    payments: paymentsQuery.data ?? [],
+    payments,
     loading: paymentsQuery.isLoading,
     isFetching: paymentsQuery.isFetching,
     createPayment: (payload: PaymentPayload) => createMutation.mutateAsync(payload),
