@@ -1,6 +1,7 @@
 import { isAxiosError } from "axios";
 import apiClient from "../apiClient/apiClient";
 import type { TokenResponse, User } from "../types/types";
+import { getPrimaryRole } from "../utils/roles";
 
 export const ACCESS_TOKEN_KEY = "cc-access-token";
 export const REFRESH_TOKEN_KEY = "cc-refresh-token";
@@ -51,11 +52,9 @@ export async function getMe() {
   return normalizeUser(data);
 }
 
-const rolePriority = ["admin", "teacher", "student", "user"] as const;
-
 export function normalizeUser(user: User): User {
   const normalizedRoles = user.roles?.length ? user.roles : user.role ? [user.role] : [];
-  const effectiveRole = rolePriority.find((role) => normalizedRoles.includes(role)) ?? user.role;
+  const effectiveRole = getPrimaryRole({ ...user, roles: normalizedRoles });
 
   return {
     ...user,

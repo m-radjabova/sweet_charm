@@ -3,6 +3,7 @@ import { NavLink } from "react-router-dom";
 import { IconButton, Tooltip } from "@mui/material";
 import {
   HiBars3BottomLeft,
+  HiMiniBuildingOffice2,
   HiMiniArrowLeftOnRectangle,
   HiMiniCog6Tooth,
   HiMiniCreditCard,
@@ -13,6 +14,8 @@ import {
   HiMiniUserGroup,
 } from "react-icons/hi2";
 import useContextPro from "../../hooks/useContextPro";
+import type { UserRole } from "../../types/types";
+import { getPrimaryRole, getUserRoleLabel, hasAnyRole } from "../../utils/roles";
 
 const menuItems = [
   { label: "Dashboard", icon: HiMiniHome, to: "/admin", roles: ["admin"] },
@@ -52,7 +55,18 @@ const menuItems = [
     to: "/admin/settings",
     roles: ["admin", "teacher"],
   },
-];
+  {
+    label: "Adminlar",
+    icon: HiMiniBuildingOffice2,
+    to: "/super-admin",
+    roles: ["super_admin"],
+  },
+] satisfies Array<{
+  label: string;
+  icon: typeof HiMiniHome;
+  to: string;
+  roles: UserRole[];
+}>;
 
 function AdminSidebar() {
   const [collapsed, setCollapsed] = useState(false);
@@ -60,9 +74,9 @@ function AdminSidebar() {
     logout,
     state: { user },
   } = useContextPro();
-  const role = user?.role ?? "admin";
+  const role = getPrimaryRole(user) ?? "admin";
   const visibleMenuItems = menuItems.filter((item) =>
-    item.roles.includes(role),
+    hasAnyRole(user, item.roles as UserRole[]),
   );
 
   return (
@@ -81,11 +95,18 @@ function AdminSidebar() {
           {!collapsed && (
             <div className="overflow-hidden">
               <p className="text-[11px] uppercase tracking-[0.35em] text-slate-400">
-                Course Center
+                {user?.course_center_name ?? "Course Center"}
               </p>
               <h2 className="mt-2 text-xl font-bold text-white">
-                {role === "teacher" ? "Teacher Panel" : "Admin Panel"}
+                {role === "teacher"
+                  ? "Teacher Panel"
+                  : role === "super_admin"
+                  ? "Super Admin Panel"
+                  : "Admin Panel"}
               </h2>
+              <p className="mt-1 text-xs text-slate-400">
+                {getUserRoleLabel(user)}
+              </p>
             </div>
           )}
 
@@ -157,18 +178,28 @@ function AdminSidebar() {
               <button
                 onClick={logout}
                 aria-label="Chiqish"
-                className="flex h-14 w-full items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white transition-all duration-300 hover:bg-red-500/20"
+                className="group relative flex h-14 w-full items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-[linear-gradient(135deg,rgba(15,23,42,0.92),rgba(30,41,59,0.88))] text-white shadow-[0_16px_36px_rgba(2,6,23,0.35)] transition-all duration-300 hover:-translate-y-0.5 hover:border-red-400/30 hover:shadow-[0_22px_42px_rgba(239,68,68,0.18)]"
               >
-                <HiMiniArrowLeftOnRectangle className="text-[22px]" />
+                <span className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(248,250,252,0.14),transparent_45%),linear-gradient(135deg,transparent,rgba(239,68,68,0.16))] opacity-80 transition-opacity duration-300 group-hover:opacity-100" />
+                <span className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 transition-colors duration-300 group-hover:bg-red-500/15">
+                  <HiMiniArrowLeftOnRectangle className="text-[22px]" />
+                </span>
               </button>
             </Tooltip>
           ) : (
             <button
               onClick={logout}
-              className="flex h-14 w-full items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 text-sm font-semibold text-white transition-all duration-300 hover:bg-red-500/20"
+              className="group relative flex h-[72px] w-full items-center gap-4 overflow-hidden rounded-[24px] border border-white/10 bg-[linear-gradient(135deg,rgba(15,23,42,0.98),rgba(30,41,59,0.92))] px-5 text-left text-white shadow-[0_20px_48px_rgba(2,6,23,0.38)] transition-all duration-300 hover:-translate-y-0.5 hover:border-red-400/35 hover:shadow-[0_28px_56px_rgba(239,68,68,0.18)]"
             >
-              <HiMiniArrowLeftOnRectangle className="text-[22px]" />
-              <span>Chiqish</span>
+              <span className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.08),transparent_34%),linear-gradient(135deg,transparent,rgba(239,68,68,0.12))] opacity-90 transition-opacity duration-300 group-hover:opacity-100" />
+              <span className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/5 transition-all duration-300 group-hover:border-red-300/30 group-hover:bg-red-500/12">
+                <HiMiniArrowLeftOnRectangle className="text-[24px]" />
+              </span>
+              <span className="relative flex min-w-0 flex-1 items-center justify-between gap-3">
+                <span>
+                  <span className="block text-lg font-black tracking-tight">Chiqish</span>
+                </span>
+              </span>
             </button>
           )}
         </div>

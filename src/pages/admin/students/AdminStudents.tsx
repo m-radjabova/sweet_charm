@@ -232,9 +232,32 @@ function AdminStudents() {
         value: student.id,
         label: student.full_name,
         student,
-        isDisabled: false,
+        activeGroupNames: student.active_group_names ?? [],
       })),
     [assignableStudents],
+  );
+
+  const visibleStudentSelectOptions = useMemo(
+    () =>
+      studentSelectOptions.map((option) => {
+        const isAlreadyInSelectedGroup = Boolean(
+          selectedAssignmentGroupId &&
+            option.student.active_group_ids?.includes(selectedAssignmentGroupId),
+        );
+        const assignedGroupName =
+          option.activeGroupNames[
+            option.student.active_group_ids?.findIndex(
+              (groupId) => groupId === selectedAssignmentGroupId,
+            ) ?? -1
+          ] ?? option.activeGroupNames[0] ?? null;
+
+        return {
+          ...option,
+          isDisabled: isAlreadyInSelectedGroup,
+          assignedGroupName,
+        };
+      }),
+    [selectedAssignmentGroupId, studentSelectOptions],
   );
 
   useEffect(() => {
@@ -953,13 +976,20 @@ function AdminStudents() {
               render={({ field }) => (
                 <div className="space-y-2">
                   <label className="block text-sm font-semibold text-slate-700">
-                    Studentni tanlang
+                    <span className="flex items-center justify-between gap-3">
+                      <span>Studentni tanlang</span>
+                      {selectedAssignmentStudentIds.length > 0 && (
+                        <span className="shrink-0 rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700">
+                          {selectedAssignmentStudentIds.length} ta tanlandi
+                        </span>
+                      )}
+                    </span>
                   </label>
 
                   <Select<StudentSelectOption, true>
                     isMulti
-                    options={studentSelectOptions}
-                    value={studentSelectOptions.filter((option) =>
+                    options={visibleStudentSelectOptions}
+                    value={visibleStudentSelectOptions.filter((option) =>
                       field.value?.includes(option.value),
                     )}
                     onChange={(selectedOptions) =>
@@ -970,7 +1000,7 @@ function AdminStudents() {
                     isDisabled={
                       !selectedAssignmentGroupId ||
                       assignableStudentsLoading ||
-                      studentSelectOptions.length === 0
+                      visibleStudentSelectOptions.length === 0
                     }
                     placeholder={
                       !selectedAssignmentGroupId
@@ -982,8 +1012,14 @@ function AdminStudents() {
                         ? "Avval guruhni tanlang"
                         : "Student topilmadi"
                     }
+                    blurInputOnSelect={false}
                     closeMenuOnSelect={false}
+                    controlShouldRenderValue={
+                      selectedAssignmentStudentIds.length <= 2
+                    }
                     hideSelectedOptions={false}
+                    menuPlacement="auto"
+                    maxMenuHeight={220}
                     formatOptionLabel={(option) => (
                       <StudentOption
                         student={option.student}
@@ -993,9 +1029,10 @@ function AdminStudents() {
                     styles={{
                       control: (base, state) => ({
                         ...base,
-                        minHeight: "42px",
-                        borderRadius: "12px",
-                        padding: "0px 4px",
+                        minHeight: "48px",
+                        borderRadius: "14px",
+                        padding: "2px 6px",
+                        alignItems: "center",
                         borderColor: assignmentErrors.student_ids
                           ? "#dc2626"
                           : state.isFocused
@@ -1018,8 +1055,11 @@ function AdminStudents() {
 
                       valueContainer: (base) => ({
                         ...base,
-                        padding: "4px 8px",
-                        gap: "8px",
+                        padding: "4px 6px",
+                        gap: "6px",
+                        minHeight: "38px",
+                        maxHeight: "94px",
+                        overflowY: "auto",
                       }),
 
                       placeholder: (base) => ({
@@ -1027,6 +1067,13 @@ function AdminStudents() {
                         color: "#94a3b8",
                         fontSize: "14px",
                         fontWeight: "500",
+                        marginLeft: "4px",
+                      }),
+
+                      input: (base) => ({
+                        ...base,
+                        margin: 0,
+                        padding: 0,
                       }),
 
                       menu: (base) => ({
@@ -1042,13 +1089,15 @@ function AdminStudents() {
 
                       menuList: (base) => ({
                         ...base,
-                        padding: "8px",
+                        padding: "6px",
+                        maxHeight: "220px",
+                        scrollbarWidth: "thin",
                       }),
 
                       option: (base, state) => ({
                         ...base,
-                        borderRadius: "8px",
-                        padding: "6px 10px",
+                        borderRadius: "10px",
+                        padding: "8px 10px",
                         marginBottom: "2px",
                         fontSize: "13px",
                         backgroundColor: state.isDisabled
@@ -1061,6 +1110,9 @@ function AdminStudents() {
                         color: state.isDisabled ? "#94a3b8" : "#0f172a",
                         cursor: state.isDisabled ? "not-allowed" : "pointer",
                         transition: "all 0.15s ease",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
                         "&:active": {
                           backgroundColor:
                             !state.isDisabled && !state.isSelected
@@ -1071,43 +1123,50 @@ function AdminStudents() {
 
                       multiValue: (base) => ({
                         ...base,
-                        backgroundColor: "#ecfdf5",
-                        border: "1px solid #a7f3d0",
-                        borderRadius: "16px",
-                        paddingLeft: "6px",
-                        minHeight: "26px",
+                        backgroundColor: "#eff6ff",
+                        border: "1px solid #bfdbfe",
+                        borderRadius: "999px",
+                        paddingLeft: "4px",
+                        minHeight: "24px",
+                        maxWidth: "100%",
                         alignItems: "center",
                         gap: "2px",
+                        margin: 0,
                       }),
 
                       multiValueLabel: (base) => ({
                         ...base,
-                        color: "#047857",
-                        fontWeight: 500,
-                        fontSize: "12px",
-                        padding: "2px 4px",
+                        color: "#1d4ed8",
+                        fontWeight: 600,
+                        fontSize: "11px",
+                        lineHeight: 1.2,
+                        padding: "2px 6px",
+                        maxWidth: "180px",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
                       }),
 
                       multiValueRemove: (base) => ({
                         ...base,
-                        color: "#059669",
-                        borderRadius: "12px",
-                        width: "18px",
-                        height: "18px",
+                        color: "#2563eb",
+                        borderRadius: "999px",
+                        width: "16px",
+                        height: "16px",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                         margin: "0 2px 0 0",
                         ":hover": {
-                          backgroundColor: "#d1fae5",
-                          color: "#065f46",
+                          backgroundColor: "#dbeafe",
+                          color: "#1d4ed8",
                         },
                       }),
 
                       dropdownIndicator: (base, state) => ({
                         ...base,
                         color: state.isFocused ? "#2563eb" : "#94a3b8",
-                        padding: "4px",
+                        padding: "6px",
                         transition: "all 0.2s ease",
                         transform: state.selectProps.menuIsOpen
                           ? "rotate(180deg)"
@@ -1116,10 +1175,18 @@ function AdminStudents() {
                           color: "#2563eb",
                         },
                       }),
+
+                      indicatorSeparator: (base) => ({
+                        ...base,
+                        marginTop: "6px",
+                        marginBottom: "6px",
+                        backgroundColor: "#e2e8f0",
+                      }),
+
                       clearIndicator: (base) => ({
                         ...base,
                         color: "#94a3b8",
-                        padding: "4px",
+                        padding: "6px",
                         transition: "all 0.15s ease",
                         ":hover": {
                           color: "#ef4444",
@@ -1158,6 +1225,13 @@ function AdminStudents() {
                     })}
                   />
 
+                  {selectedAssignmentStudentIds.length > 2 && (
+                    <p className="text-[11px] text-slate-500">
+                      {selectedAssignmentStudentIds.length} ta student tanlangan.
+                      Maydon ixcham ko'rinishda qoldirildi.
+                    </p>
+                  )}
+
                   <div className="flex justify-between items-center mt-2">
                     <p
                       className={`text-xs ${
@@ -1169,16 +1243,17 @@ function AdminStudents() {
                       {assignmentErrors.student_ids?.message ??
                         (!selectedAssignmentGroupId
                           ? "Avval guruhni tanlang"
-                          : `${assignableStudents.length} ta student biriktirishga tayyor`)}
+                          : `${visibleStudentSelectOptions.filter((option) => !option.isDisabled).length} ta student biriktirishga tayyor`)}
                     </p>
 
-                    {selectedAssignmentStudentIds.length > 0 && (
+                    {selectedAssignmentStudentIds.length > 0 &&
+                      visibleStudentSelectOptions.some((option) => !option.isDisabled) && (
                       <div className="flex items-center gap-1.5">
                         <div className="h-1.5 w-16 bg-slate-100 rounded-full overflow-hidden">
                           <div
                             className="h-full bg-emerald-500 rounded-full transition-all duration-300"
                             style={{
-                              width: `${(selectedAssignmentStudentIds.length / assignableStudents.length) * 100}%`,
+                              width: `${(selectedAssignmentStudentIds.length / visibleStudentSelectOptions.filter((option) => !option.isDisabled).length) * 100}%`,
                               maxWidth: "100%",
                             }}
                           />
@@ -1186,7 +1261,7 @@ function AdminStudents() {
                         <span className="text-xs font-semibold text-emerald-700">
                           {Math.round(
                             (selectedAssignmentStudentIds.length /
-                              assignableStudents.length) *
+                              visibleStudentSelectOptions.filter((option) => !option.isDisabled).length) *
                               100,
                           )}
                           %
@@ -1220,10 +1295,10 @@ function AdminStudents() {
 
             {selectedAssignmentGroupId &&
               !assignableStudentsLoading &&
-              assignableStudents.length === 0 && (
+              visibleStudentSelectOptions.every((option) => option.isDisabled) && (
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm text-blue-700 flex items-center gap-2">
                   <HiMiniInformationCircle size={18} />
-                  Hozircha biror guruhga biriktirilmagan yangi student qolmadi
+                  Bu guruhga biriktirilmagan student qolmadi
                 </div>
               )}
 
@@ -1426,6 +1501,8 @@ type StudentSelectOption = {
   label: string;
   student: StudentDetail;
   isDisabled: boolean;
+  activeGroupNames: string[];
+  assignedGroupName?: string | null;
 };
 
 function StudentOption({
@@ -1436,30 +1513,14 @@ function StudentOption({
   isAssigned: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 py-1">
-      <div className="flex items-center gap-3 min-w-0">
-        <Avatar
-          sx={{
-            width: 32,
-            height: 32,
-            bgcolor: isAssigned ? "#f1f5f9" : "#dbeafe",
-            color: isAssigned ? "#94a3b8" : "#2563eb",
-            fontSize: "14px",
-            fontWeight: "bold",
-          }}
-        >
-          {student.full_name.charAt(0).toUpperCase()}
-        </Avatar>
-        <div className="min-w-0">
-          <p
-            className={`font-semibold text-sm truncate ${isAssigned ? "text-slate-400" : "text-slate-900"}`}
-          >
-            {student.full_name}
-          </p>
-        </div>
-      </div>
+    <div className="flex items-center justify-between gap-3">
+      <p
+        className={`min-w-0 truncate font-semibold text-sm ${isAssigned ? "text-slate-400" : "text-slate-900"}`}
+      >
+        {student.full_name}
+      </p>
       {isAssigned && (
-        <span className="shrink-0 rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 flex items-center gap-1">
+        <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-500 flex items-center gap-1">
           <HiMiniCheckBadge size={12} />
           Biriktirilgan
         </span>

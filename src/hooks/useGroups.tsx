@@ -5,13 +5,18 @@ import { getErrorMessage } from "../api/auth";
 import { createGroup, deleteGroup, listGroups, updateGroup, type GroupPayload } from "../api/groups";
 import { invalidateGroupDependentQueries } from "./queryInvalidation";
 import type { Group } from "../types/types";
+import useContextPro from "./useContextPro";
 
 export default function useGroups() {
   const queryClient = useQueryClient();
+  const {
+    state: { user },
+  } = useContextPro();
   const [searchTerm, setSearchTerm] = useState("");
+  const scopeKey = user?.course_center_id ?? user?.id ?? "guest";
 
   const groupsQuery = useQuery({
-    queryKey: ["groups"],
+    queryKey: ["groups", scopeKey],
     queryFn: listGroups,
   });
 
@@ -19,7 +24,7 @@ export default function useGroups() {
     mutationFn: createGroup,
     onSuccess: async (createdGroup) => {
       toast.success("Guruh yaratildi");
-      queryClient.setQueryData<Group[]>(["groups"], (previous = []) => [createdGroup, ...previous]);
+      queryClient.setQueryData<Group[]>(["groups", scopeKey], (previous = []) => [createdGroup, ...previous]);
       await invalidateGroupDependentQueries(queryClient);
     },
     onError: (error) => toast.error(getErrorMessage(error, "Guruh yaratib bo'lmadi")),
@@ -31,7 +36,7 @@ export default function useGroups() {
     onSuccess: async (updatedGroup) => {
       toast.success("Guruh yangilandi");
       queryClient.setQueryData<Group[]>(
-        ["groups"],
+        ["groups", scopeKey],
         (previous = []) => previous.map((group) => (group.id === updatedGroup.id ? updatedGroup : group)),
       );
       await invalidateGroupDependentQueries(queryClient);
@@ -44,7 +49,7 @@ export default function useGroups() {
     onSuccess: async (_, deletedGroupId) => {
       toast.success("Guruh o'chirildi");
       queryClient.setQueryData<Group[]>(
-        ["groups"],
+        ["groups", scopeKey],
         (previous = []) => previous.filter((group) => group.id !== deletedGroupId),
       );
       await invalidateGroupDependentQueries(queryClient);

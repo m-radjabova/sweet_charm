@@ -5,13 +5,18 @@ import { getErrorMessage } from "../api/auth";
 import { createRoom, deleteRoom, listRooms, updateRoom, type RoomPayload } from "../api/rooms";
 import { invalidateGroupDependentQueries } from "./queryInvalidation";
 import type { Room } from "../types/types";
+import useContextPro from "./useContextPro";
 
 export default function useRooms() {
   const queryClient = useQueryClient();
+  const {
+    state: { user },
+  } = useContextPro();
   const [searchTerm, setSearchTerm] = useState("");
+  const scopeKey = user?.course_center_id ?? user?.id ?? "guest";
 
   const roomsQuery = useQuery({
-    queryKey: ["rooms"],
+    queryKey: ["rooms", scopeKey],
     queryFn: listRooms,
   });
 
@@ -19,7 +24,7 @@ export default function useRooms() {
     mutationFn: createRoom,
     onSuccess: async (createdRoom) => {
       toast.success("Xona yaratildi");
-      queryClient.setQueryData<Room[]>(["rooms"], (previous = []) => [createdRoom, ...previous]);
+      queryClient.setQueryData<Room[]>(["rooms", scopeKey], (previous = []) => [createdRoom, ...previous]);
       await invalidateGroupDependentQueries(queryClient);
     },
     onError: (error) => toast.error(getErrorMessage(error, "Xona yaratib bo'lmadi")),
@@ -30,7 +35,7 @@ export default function useRooms() {
     onSuccess: async (updatedRoom) => {
       toast.success("Xona yangilandi");
       queryClient.setQueryData<Room[]>(
-        ["rooms"],
+        ["rooms", scopeKey],
         (previous = []) => previous.map((room) => (room.id === updatedRoom.id ? updatedRoom : room)),
       );
       await invalidateGroupDependentQueries(queryClient);
@@ -42,7 +47,7 @@ export default function useRooms() {
     mutationFn: deleteRoom,
     onSuccess: async (_, deletedRoomId) => {
       toast.success("Xona o'chirildi");
-      queryClient.setQueryData<Room[]>(["rooms"], (previous = []) => previous.filter((room) => room.id !== deletedRoomId));
+      queryClient.setQueryData<Room[]>(["rooms", scopeKey], (previous = []) => previous.filter((room) => room.id !== deletedRoomId));
       await invalidateGroupDependentQueries(queryClient);
     },
     onError: (error) => toast.error(getErrorMessage(error, "Xonani o'chirib bo'lmadi")),

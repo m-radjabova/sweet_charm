@@ -23,20 +23,23 @@ import StudentDashboard from "./pages/student/StudentDashboard";
 import StudentLessons from "./pages/student/StudentLessons";
 import StudentPayments from "./pages/student/StudentPayments";
 import StudentSettings from "./pages/student/StudentSettings";
+import SuperAdminAdmins from "./pages/super-admin/SuperAdminAdmins";
+import { getDefaultRouteForRole, hasAnyRole } from "./utils/roles";
 
 function AdminIndexRoute() {
   const {
     state: { user },
   } = useContextPro();
 
-  if (user?.role === "teacher") {
-    return <Navigate to="/admin/groups" replace />;
-  }
-  if (user?.role === "student") {
-    return <Navigate to="/student" replace />;
+  if (hasAnyRole(user, ["admin"])) {
+    return <HelloAdmin />;
   }
 
-  return <HelloAdmin />;
+  return <Navigate to={getDefaultRouteForRole(user)} replace />;
+}
+
+function SuperAdminIndexRoute() {
+  return <SuperAdminAdmins />;
 }
 
 function App() {
@@ -109,6 +112,17 @@ function App() {
             </ProtectedRoute>
           }
         />
+      </Route>
+
+      <Route
+        path="/super-admin"
+        element={
+          <ProtectedRoute role="super_admin">
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<SuperAdminIndexRoute />} />
       </Route>
 
       <Route

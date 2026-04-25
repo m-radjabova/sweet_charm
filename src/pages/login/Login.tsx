@@ -22,6 +22,7 @@ import {
 } from "../../api/auth";
 import useContextPro from "../../hooks/useContextPro";
 import loginImage from "../../assets/login_image.png";
+import { getDefaultRouteForRole } from "../../utils/roles";
 const loginSchema = z.object({
   email: z.string().email("Email noto'g'ri"),
   password: z.string().min(6, "Parol kamida 6 belgidan iborat bo'lsin"),
@@ -55,14 +56,7 @@ function Login() {
 
       toast.success("Tizimga muvaffaqiyatli kirdingiz");
 
-      navigate(
-        me.role === "teacher"
-          ? "/admin/groups"
-          : me.role === "student"
-          ? "/student"
-          : "/admin",
-        { replace: true }
-      );
+      navigate(getDefaultRouteForRole(me), { replace: true });
     } catch (error: any) {
       const status = error?.response?.status;
       const message =
@@ -143,11 +137,6 @@ function Login() {
                   zamonaviy usulda boshqaring
                 </span>
               </h1>
-
-              <p className="mt-6 max-w-xl text-base leading-8 text-white/75 xl:text-lg">
-                Studentlar, guruhlar, kurslar, to‘lovlar va umumiy nazoratni
-                yagona, qulay va chiroyli boshqaruv oynasida yuriting.
-              </p>
             </div>
           </div>
         </div>
@@ -268,15 +257,15 @@ function Login() {
                   className="group"
                   sx={{
                     mt: 1,
-                    py: 1.9,
-                    borderRadius: "18px",
+                    py: 2,
+                    borderRadius: "20px",
                     textTransform: "none",
                     fontWeight: 800,
-                    fontSize: "0.98rem",
+                    fontSize: "1rem",
                     letterSpacing: "0.01em",
                     background:
                       "linear-gradient(135deg, #2563eb 0%, #4f46e5 55%, #7c3aed 100%)",
-                    boxShadow: "0 16px 40px rgba(59,130,246,0.24)",
+                    boxShadow: "0 18px 42px rgba(59,130,246,0.24)",
                     transition: "all 0.28s ease",
                     "&:hover": {
                       background:
@@ -286,20 +275,34 @@ function Login() {
                     },
                     "&.Mui-disabled": {
                       background:
-                        "linear-gradient(135deg, #93c5fd 0%, #a5b4fc 100%)",
+                        "linear-gradient(135deg, #60a5fa 0%, #818cf8 100%)",
                       color: "white",
+                      boxShadow: "0 18px 42px rgba(99,102,241,0.18)",
                     },
                   }}
                 >
                   {isSubmitting ? (
-                    <span className="flex items-center gap-2">
-                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/35 border-t-white" />
-                      Kirilmoqda...
+                    <span className="flex items-center gap-3">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15">
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/35 border-t-white" />
+                      </span>
+                      Tizimga kirilmoqda...
                     </span>
                   ) : (
-                    "Admin panelga kirish"
+                    "Kirish"
                   )}
                 </Button>
+
+                {isSubmitting ? (
+                  <div className="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+                    <div className="flex items-center gap-3">
+                      <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-blue-500" />
+                      <span className="font-medium">
+                        Ma'lumotlar tekshirilyapti, biroz kuting...
+                      </span>
+                    </div>
+                  </div>
+                ) : null}
               </form>
             </div>
           </Paper>

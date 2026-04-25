@@ -10,13 +10,18 @@ import {
   type TeacherProfilePayload,
 } from "../api/teachers";
 import { invalidateGroupDependentQueries } from "./queryInvalidation";
+import useContextPro from "./useContextPro";
 
 export default function useTeachers(enabled = true) {
   const queryClient = useQueryClient();
+  const {
+    state: { user },
+  } = useContextPro();
   const [searchTerm, setSearchTerm] = useState("");
+  const scopeKey = user?.course_center_id ?? user?.id ?? "guest";
 
   const teachersQuery = useQuery({
-    queryKey: ["teachers"],
+    queryKey: ["teachers", scopeKey],
     queryFn: listTeachers,
     enabled,
   });

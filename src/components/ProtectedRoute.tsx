@@ -1,6 +1,7 @@
 import { Navigate } from "react-router-dom";
 import useContextPro from "../hooks/useContextPro";
 import type { UserRole } from "../types/types";
+import { getDefaultRouteForRole, hasAnyRole } from "../utils/roles";
 
 interface Props {
   role: UserRole | UserRole[];
@@ -21,8 +22,8 @@ function ProtectedRoute({ role, children }: Props) {
     return <Navigate to="/login" replace />;
   }
 
-  if (!allowedRoles.includes(user.role)) {
-    return <Navigate to={user.role === "teacher" ? "/admin/groups" : user.role === "student" ? "/student" : "/admin"} replace />;
+  if (!hasAnyRole(user, allowedRoles)) {
+    return <Navigate to={getDefaultRouteForRole(user)} replace />;
   }
 
   return children;

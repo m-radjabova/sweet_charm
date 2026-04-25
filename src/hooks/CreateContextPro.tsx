@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useReducer, type Dispatch, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { MyContext } from "../context/MyContext";
 import { clearStoredAuth, getMe, getStoredAccessToken, logoutUser, normalizeUser, persistTokens } from "../api/auth";
 import type { TokenResponse, User } from "../types/types";
@@ -41,6 +42,7 @@ function reducer(state: TypeState, action: Action): TypeState {
 
 function CreateContextPro({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [state, dispatch] = useReducer(reducer, {
     user: null,
     isLoading: true,
@@ -48,6 +50,7 @@ function CreateContextPro({ children }: { children: ReactNode }) {
 
   const refreshUser = useCallback(async () => {
     if (!getStoredAccessToken()) {
+      queryClient.clear();
       dispatch({ type: "SET_USER", payload: null });
       dispatch({ type: "SET_LOADING", payload: false });
       return;
@@ -60,11 +63,12 @@ function CreateContextPro({ children }: { children: ReactNode }) {
       dispatch({ type: "SET_USER", payload: normalizeUser(me) });
     } catch {
       clearStoredAuth();
+      queryClient.clear();
       dispatch({ type: "SET_USER", payload: null });
     } finally {
       dispatch({ type: "SET_LOADING", payload: false });
     }
-  }, []);
+  }, [queryClient]);
 
   useEffect(() => {
     refreshUser();
@@ -72,8 +76,9 @@ function CreateContextPro({ children }: { children: ReactNode }) {
 
   const login = useCallback((tokens: TokenResponse, user: User) => {
     persistTokens(tokens);
+    queryClient.clear();
     dispatch({ type: "SET_USER", payload: normalizeUser(user) });
-  }, []);
+  }, [queryClient]);
 
   const logout = useCallback(async () => {
     try {
@@ -82,10 +87,11 @@ function CreateContextPro({ children }: { children: ReactNode }) {
       // Local logout should still complete even if backend logout fails.
     } finally {
       clearStoredAuth();
+      queryClient.clear();
       dispatch({ type: "LOGOUT" });
       navigate("/login", { replace: true });
     }
-  }, [navigate]);
+  }, [navigate, queryClient]);
 
   const value = useMemo<ContextType>(
     () => ({

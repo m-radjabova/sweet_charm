@@ -1,10 +1,20 @@
-export type UserRole = "admin" | "teacher" | "student" | "user";
+export type UserRole = "super_admin" | "admin" | "teacher" | "student" | "user";
 export type UserStatus = "active" | "inactive";
 export type GroupStatus = "planned" | "active" | "finished" | "archived";
 export type EnrollmentStatus = "active" | "finished" | "left";
 export type AttendanceStatus = "present" | "absent" | "late";
 export type PaymentStatus = "pending" | "paid";
 export type PaymentMethod = "cash" | "card";
+
+export interface CourseCenter {
+  id: string;
+  name: string;
+  slug?: string | null;
+  description?: string | null;
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
 
 export interface TokenResponse {
   access_token: string;
@@ -25,6 +35,9 @@ export interface User {
   avatar?: string | null;
   role?: UserRole;
   roles?: UserRole[];
+  course_center_id?: string | null;
+  course_center_name?: string | null;
+  course_center?: CourseCenter | null;
   status: UserStatus;
   is_superuser?: boolean;
   created_at: string;
@@ -113,6 +126,8 @@ export interface TelegramSendCredentialsResponse {
 
 export interface StudentDetail extends User {
   student_profile?: StudentProfile | null;
+  active_group_ids?: string[];
+  active_group_names?: string[];
 }
 
 export interface PaginatedResult<T> {

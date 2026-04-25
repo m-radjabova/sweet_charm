@@ -7,6 +7,7 @@ export type CreateUserPayload = {
   password: string;
   roles: UserRole[];
   status: UserStatus;
+  course_center_id?: string | null;
   phone?: string | null;
   phone_number?: string | null;
   notes?: string | null;
@@ -33,12 +34,20 @@ export async function listUsers(role?: UserRole) {
 
 export async function createUser(payload: CreateUserPayload) {
   const { data } = await apiClient.post<User>("/users/", payload);
-  return data;
+  return {
+    ...data,
+    roles: data.roles ?? (data.role ? [data.role] : []),
+    role: data.role ?? data.roles?.[0],
+  };
 }
 
 export async function updateUser(userId: string, payload: UpdateUserPayload) {
   const { data } = await apiClient.patch<User>(`/users/${userId}`, payload);
-  return data;
+  return {
+    ...data,
+    roles: data.roles ?? (data.role ? [data.role] : []),
+    role: data.role ?? data.roles?.[0],
+  };
 }
 
 export async function updateCurrentUser(payload: Pick<UpdateUserPayload, "full_name" | "email" | "phone">) {

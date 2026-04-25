@@ -2,7 +2,13 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { getErrorMessage } from "../api/auth";
-import { listUsers, updateUser, type UpdateUserPayload } from "../api/users";
+import {
+  createUser,
+  listUsers,
+  updateUser,
+  type CreateUserPayload,
+  type UpdateUserPayload,
+} from "../api/users";
 import type { UserRole } from "../types/types";
 
 export default function useUsers(role?: UserRole) {
@@ -12,6 +18,17 @@ export default function useUsers(role?: UserRole) {
   const usersQuery = useQuery({
     queryKey: ["users", role ?? "all"],
     queryFn: () => listUsers(role),
+  });
+
+  const createUserMutation = useMutation({
+    mutationFn: createUser,
+    onSuccess: async () => {
+      toast.success("Foydalanuvchi yaratildi");
+      await queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error, "Foydalanuvchini yaratib bo'lmadi"));
+    },
   });
 
   const updateUserMutation = useMutation({
@@ -45,7 +62,9 @@ export default function useUsers(role?: UserRole) {
     isFetching: usersQuery.isFetching,
     searchTerm,
     setSearchTerm,
+    createUser: (payload: CreateUserPayload) => createUserMutation.mutateAsync(payload),
     updateUser: (userId: string, payload: UpdateUserPayload) =>
       updateUserMutation.mutateAsync({ userId, payload }),
+    creatingUser: createUserMutation.isPending,
   };
 }

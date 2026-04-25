@@ -51,6 +51,7 @@ import { toast } from "react-toastify";
 import { getErrorMessage } from "../api/auth";
 import { createPayment, listPayments, updatePayment, type PaymentPayload } from "../api/payments";
 import { invalidateStudentDependentQueries } from "./queryInvalidation";
+import useContextPro from "./useContextPro";
 
 type PaymentsParams = {
   studentId?: string;
@@ -59,9 +60,13 @@ type PaymentsParams = {
 
 export default function usePayments(params?: PaymentsParams) {
   const queryClient = useQueryClient();
+  const {
+    state: { user },
+  } = useContextPro();
+  const scopeKey = user?.course_center_id ?? user?.id ?? "guest";
 
   const paymentsQuery = useQuery({
-    queryKey: ["payments", params?.studentId ?? "all-students", params?.groupId ?? "all-groups"],
+    queryKey: ["payments", scopeKey, params?.studentId ?? "all-students", params?.groupId ?? "all-groups"],
     queryFn: () => listPayments(params),
   });
 

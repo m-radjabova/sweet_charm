@@ -5,13 +5,18 @@ import { getErrorMessage } from "../api/auth";
 import { createCourse, deleteCourse, listCourses, updateCourse, type CoursePayload } from "../api/courses";
 import { invalidateGroupDependentQueries } from "./queryInvalidation";
 import type { Course } from "../types/types";
+import useContextPro from "./useContextPro";
 
 export default function useCourses() {
   const queryClient = useQueryClient();
+  const {
+    state: { user },
+  } = useContextPro();
   const [searchTerm, setSearchTerm] = useState("");
+  const scopeKey = user?.course_center_id ?? user?.id ?? "guest";
 
   const coursesQuery = useQuery({
-    queryKey: ["courses"],
+    queryKey: ["courses", scopeKey],
     queryFn: listCourses,
   });
 
@@ -19,7 +24,7 @@ export default function useCourses() {
     mutationFn: createCourse,
     onSuccess: async (createdCourse) => {
       toast.success("Kurs yaratildi");
-      queryClient.setQueryData<Course[]>(["courses"], (previous = []) => [createdCourse, ...previous]);
+      queryClient.setQueryData<Course[]>(["courses", scopeKey], (previous = []) => [createdCourse, ...previous]);
       await invalidateGroupDependentQueries(queryClient);
     },
     onError: (error) => toast.error(getErrorMessage(error, "Kurs yaratib bo'lmadi")),
@@ -31,7 +36,7 @@ export default function useCourses() {
     onSuccess: async (updatedCourse) => {
       toast.success("Kurs yangilandi");
       queryClient.setQueryData<Course[]>(
-        ["courses"],
+        ["courses", scopeKey],
         (previous = []) => previous.map((course) => (course.id === updatedCourse.id ? updatedCourse : course)),
       );
       await invalidateGroupDependentQueries(queryClient);
@@ -44,7 +49,7 @@ export default function useCourses() {
     onSuccess: async (_, deletedCourseId) => {
       toast.success("Kurs o'chirildi");
       queryClient.setQueryData<Course[]>(
-        ["courses"],
+        ["courses", scopeKey],
         (previous = []) => previous.filter((course) => course.id !== deletedCourseId),
       );
       await invalidateGroupDependentQueries(queryClient);

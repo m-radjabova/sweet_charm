@@ -19,6 +19,7 @@ import {
   invalidateStudentDependentQueries,
   syncGroupEnrollmentQueries,
 } from "./queryInvalidation";
+import useContextPro from "./useContextPro";
 type UseStudentsOptions = {
   includeStudentLists?: boolean;
   studentListParams?: ListStudentsParams;
@@ -26,19 +27,23 @@ type UseStudentsOptions = {
 
 export default function useStudents(groupId?: string, options?: UseStudentsOptions) {
   const queryClient = useQueryClient();
+  const {
+    state: { user },
+  } = useContextPro();
   const includeStudentLists = options?.includeStudentLists ?? true;
   const studentListParams = options?.studentListParams ?? { page: 1, limit: 10000 };
-  const enrollmentQueryKey = ["group-enrollments", groupId ?? "none"] as const;
+  const scopeKey = user?.course_center_id ?? user?.id ?? "guest";
+  const enrollmentQueryKey = ["group-enrollments", scopeKey, groupId ?? "none"] as const;
 
   const studentsQuery = useQuery({
-    queryKey: ["students", studentListParams],
+    queryKey: ["students", scopeKey, studentListParams],
     queryFn: () => listStudents(studentListParams),
     enabled: includeStudentLists,
   });
 
   const assignableStudentsQuery = useQuery({
-    queryKey: ["students", "unassigned-only"],
-    queryFn: () => listStudents({ unassignedOnly: true, page: 1, limit: 10000 }),
+    queryKey: ["students", scopeKey, "assignment-options"],
+    queryFn: () => listStudents({ page: 1, limit: 10000 }),
     enabled: includeStudentLists,
   });
 
@@ -107,7 +112,7 @@ export default function useStudents(groupId?: string, options?: UseStudentsOptio
         ),
       );
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["students", "unassigned-only"], exact: true }),
+        queryClient.invalidateQueries({ queryKey: ["students", "assignment-options"], exact: true }),
         queryClient.invalidateQueries({ queryKey: ["students"] }),
         invalidateStudentDependentQueries(queryClient, [updatedEnrollment.student_id]),
       ]);
