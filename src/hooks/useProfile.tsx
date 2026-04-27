@@ -1,16 +1,13 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { getErrorMessage } from "../api/auth";
-import { updateCurrentUser } from "../api/users";
+import { deleteCurrentUserAvatar, updateCurrentUser, uploadCurrentUserAvatar } from "../api/users";
 import apiClient from "../apiClient/apiClient";
 import useContextPro from "./useContextPro";
-import { invalidateGroupDependentQueries, invalidateStudentDependentQueries } from "./queryInvalidation";
 
 type UpdateProfilePayload = {
   full_name?: string;
   email?: string;
-  phone?: string | null;
-  notes?: string | null;
 };
 
 type ChangePasswordPayload = {
@@ -32,12 +29,7 @@ export function useProfile() {
     onSuccess: async (data) => {
       dispatch({ type: "UPDATE_USER", payload: data });
       toast.success("Profil yangilandi");
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["users"] }),
-        queryClient.invalidateQueries({ queryKey: ["teachers"] }),
-        invalidateGroupDependentQueries(queryClient),
-        invalidateStudentDependentQueries(queryClient, [data.id]),
-      ]);
+      await Promise.all([queryClient.invalidateQueries({ queryKey: ["users"] }), queryClient.invalidateQueries({ queryKey: ["barbers"] })]);
       await refreshUser();
     },
     onError: (error) => {
@@ -55,10 +47,40 @@ export function useProfile() {
     },
   });
 
+  const uploadAvatarMutation = useMutation({
+    mutationFn: uploadCurrentUserAvatar,
+    onSuccess: async (data) => {
+      dispatch({ type: "UPDATE_USER", payload: data });
+      toast.success("Avatar yangilandi");
+      await Promise.all([queryClient.invalidateQueries({ queryKey: ["users"] }), queryClient.invalidateQueries({ queryKey: ["barbers"] })]);
+      await refreshUser();
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error, "Avatarni yuklab bo'lmadi"));
+    },
+  });
+
+  const deleteAvatarMutation = useMutation({
+    mutationFn: deleteCurrentUserAvatar,
+    onSuccess: async (data) => {
+      dispatch({ type: "UPDATE_USER", payload: data });
+      toast.success("Avatar o'chirildi");
+      await Promise.all([queryClient.invalidateQueries({ queryKey: ["users"] }), queryClient.invalidateQueries({ queryKey: ["barbers"] })]);
+      await refreshUser();
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error, "Avatarni o'chirib bo'lmadi"));
+    },
+  });
+
   return {
     updateProfile: (payload: UpdateProfilePayload) => updateProfileMutation.mutateAsync(payload),
     changePassword: (payload: ChangePasswordPayload) => changePasswordMutation.mutateAsync(payload),
+    uploadAvatar: (file: File) => uploadAvatarMutation.mutateAsync(file),
+    deleteAvatar: () => deleteAvatarMutation.mutateAsync(),
     updatingProfile: updateProfileMutation.isPending,
     updatingPassword: changePasswordMutation.isPending,
+    uploadingAvatar: uploadAvatarMutation.isPending,
+    deletingAvatar: deleteAvatarMutation.isPending,
   };
 }

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { MyContext } from "../context/MyContext";
 import { clearStoredAuth, getMe, getStoredAccessToken, logoutUser, normalizeUser, persistTokens } from "../api/auth";
-import type { TokenResponse, User } from "../types/types";
+import type { LoginResponse, User } from "../types/types";
 
 export interface TypeState {
   user: User | null;
@@ -13,7 +13,7 @@ export interface TypeState {
 export interface ContextType {
   state: TypeState;
   dispatch: Dispatch<Action>;
-  login: (tokens: TokenResponse, user: User) => void;
+  login: (tokens: LoginResponse, user: User) => void;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -74,7 +74,7 @@ function CreateContextPro({ children }: { children: ReactNode }) {
     refreshUser();
   }, [refreshUser]);
 
-  const login = useCallback((tokens: TokenResponse, user: User) => {
+  const login = useCallback((tokens: LoginResponse, user: User) => {
     persistTokens(tokens);
     queryClient.clear();
     dispatch({ type: "SET_USER", payload: normalizeUser(user) });

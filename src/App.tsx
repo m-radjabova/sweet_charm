@@ -4,28 +4,26 @@ import AOS from "aos";
 import "aos/dist/aos.css";
 import AuthLayout from "./layout/AuthLayout";
 import AdminLayout from "./layout/AdminLayout";
-import StudentLayout from "./layout/StudentLayout";
+import MainLayout from "./layout/MainLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import IsLoading from "./components/IsLoading";
 import NotFound from "./components/NotFound";
 import useLoading from "./hooks/useLoading";
 import HelloAdmin from "./pages/admin/HelloAdmin";
-import AdminCourses from "./pages/admin/courses/AdminCourses";
-import AdminGroups from "./pages/admin/groups/AdminGroups";
-import AdminGroupStudents from "./pages/admin/groups/AdminGroupStudents";
-import AdminPayments from "./pages/admin/payments/AdminPayments";
-import AdminSettings from "./pages/admin/settings/AdminSettings";
-import AdminStudents from "./pages/admin/students/AdminStudents";
-import AdminTeachers from "./pages/admin/teachers/AdminTeachers";
+import AdminBarbers from "./pages/admin/AdminBarbers";
+import AdminBookings from "./pages/admin/AdminBookings";
+import BookingDetails from "./pages/home/BookingDetails";
+import BookingSuccess from "./pages/home/BookingSuccess";
+import Home from "./pages/home/Home";
+import SelectTime from "./pages/home/SelectTime";
+import AccountSettings from "./pages/settings/AccountSettings";
+
 import Login from "./pages/login/Login";
 import useContextPro from "./hooks/useContextPro";
-import StudentDashboard from "./pages/student/StudentDashboard";
-import StudentAttendance from "./pages/student/StudentAttendance";
-import StudentLessons from "./pages/student/StudentLessons";
-import StudentPayments from "./pages/student/StudentPayments";
-import StudentSettings from "./pages/student/StudentSettings";
-import SuperAdminAdmins from "./pages/super-admin/SuperAdminAdmins";
+
 import { getDefaultRouteForRole, hasAnyRole } from "./utils/roles";
+import BarberDashboard from "./pages/barber/BarberDashboard";
+import BarberSchedule from "./pages/barber/BarberSchedule";
 
 function AdminIndexRoute() {
   const {
@@ -39,9 +37,6 @@ function AdminIndexRoute() {
   return <Navigate to={getDefaultRouteForRole(user)} replace />;
 }
 
-function SuperAdminIndexRoute() {
-  return <SuperAdminAdmins />;
-}
 
 function App() {
   const { loading } = useLoading();
@@ -56,8 +51,14 @@ function App() {
 
   return (
     <Routes>
+      <Route element={<MainLayout />}>
+        <Route path="/" element={<Home />} />
+        <Route path="/book/:barberId" element={<SelectTime />} />
+        <Route path="/book/:barberId/details" element={<BookingDetails />} />
+        <Route path="/book/success/:bookingCode" element={<BookingSuccess />} />
+      </Route>
+
       <Route element={<AuthLayout />}>
-        <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/sign-up" element={<Navigate to="/login" replace />} />
       </Route>
@@ -65,81 +66,41 @@ function App() {
       <Route
         path="/admin"
         element={
-          <ProtectedRoute role={["admin", "teacher"]}>
+          <ProtectedRoute role={["admin"]}>
             <AdminLayout />
           </ProtectedRoute>
         }
       >
         <Route index element={<AdminIndexRoute />} />
-        <Route
-          path="students"
-          element={
-            <ProtectedRoute role="admin">
-              <AdminStudents />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="teachers"
-          element={
-            <ProtectedRoute role="admin">
-              <AdminTeachers />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="groups" element={<AdminGroups />} />
-        <Route path="groups/:groupId" element={<AdminGroupStudents />} />
-        <Route
-          path="courses"
-          element={
-            <ProtectedRoute role="admin">
-              <AdminCourses />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="payments"
-          element={
-            <ProtectedRoute role="admin">
-              <AdminPayments />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="settings"
-          element={
-            <ProtectedRoute role={["admin", "teacher"]}>
-              <AdminSettings />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="barbers" element={<AdminBarbers />} />
+        <Route path="bookings" element={<AdminBookings />} />
+        <Route path="settings" element={<AccountSettings />} />
       </Route>
 
       <Route
-        path="/super-admin"
+        path="/barber"
         element={
-          <ProtectedRoute role="super_admin">
-            <AdminLayout />
+          <ProtectedRoute role={["barber"]}>
+            <BarberDashboard />
           </ProtectedRoute>
         }
-      >
-        <Route index element={<SuperAdminIndexRoute />} />
-      </Route>
-
+      />
       <Route
-        path="/student"
+        path="/barber/schedule"
         element={
-          <ProtectedRoute role="student">
-            <StudentLayout />
+          <ProtectedRoute role={["barber"]}>
+            <BarberSchedule />
           </ProtectedRoute>
         }
-      >
-        <Route index element={<StudentDashboard />} />
-        <Route path="lessons" element={<StudentLessons />} />
-        <Route path="attendance" element={<StudentAttendance />} />
-        <Route path="payments" element={<StudentPayments />} />
-        <Route path="settings" element={<StudentSettings />} />
-      </Route>
+      />
+      <Route
+        path="/barber/settings"
+        element={
+          <ProtectedRoute role={["barber"]}>
+            <AccountSettings />
+          </ProtectedRoute>
+        }
+      />
 
       <Route path="*" element={<NotFound />} />
     </Routes>

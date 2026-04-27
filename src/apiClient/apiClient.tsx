@@ -1,12 +1,5 @@
 import axios from "axios";
-
-const ACCESS_TOKEN_KEY = "cc-access-token";
-const REFRESH_TOKEN_KEY = "cc-refresh-token";
-
-function clearStoredAuth() {
-  localStorage.removeItem(ACCESS_TOKEN_KEY);
-  localStorage.removeItem(REFRESH_TOKEN_KEY);
-}
+import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, clearStoredAuth, getStoredRefreshToken } from "../api/authStorage";
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? import.meta.env.VITE_API_ORIGIN,
@@ -31,7 +24,7 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+      const refreshToken = getStoredRefreshToken();
       if (!refreshToken) {
         clearStoredAuth();
         window.location.href = "/login";
