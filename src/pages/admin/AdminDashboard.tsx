@@ -121,10 +121,10 @@ function MetricCard({
   value: number;
   note: string;
   icon: ReactNode;
-  tone: "dark" | "light" | "success" | "warning";
+  tone: "primary" | "light" | "success" | "warning";
 }) {
   const toneClass = {
-    dark: "border-slate-900 bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-xl",
+    primary: "border-slate-900 bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-xl",
     light: "border-slate-200 bg-white text-slate-950 shadow-md",
     success: "border-emerald-100 bg-gradient-to-br from-emerald-50 to-emerald-100/50 text-slate-950 shadow-md",
     warning: "border-amber-100 bg-gradient-to-br from-amber-50 to-amber-100/50 text-slate-950 shadow-md",
@@ -136,16 +136,16 @@ function MetricCard({
       <div className="relative">
         <div className="mb-8 flex items-center justify-between">
           <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${
-            tone === "dark" ? "bg-white/10" : "bg-white shadow-sm"
+            tone === "primary" ? "bg-white/10" : "bg-white shadow-sm"
           }`}>
             {icon}
           </div>
-          <HiMiniArrowTrendingUp className={`${tone === "dark" ? "text-white/30" : "text-slate-300"} group-hover:-rotate-12 transition-transform`} />
+          <HiMiniArrowTrendingUp className={`${tone === "primary" ? "text-white/30" : "text-slate-300"} group-hover:-rotate-12 transition-transform`} />
         </div>
 
         <div className="text-4xl font-black tracking-tight">{value.toLocaleString()}</div>
-        <p className={`mt-3 font-bold ${tone === "dark" ? "text-white/90" : "text-slate-800"}`}>{label}</p>
-        <p className={`mt-1 text-xs ${tone === "dark" ? "text-white/50" : "text-slate-400"}`}>{note}</p>
+        <p className={`mt-3 font-bold ${tone === "primary" ? "text-white/90" : "text-slate-800"}`}>{label}</p>
+        <p className={`mt-1 text-xs ${tone === "primary" ? "text-white/50" : "text-slate-400"}`}>{note}</p>
       </div>
     </div>
   );
@@ -343,7 +343,7 @@ export default function AdminDashboard() {
             </button>
             <div className="px-3 text-center min-w-[120px]">
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Selected</p>
-              <p className="text-sm font-bold text-slate-950">{selectedDate}</p>
+              <p className="text-sm font-bold text-slate-950">{formatDisplayDate(selectedDate)}</p>
             </div>
             <button
               type="button"
@@ -371,7 +371,7 @@ export default function AdminDashboard() {
                 value={dashboardData.bookings.length}
                 note={`${dashboardData.bookings.length} appointment${dashboardData.bookings.length === 1 ? "" : "s"}`}
                 icon={<HiMiniCalendarDays className="text-2xl" />}
-                tone="dark"
+                tone="primary"
               />
               <MetricCard
                 label="Active Barbers"

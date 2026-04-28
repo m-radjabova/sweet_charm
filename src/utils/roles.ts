@@ -1,4 +1,5 @@
 import type { User, UserRole } from "../types/types";
+import i18n from "../i18n";
 
 export const rolePriority: readonly UserRole[] = ["admin", "barber", "user"] as const;
 
@@ -25,18 +26,18 @@ export function getDefaultRouteForRole(user: Pick<User, "role"> | null | undefin
 export function getRoleLabel(role: UserRole | undefined) {
   switch (role) {
     case "admin":
-      return "Admin";
+      return i18n.t("roles.admin");
     case "barber":
-      return "Barber";
+      return i18n.t("roles.barber");
     case "user":
-      return "User";
+      return i18n.t("roles.user");
     default:
-      return "User";
+      return i18n.t("roles.user");
   }
 }
 
 export function getUserRoleLabel(user: Pick<User, "role"> | null | undefined) {
   const roles = getUserRoles(user);
-  if (roles.length === 0) return "User";
+  if (roles.length === 0) return i18n.t("roles.user");
   return roles.map((role) => getRoleLabel(role)).join(", ");
 }

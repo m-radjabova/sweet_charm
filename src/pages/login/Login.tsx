@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useTranslation } from "react-i18next";
 import { 
   HiOutlineEye, 
   HiOutlineEyeSlash, 
@@ -15,13 +16,6 @@ import { toast } from "react-toastify";
 import { clearStoredAuth, getMe, getErrorMessage, loginUser, persistTokens } from "../../api/auth";
 import useContextPro from "../../hooks/useContextPro";
 import { getDefaultRouteForRole, getRoleLabel } from "../../utils/roles";
-
-const loginSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-});
-
-type LoginFormData = z.infer<typeof loginSchema>;
 
 function BrandMark() {
   return (
@@ -46,8 +40,16 @@ function FloatingShape() {
 export default function Login() {
   const navigate = useNavigate();
   const { login } = useContextPro();
+  const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  const loginSchema = z.object({
+    email: z.string().email(t("login.validation.email")),
+    password: z.string().min(6, t("login.validation.password")),
+  });
+
+  type LoginFormData = z.infer<typeof loginSchema>;
 
   const {
     register,
@@ -76,7 +78,7 @@ export default function Login() {
       const me = await getMe();
       login(tokens, me);
       
-      toast.success(`${getRoleLabel(me.role)} paneliga kirildi`, {
+      toast.success(t("login.toast.success", { role: getRoleLabel(me.role) }), {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -88,7 +90,7 @@ export default function Login() {
       navigate(getDefaultRouteForRole(me), { replace: true });
     } catch (error) {
       clearStoredAuth();
-      toast.error(getErrorMessage(error, "Login xatoligi"), {
+      toast.error(getErrorMessage(error, t("login.toast.error")), {
         position: "top-right",
         autoClose: 4000
       });
@@ -98,7 +100,7 @@ export default function Login() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-slate-100">
+    <div className="relative min-h-screen overflow-hidden bg-white">
       <FloatingShape />
       
       <div className="relative mx-auto min-h-screen px-4 py-8 sm:px-6 lg:px-8">
@@ -106,7 +108,7 @@ export default function Login() {
           <div className="w-full max-w-md">
 
             {/* Main Card */}
-            <div className="relative rounded-3xl bg-white/80 p-8 shadow-2xl backdrop-blur-sm transition-all duration-300 hover:shadow-3xl sm:p-10">
+            <div className="relative rounded-3xl border border-slate-200/70 bg-white p-8 shadow-2xl backdrop-blur-sm transition-all duration-300 sm:p-10">
               {/* Decorative gradient border */}
               <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-amber-400/20 via-slate-400/20 to-amber-400/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
               
@@ -118,15 +120,15 @@ export default function Login() {
 
                 {/* Header */}
                 <div className="mt-6 text-center">
-                  <h1 className="bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-5xl font-black text-transparent">
-                    Sharp Cuts
+                  <h1 className="text-5xl font-black text-slate-950">
+                    {t("brand.name")}
                   </h1>
                 </div>
 
                 {/* Welcome text */}
                 <div className="mt-6 text-center">
                   <p className="text-sm text-slate-600">
-                    Welcome back! Please enter your credentials.
+                    {t("login.subtitle")}
                   </p>
                 </div>
 
@@ -135,7 +137,7 @@ export default function Login() {
                   {/* Email Field */}
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-slate-700">
-                      Email Address
+                      {t("common.email")}
                     </label>
                     <div className={`group relative transition-all duration-200 ${
                       errors.email ? "animate-shake" : ""
@@ -147,7 +149,7 @@ export default function Login() {
                       </div>
                       <input
                         type="email"
-                        placeholder="staff@sharpcuts.com"
+                        placeholder={t("login.emailPlaceholder")}
                         autoComplete="email"
                         {...register("email")}
                         className={`h-12 w-full rounded-xl border-2 bg-slate-50/50 pl-11 pr-4 text-sm font-medium text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:bg-white focus:shadow-lg ${
@@ -167,7 +169,7 @@ export default function Login() {
                   {/* Password Field */}
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-slate-700">
-                      Password
+                      {t("common.password")}
                     </label>
                     <div className="group relative">
                       <div className="absolute left-4 top-1/2 -translate-y-1/2">
@@ -177,7 +179,7 @@ export default function Login() {
                       </div>
                       <input
                         type={showPassword ? "text" : "password"}
-                        placeholder="Enter your password"
+                        placeholder={t("login.passwordPlaceholder")}
                         autoComplete="current-password"
                         {...register("password")}
                         className={`h-12 w-full rounded-xl border-2 bg-slate-50/50 pl-11 pr-12 text-sm font-medium text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:bg-white focus:shadow-lg ${
@@ -217,13 +219,13 @@ export default function Login() {
                         <>
                           <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                          </svg>
-                          Signing in...
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                          {t("common.signingIn")}
                         </>
                       ) : (
                         <>
-                          Sign In to Dashboard
+                          {t("login.submit")}
                           <HiOutlineArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                         </>
                       )}
@@ -236,12 +238,12 @@ export default function Login() {
             {/* Footer */}
             <div className="mt-8 text-center">
               <p className="text-sm text-slate-500">
-                Need to book an appointment?{" "}
+                {t("login.needBooking")}{" "}
                 <button
                   onClick={() => navigate("/")}
                   className="font-semibold text-slate-800 underline decoration-amber-400 underline-offset-2 transition-colors hover:text-amber-600"
                 >
-                  Go to Booking
+                  {t("login.goToBooking")}
                 </button>
               </p>
             </div>

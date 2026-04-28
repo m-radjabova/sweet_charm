@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   HiMiniArrowLeft,
   HiMiniArrowUpTray,
@@ -9,6 +10,7 @@ import {
   HiOutlineCheckCircle,
   HiOutlineKey,
   HiOutlineLockClosed,
+  HiOutlineScissors,
   HiOutlineUser,
 } from "react-icons/hi2";
 import useContextPro from "../../hooks/useContextPro";
@@ -24,6 +26,7 @@ function getInitials(name: string) {
 }
 
 export default function AccountSettings() {
+  const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const location = useLocation();
   const {
@@ -33,6 +36,7 @@ export default function AccountSettings() {
 
   const [fullName, setFullName] = useState(user?.full_name ?? "");
   const [email, setEmail] = useState(user?.email ?? "");
+  const [specialty, setSpecialty] = useState(user?.specialty ?? "");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -40,18 +44,25 @@ export default function AccountSettings() {
   useEffect(() => {
     setFullName(user?.full_name ?? "");
     setEmail(user?.email ?? "");
-  }, [user?.email, user?.full_name]);
+    setSpecialty(user?.specialty ?? "");
+  }, [user?.email, user?.full_name, user?.specialty]);
 
   const isAdmin = location.pathname.startsWith("/admin");
+  const isBarber = user?.role === "barber";
   const backTo = isAdmin ? "/admin" : "/barber";
-  const profileChanged = fullName.trim() !== (user?.full_name ?? "") || email.trim() !== (user?.email ?? "");
+  const profileChanged =
+    fullName.trim() !== (user?.full_name ?? "") ||
+    email.trim() !== (user?.email ?? "") ||
+    specialty.trim() !== (user?.specialty ?? "");
   const passwordValid = currentPassword.length >= 6 && newPassword.length >= 6 && newPassword === confirmPassword;
 
+  const themeScopeClass = isAdmin ? "dashboard-theme" : "barber-theme";
+
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,#f5f7f2_0%,#f7f7f5_45%,#efede6_100%)] px-4 py-4 sm:px-6 md:px-8 lg:px-12">
+    <div className={`${themeScopeClass} min-h-screen bg-white px-4 py-4 sm:px-6 md:px-8 lg:px-12`}>
       <div className="mx-auto max-w-5xl">
         {/* Header Section */}
-        <section className="rounded-2xl border border-white/70 bg-white/88 p-4 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur sm:rounded-[30px] sm:p-5 md:p-8">
+        <section className="rounded-2xl border border-slate-200/70 bg-white p-4 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur sm:rounded-[30px] sm:p-5 md:p-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3 sm:gap-4">
               <Link
@@ -63,10 +74,10 @@ export default function AccountSettings() {
               </Link>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 sm:text-sm sm:tracking-[0.24em]">
-                  {isAdmin ? "Admin settings" : "Barber settings"}
+                  {isAdmin ? t("settings.adminSettings") : t("settings.barberSettings")}
                 </p>
-                <h1 className="mt-1 text-2xl font-black tracking-tight text-slate-950 sm:mt-2 sm:text-3xl md:text-5xl">Account Settings</h1>
-                <p className="mt-1 text-xs text-slate-500 sm:mt-2 sm:text-sm md:text-base">Profile, avatar va passwordni shu yerdan boshqarasiz.</p>
+                <h1 className="mt-1 text-2xl font-black tracking-tight text-slate-950 sm:mt-2 sm:text-3xl md:text-5xl">{t("settings.title")}</h1>
+                <p className="mt-1 text-xs text-slate-500 sm:mt-2 sm:text-sm md:text-base">{t("settings.subtitle")}</p>
               </div>
             </div>
           </div>
@@ -74,8 +85,8 @@ export default function AccountSettings() {
 
         <div className="mt-4 grid gap-4 sm:mt-6 sm:gap-6 lg:grid-cols-[0.9fr_1.1fr]">
           {/* Avatar Section */}
-          <section className="rounded-2xl border border-white/70 bg-white/88 p-4 shadow-[0_20px_60px_rgba(15,23,42,0.06)] sm:rounded-[30px] sm:p-5 md:p-8">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 sm:text-sm sm:tracking-[0.24em]">Avatar</p>
+          <section className="rounded-2xl border border-slate-200/70 bg-white p-4 shadow-[0_20px_60px_rgba(15,23,42,0.06)] sm:rounded-[30px] sm:p-5 md:p-8">
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 sm:text-sm sm:tracking-[0.24em]">{t("settings.avatar")}</p>
             <div className="mt-4 flex flex-col items-center rounded-2xl bg-slate-50/80 p-5 text-center sm:mt-5 sm:rounded-[28px] sm:p-6">
               {user?.avatar ? (
                 <img 
@@ -88,8 +99,11 @@ export default function AccountSettings() {
                   {getInitials(user?.full_name ?? "U")}
                 </div>
               )}
-              <h2 className="mt-3 text-lg font-black text-slate-950 sm:mt-4 sm:text-xl">{user?.full_name ?? "User"}</h2>
+              <h2 className="mt-3 text-lg font-black text-slate-950 sm:mt-4 sm:text-xl">{user?.full_name ?? t("roles.user")}</h2>
               <p className="mt-1 text-xs text-slate-400 sm:mt-1 sm:text-sm">{user?.email ?? ""}</p>
+              {isBarber && user?.specialty && (
+                <p className="mt-2 text-sm font-semibold text-slate-500">{user.specialty}</p>
+              )}
 
               <div className="mt-4 flex w-full flex-col gap-2 sm:mt-6 sm:gap-3">
                 <button
@@ -99,7 +113,7 @@ export default function AccountSettings() {
                   className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-black px-4 text-sm font-bold text-white transition hover:bg-slate-900 disabled:opacity-60 sm:h-12 sm:rounded-2xl sm:px-5"
                 >
                   <HiMiniArrowUpTray className="text-base sm:text-lg" />
-                  {uploadingAvatar ? "Uploading..." : "Upload avatar"}
+                  {uploadingAvatar ? t("settings.uploading") : t("settings.uploadAvatar")}
                 </button>
                 <button
                   type="button"
@@ -108,7 +122,7 @@ export default function AccountSettings() {
                   className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-60 sm:h-12 sm:rounded-2xl sm:px-5"
                 >
                   <HiMiniTrash className="text-base sm:text-lg" />
-                  {deletingAvatar ? "Removing..." : "Remove avatar"}
+                  {deletingAvatar ? t("settings.removing") : t("settings.removeAvatar")}
                 </button>
               </div>
 
@@ -130,82 +144,97 @@ export default function AccountSettings() {
 
           <div className="space-y-4 sm:space-y-6">
             {/* Profile Section */}
-            <section className="rounded-2xl border border-white/70 bg-white/88 p-4 shadow-[0_20px_60px_rgba(15,23,42,0.06)] sm:rounded-[30px] sm:p-5 md:p-8">
+            <section className="rounded-2xl border border-slate-200/70 bg-white p-4 shadow-[0_20px_60px_rgba(15,23,42,0.06)] sm:rounded-[30px] sm:p-5 md:p-8">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-500 sm:h-12 sm:w-12 sm:rounded-2xl">
                   <HiMiniUserCircle className="text-xl sm:text-2xl" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-black text-slate-950 sm:text-xl">Profile</h2>
-                  <p className="text-xs text-slate-400 sm:text-sm">Ism va emailni yangilang</p>
+                  <h2 className="text-lg font-black text-slate-950 sm:text-xl">{t("settings.profile")}</h2>
+                  <p className="text-xs text-slate-400 sm:text-sm">{t("settings.profileSubtitle")}</p>
                 </div>
               </div>
 
               <div className="mt-4 space-y-3 sm:mt-6 sm:space-y-4">
                 <Field
-                  label="Full name"
+                  label={t("common.fullName")}
                   icon={<HiOutlineUser className="text-base sm:text-lg" />}
                   value={fullName}
                   onChange={setFullName}
-                  placeholder="Your full name"
+                  placeholder={t("settings.fullNamePlaceholder")}
                 />
                 <Field
-                  label="Email"
+                  label={t("common.email")}
                   icon={<HiOutlineAtSymbol className="text-base sm:text-lg" />}
                   value={email}
                   onChange={setEmail}
                   type="email"
-                  placeholder="you@example.com"
+                  placeholder={t("settings.emailPlaceholder")}
                 />
+                {isBarber && (
+                  <Field
+                    label={t("settings.specialty")}
+                    icon={<HiOutlineScissors className="text-base sm:text-lg" />}
+                    value={specialty}
+                    onChange={setSpecialty}
+                    placeholder={t("settings.specialtyPlaceholder")}
+                  />
+                )}
               </div>
 
               <button
                 type="button"
                 disabled={!profileChanged || updatingProfile}
-                onClick={() => void updateProfile({ full_name: fullName.trim(), email: email.trim() })}
+                onClick={() =>
+                  void updateProfile({
+                    full_name: fullName.trim(),
+                    email: email.trim(),
+                    specialty: isBarber ? specialty.trim() || null : undefined,
+                  })
+                }
                 className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-black px-4 text-sm font-bold text-white transition hover:bg-slate-900 disabled:opacity-60 sm:mt-6 sm:h-12 sm:w-auto sm:rounded-2xl sm:px-5"
               >
                 <HiOutlineCheckCircle className="text-base sm:text-lg" />
-                {updatingProfile ? "Saving..." : "Save profile"}
+                {updatingProfile ? t("settings.saving") : t("settings.saveProfile")}
               </button>
             </section>
 
             {/* Password Section */}
-            <section className="rounded-2xl border border-white/70 bg-white/88 p-4 shadow-[0_20px_60px_rgba(15,23,42,0.06)] sm:rounded-[30px] sm:p-5 md:p-8">
+            <section className="rounded-2xl border border-slate-200/70 bg-white p-4 shadow-[0_20px_60px_rgba(15,23,42,0.06)] sm:rounded-[30px] sm:p-5 md:p-8">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-500 sm:h-12 sm:w-12 sm:rounded-2xl">
                   <HiOutlineKey className="text-xl sm:text-2xl" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-black text-slate-950 sm:text-xl">Password</h2>
-                  <p className="text-xs text-slate-400 sm:text-sm">Xavfsizlik uchun parolni almashtiring</p>
+                  <h2 className="text-lg font-black text-slate-950 sm:text-xl">{t("common.password")}</h2>
+                  <p className="text-xs text-slate-400 sm:text-sm">{t("settings.passwordSubtitle")}</p>
                 </div>
               </div>
 
               <div className="mt-4 space-y-3 sm:mt-6 sm:space-y-4">
                 <Field
-                  label="Current password"
+                  label={t("settings.currentPassword")}
                   icon={<HiOutlineLockClosed className="text-base sm:text-lg" />}
                   value={currentPassword}
                   onChange={setCurrentPassword}
                   type="password"
-                  placeholder="Current password"
+                  placeholder={t("settings.currentPassword")}
                 />
                 <Field
-                  label="New password"
+                  label={t("settings.newPassword")}
                   icon={<HiOutlineKey className="text-base sm:text-lg" />}
                   value={newPassword}
                   onChange={setNewPassword}
                   type="password"
-                  placeholder="New password (min. 6 characters)"
+                  placeholder={t("settings.newPasswordPlaceholder")}
                 />
                 <Field
-                  label="Confirm new password"
+                  label={t("settings.confirmNewPassword")}
                   icon={<HiOutlineLockClosed className="text-base sm:text-lg" />}
                   value={confirmPassword}
                   onChange={setConfirmPassword}
                   type="password"
-                  placeholder="Repeat new password"
+                  placeholder={t("settings.confirmNewPasswordPlaceholder")}
                 />
               </div>
 
@@ -224,7 +253,7 @@ export default function AccountSettings() {
                 className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-black px-4 text-sm font-bold text-white transition hover:bg-slate-900 disabled:opacity-60 sm:mt-6 sm:h-12 sm:w-auto sm:rounded-2xl sm:px-5"
               >
                 <HiOutlineLockClosed className="text-base sm:text-lg" />
-                {updatingPassword ? "Updating..." : "Change password"}
+                {updatingPassword ? t("settings.updating") : t("settings.changePassword")}
               </button>
             </section>
           </div>

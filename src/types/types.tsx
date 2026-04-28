@@ -5,6 +5,7 @@ export interface User {
   full_name: string;
   email: string;
   avatar?: string | null;
+  specialty?: string | null;
   role: UserRole;
   is_active?: boolean;
   created_at: string;
@@ -31,6 +32,7 @@ export interface BarberCreatePayload {
 export interface UpdateBarberPayload {
   full_name?: string;
   email?: string;
+  specialty?: string | null;
   password?: string;
   is_active?: boolean;
 }
@@ -38,6 +40,7 @@ export interface UpdateBarberPayload {
 export interface UpdateCurrentUserPayload {
   full_name?: string;
   email?: string;
+  specialty?: string | null;
 }
 
 export type BookingStatus = "confirmed" | "completed" | "cancelled";
@@ -46,13 +49,17 @@ export interface PublicBarber {
   id: string;
   full_name: string;
   avatar?: string | null;
+  specialty?: string | null;
+  average_rating: number;
+  reviews_count: number;
+  completed_bookings_count: number;
   is_active: boolean;
 }
 
 export interface AvailabilitySlot {
   time: string;
   label: string;
-  status: "available" | "booked";
+  status: "available" | "booked" | "past";
 }
 
 export interface BarberAvailability {
@@ -76,10 +83,14 @@ export interface Booking {
   barber_id: string;
   barber_name: string;
   barber_avatar?: string | null;
+  barber_specialty?: string | null;
+  barber_rating?: number;
+  barber_reviews_count?: number;
   client_name: string;
   client_phone: string;
   appointment_date: string;
   appointment_time: string;
+  rating?: number | null;
   status: BookingStatus;
   created_at: string;
 }

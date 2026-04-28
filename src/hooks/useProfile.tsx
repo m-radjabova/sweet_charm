@@ -8,6 +8,7 @@ import useContextPro from "./useContextPro";
 type UpdateProfilePayload = {
   full_name?: string;
   email?: string;
+  specialty?: string | null;
 };
 
 type ChangePasswordPayload = {
@@ -29,7 +30,11 @@ export function useProfile() {
     onSuccess: async (data) => {
       dispatch({ type: "UPDATE_USER", payload: data });
       toast.success("Profil yangilandi");
-      await Promise.all([queryClient.invalidateQueries({ queryKey: ["users"] }), queryClient.invalidateQueries({ queryKey: ["barbers"] })]);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["users"] }),
+        queryClient.invalidateQueries({ queryKey: ["barbers"] }),
+        queryClient.invalidateQueries({ queryKey: ["public-barbers"] }),
+      ]);
       await refreshUser();
     },
     onError: (error) => {
@@ -52,7 +57,11 @@ export function useProfile() {
     onSuccess: async (data) => {
       dispatch({ type: "UPDATE_USER", payload: data });
       toast.success("Avatar yangilandi");
-      await Promise.all([queryClient.invalidateQueries({ queryKey: ["users"] }), queryClient.invalidateQueries({ queryKey: ["barbers"] })]);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["users"] }),
+        queryClient.invalidateQueries({ queryKey: ["barbers"] }),
+        queryClient.invalidateQueries({ queryKey: ["public-barbers"] }),
+      ]);
       await refreshUser();
     },
     onError: (error) => {
@@ -65,7 +74,11 @@ export function useProfile() {
     onSuccess: async (data) => {
       dispatch({ type: "UPDATE_USER", payload: data });
       toast.success("Avatar o'chirildi");
-      await Promise.all([queryClient.invalidateQueries({ queryKey: ["users"] }), queryClient.invalidateQueries({ queryKey: ["barbers"] })]);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["users"] }),
+        queryClient.invalidateQueries({ queryKey: ["barbers"] }),
+        queryClient.invalidateQueries({ queryKey: ["public-barbers"] }),
+      ]);
       await refreshUser();
     },
     onError: (error) => {

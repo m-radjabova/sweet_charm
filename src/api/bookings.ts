@@ -30,6 +30,13 @@ export async function getPublicBooking(bookingCode: string) {
   return data;
 }
 
+export async function submitPublicBookingRating(bookingCode: string, rating: number) {
+  const { data } = await apiClient.post<Booking>(`/public/bookings/${bookingCode}/rating`, {
+    rating,
+  });
+  return data;
+}
+
 export async function listAdminBookings(params?: {
   date?: string;
   barber_id?: string;

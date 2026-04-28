@@ -21,6 +21,7 @@ export function normalizeUser(user: User): User {
     ...user,
     role: user.role ?? "user",
     avatar: user.avatar ?? null,
+    specialty: user.specialty ?? null,
   };
 }
 

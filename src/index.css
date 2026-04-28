@@ -9,11 +9,54 @@ body {
   margin: 0;
   min-width: 320px;
   font-family: "Mulish", sans-serif;
-  background: var(--light-bg);
-  color: var(--light-text);
+  background: #f8fafc;
+  color: #0f172a;
   transition: background 0.35s ease, color 0.35s ease;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+.home-theme {
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.home-theme .pointer-events-none {
+  display: none;
+}
+
+.home-theme .bg-white,
+.home-theme .bg-white\/80,
+.home-theme .bg-white\/70,
+.home-theme .bg-white\/50,
+.home-theme .bg-slate-50,
+.home-theme .bg-slate-50\/50,
+.home-theme .bg-slate-50\/80,
+.home-theme .bg-slate-100,
+.home-theme .bg-amber-50,
+.home-theme .bg-blue-50,
+.home-theme .bg-emerald-50,
+.home-theme .bg-purple-50 {
+  background-color: #ffffff !important;
+}
+
+.home-theme .text-slate-950,
+.home-theme .text-slate-900,
+.home-theme .text-slate-800,
+.home-theme .text-slate-700,
+.home-theme .text-slate-600,
+.home-theme .text-slate-500,
+.home-theme .text-slate-400 {
+  color: #0f172a !important;
+}
+
+.home-theme .border-slate-200,
+.home-theme .border-slate-200\/70,
+.home-theme .border-slate-300,
+.home-theme .border-amber-100,
+.home-theme .border-blue-100,
+.home-theme .border-emerald-100 {
+  border-color: rgba(15, 23, 42, 0.12) !important;
 }
 
 a {
@@ -35,6 +78,7 @@ img {
 }
 
 .custom-scrollbar {
+  scroll-behavior: smooth;
   scrollbar-width: thin;
   scrollbar-color: rgba(148, 163, 184, 0.6) transparent;
 }
@@ -45,9 +89,17 @@ img {
 
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
+  border-radius: 9999px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
   border-radius: 9999px;
-  background: rgba(148, 163, 184, 0.5);
+  border: 2px solid transparent;
+  background: linear-gradient(180deg, rgba(148, 163, 184, 0.75), rgba(100, 116, 139, 0.85));
+  background-clip: padding-box;
+}
+
+.custom-scrollbar:hover::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(100, 116, 139, 0.85), rgba(51, 65, 85, 0.95));
+  background-clip: padding-box;
 }

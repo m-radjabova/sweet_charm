@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Drawer } from "@mui/material";
+import { useTranslation } from "react-i18next";
 import { 
   HiBars3BottomLeft, 
   HiMiniArrowLeftOnRectangle, 
@@ -12,13 +13,6 @@ import {
   HiOutlineBell
 } from "react-icons/hi2";
 import useContextPro from "../../hooks/useContextPro";
-
-const menuItems = [
-  { label: "Dashboard", to: "/admin", icon: HiMiniSquares2X2, description: "Overview & stats" },
-  { label: "Barbers", to: "/admin/barbers", icon: HiMiniScissors, description: "Manage team" },
-  { label: "Bookings", to: "/admin/bookings", icon: HiMiniCalendarDays, description: "View appointments" },
-  { label: "Settings", to: "/admin/settings", icon: HiMiniCog6Tooth, description: "Profile & security" },
-];
 
 function LogoBlock() {
   const navigate = useNavigate();
@@ -46,12 +40,19 @@ function LogoBlock() {
 }
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
+  const { t } = useTranslation();
   const {
     state: { user },
     logout,
   } = useContextPro();
   const location = useLocation();
   const [mounted, setMounted] = useState(false);
+  const menuItems = [
+    { label: t("sidebar.dashboard"), to: "/admin", icon: HiMiniSquares2X2, description: t("sidebar.dashboardDesc") },
+    { label: t("sidebar.barbers"), to: "/admin/barbers", icon: HiMiniScissors, description: t("sidebar.barbersDesc") },
+    { label: t("sidebar.bookings"), to: "/admin/bookings", icon: HiMiniCalendarDays, description: t("sidebar.bookingsDesc") },
+    { label: t("sidebar.settings"), to: "/admin/settings", icon: HiMiniCog6Tooth, description: t("sidebar.settingsDesc") },
+  ];
 
   useEffect(() => {
     setMounted(true);
@@ -72,7 +73,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto px-3 py-6 custom-scrollbar">
         <div className="mb-6 px-3">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Main Menu</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{t("sidebar.mainMenu")}</p>
         </div>
         <nav className="space-y-1.5">
           {menuItems.map((item, index) => {
@@ -143,7 +144,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           <div className="relative flex items-center gap-3 rounded-xl p-2 transition-all duration-300">
             <div className="relative">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-slate-700 to-slate-600 text-sm font-black text-white shadow-md">
-                {(user?.full_name ?? "Admin")
+                {(user?.full_name ?? t("roles.admin"))
                   .split(" ")
                   .map((part) => part[0])
                   .join("")
@@ -155,7 +156,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
               </div>
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-black text-slate-950">{user?.full_name ?? "Admin User"}</p>
+              <p className="truncate text-sm font-black text-slate-950">{user?.full_name ?? t("sidebar.adminUser")}</p>
               <p className="truncate text-xs text-slate-500">{user?.email ?? "admin@sharpcuts.com"}</p>
             </div>
             <button className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600">
@@ -173,7 +174,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-rose-50 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
             <div className="relative flex items-center gap-3">
               <HiMiniArrowLeftOnRectangle className="text-lg transition-transform duration-300 group-hover:-translate-x-0.5 group-hover:scale-110" />
-              <span>Sign Out</span>
+              <span>{t("sidebar.signOut")}</span>
             </div>
           </button>
           
@@ -183,7 +184,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             className="group flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-500 transition-all duration-300 hover:bg-slate-100 hover:text-slate-700"
           >
             <HiMiniCog6Tooth className="text-lg transition-transform duration-300 group-hover:rotate-90" />
-            <span>Settings</span>
+            <span>{t("sidebar.settings")}</span>
           </NavLink>
         </div>
       </div>
@@ -193,6 +194,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 export default function AdminSidebar() {
+  const { t } = useTranslation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
 
@@ -208,7 +210,7 @@ export default function AdminSidebar() {
         type="button"
         onClick={() => setMobileOpen(true)}
         className="group fixed left-4 top-4 z-40 flex h-12 w-12 items-center justify-center rounded-xl border border-slate-200 bg-white/80 text-slate-900 shadow-lg backdrop-blur-sm transition-all duration-300 hover:bg-white hover:shadow-xl lg:hidden"
-        aria-label="Open admin menu"
+        aria-label={t("sidebar.openMenu")}
       >
         <HiBars3BottomLeft className="text-xl transition-transform duration-300 group-hover:scale-110" />
       </button>
@@ -239,7 +241,7 @@ export default function AdminSidebar() {
             type="button"
             onClick={() => setMobileOpen(false)}
             className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-xl bg-white text-slate-600 shadow-md transition-all hover:bg-slate-100 hover:text-slate-900 lg:hidden"
-            aria-label="Close admin menu"
+            aria-label={t("sidebar.closeMenu")}
           >
             <HiMiniXMark className="text-xl" />
           </button>

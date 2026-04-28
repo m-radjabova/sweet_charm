@@ -1,5 +1,7 @@
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { 
   HiOutlineCalendarDays, 
   HiOutlineClock, 
@@ -8,11 +10,12 @@ import {
   HiOutlineScissors,
   HiOutlinePhone,
   HiOutlineCalendar,
-  HiOutlineClipboard
+  HiOutlineClipboard,
+  HiMiniStar
 } from "react-icons/hi2";
 import { toast } from "react-toastify";
-import { getPublicBooking } from "../../api/bookings";
-import { formatDisplayDate, formatDisplayTime } from "./bookingUtils";
+import { getPublicBooking, submitPublicBookingRating } from "../../api/bookings";
+import { formatDisplayDate, formatDisplayTime, setStoredConfirmedBooking } from "./bookingUtils";
 
 function getInitials(name: string) {
   return name
@@ -45,24 +48,65 @@ function SuccessSkeleton() {
 
 export default function BookingSuccess() {
   const { bookingCode = "" } = useParams();
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const [selectedRating, setSelectedRating] = useState<number | null>(null);
 
   const bookingQuery = useQuery({
     queryKey: ["public-booking", bookingCode],
     queryFn: () => getPublicBooking(bookingCode),
     enabled: Boolean(bookingCode),
+    refetchInterval: (query) => {
+      const currentBooking = query.state.data;
+      return currentBooking?.status === "completed" ? false : 10000;
+    },
+    refetchOnWindowFocus: true,
   });
 
   const booking = bookingQuery.data;
   const isLoading = bookingQuery.isLoading;
   const navigate = useNavigate();
+  const isCompleted = booking?.status === "completed";
+
+  const ratingMutation = useMutation({
+    mutationFn: (rating: number) => submitPublicBookingRating(bookingCode, rating),
+    onSuccess: async (updatedBooking) => {
+      setSelectedRating(updatedBooking.rating ?? null);
+      queryClient.setQueryData(["public-booking", bookingCode], updatedBooking);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["public-booking", bookingCode] }),
+        queryClient.invalidateQueries({ queryKey: ["public-barbers"] }),
+        queryClient.invalidateQueries({ queryKey: ["barber-availability", updatedBooking.barber_id] }),
+      ]);
+      toast.success(t("bookingSuccess.ratingSaved"));
+    },
+    onError: () => {
+      toast.error(t("bookingSuccess.ratingError"));
+    },
+  });
+
+  useEffect(() => {
+    if (!booking) return;
+
+    setStoredConfirmedBooking({
+      bookingCode: booking.booking_code,
+      barberId: booking.barber_id,
+      date: booking.appointment_date,
+      time: booking.appointment_time,
+      clientName: booking.client_name,
+      clientPhone: booking.client_phone,
+      createdAt: booking.created_at,
+    });
+    setSelectedRating(booking.rating ?? null);
+  }, [booking]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
+    <div className="home-theme min-h-screen bg-white">
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-gradient-to-r from-emerald-200/20 to-teal-100/10 blur-3xl"></div>
         <div className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-gradient-to-l from-slate-200/20 to-slate-100/10 blur-3xl"></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-64 w-64 rounded-full bg-gradient-to-t from-emerald-100/5 to-transparent blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-t from-emerald-100/5 to-transparent blur-3xl"></div>
       </div>
 
       <div className="relative mx-auto px-4 py-6 sm:px-6 lg:px-8">
@@ -88,10 +132,10 @@ export default function BookingSuccess() {
                   </div>
 
                   <h1 className="mt-8 text-4xl font-black tracking-tight text-slate-950 sm:text-5xl lg:text-6xl animate-fadeIn">
-                    You're all set!
+                    {t("bookingSuccess.title")}
                   </h1>
                   <p className="mt-3 text-lg text-slate-500 animate-fadeIn animation-delay-200">
-                    Your appointment is confirmed
+                    {t("bookingSuccess.subtitle")}
                   </p>
                 </div>
               </div>
@@ -107,16 +151,16 @@ export default function BookingSuccess() {
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                       <div>
                         <p className="text-xs font-black uppercase tracking-wider text-emerald-600">
-                          Booking ID
+                          {t("bookingSuccess.bookingId")}
                         </p>
                         <div className="mt-1 flex items-baseline gap-2">
-                          <p className="text-2xl sm:text-3xl font-black text-slate-950">
+                          <p className="text-2xl font-black text-slate-950 sm:text-3xl">
                             #{booking.booking_code}
                           </p>
                           <button
                             onClick={() => {
                               navigator.clipboard.writeText(booking.booking_code);
-                              toast.success("Booking ID copied!");
+                              toast.success(t("bookingSuccess.idCopied"));
                             }}
                             className="rounded-lg bg-slate-100 p-1.5 transition-colors hover:bg-slate-200"
                           >
@@ -124,9 +168,15 @@ export default function BookingSuccess() {
                           </button>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2">
-                        <HiOutlineCheckBadge className="h-5 w-5 text-emerald-600" />
-                        <span className="text-sm font-bold text-emerald-700">Confirmed</span>
+                      <div
+                        className={`flex items-center gap-2 rounded-full px-4 py-2 ${
+                          isCompleted ? "bg-emerald-50" : "bg-amber-50"
+                        }`}
+                      >
+                        <HiOutlineCheckBadge className={`h-5 w-5 ${isCompleted ? "text-emerald-600" : "text-amber-600"}`} />
+                        <span className={`text-sm font-bold ${isCompleted ? "text-emerald-700" : "text-amber-700"}`}>
+                          {isCompleted ? t("barberDashboard.done") : t("common.confirmed")}
+                        </span>
                       </div>
                     </div>
 
@@ -149,11 +199,74 @@ export default function BookingSuccess() {
                         <h2 className="text-xl font-black text-slate-950">
                           {booking.barber_name}
                         </h2>
-                        <div className="mt-1 flex items-center gap-2">
-                          <HiOutlineScissors className="h-4 w-4 text-amber-500" />
-                          <p className="text-sm font-semibold text-slate-600">
-                            Fade & Line-ups Specialist
+                        {booking.barber_specialty?.trim() ? (
+                          <div className="mt-1 flex items-center gap-2">
+                            <HiOutlineScissors className="h-4 w-4 text-amber-500" />
+                            <p className="text-sm font-semibold text-slate-600">
+                              {booking.barber_specialty.trim()}
+                            </p>
+                          </div>
+                        ) : null}
+                        <div className="mt-2 flex flex-wrap items-center gap-3 text-xs font-semibold">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-amber-600">
+                            <HiMiniStar className="h-3.5 w-3.5" />
+                            {Number(booking.barber_rating ?? 0).toFixed(1)}
+                          </span>
+                          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-slate-600">
+                            {t("bookingSuccess.reviewsCount", { count: booking.barber_reviews_count ?? 0 })}
+                          </span>
+                        </div>
+
+                        <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+                          <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">
+                            {t("bookingSuccess.ratingTitle")}
                           </p>
+                          {isCompleted ? (
+                            <>
+                              <p className="mt-2 text-sm text-slate-600">
+                                {t("bookingSuccess.ratingSubtitle")}
+                              </p>
+                              <div className="mt-3 flex flex-wrap gap-2">
+                                {[1, 2, 3, 4, 5].map((value) => {
+                                  const isActive = (selectedRating ?? 0) >= value;
+
+                                  return (
+                                    <button
+                                      key={value}
+                                      type="button"
+                                      onClick={() => {
+                                        setSelectedRating(value);
+                                        ratingMutation.mutate(value);
+                                      }}
+                                      disabled={ratingMutation.isPending}
+                                      className={`inline-flex h-11 w-11 items-center justify-center rounded-full border transition ${
+                                        isActive
+                                          ? "border-amber-300 bg-amber-50 text-amber-500"
+                                          : "border-slate-200 bg-white text-slate-300"
+                                      } disabled:opacity-60`}
+                                      aria-label={t("bookingSuccess.rateLabel", { count: value })}
+                                    >
+                                      <HiMiniStar className="h-5 w-5" />
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                              <p className="mt-3 text-xs text-slate-500">
+                                {selectedRating
+                                  ? t("bookingSuccess.currentRating", { count: selectedRating })
+                                  : t("bookingSuccess.chooseRating")}
+                              </p>
+                            </>
+                          ) : (
+                            <>
+                              <p className="mt-2 text-sm text-slate-600">
+                                {t("bookingSuccess.ratingPending")}
+                              </p>
+                              <p className="mt-2 text-xs text-slate-500">
+                                {t("bookingSuccess.ratingReturnHint")}
+                              </p>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -167,7 +280,7 @@ export default function BookingSuccess() {
                           <HiOutlineCalendarDays className="h-6 w-6 text-amber-600" />
                         </div>
                         <div>
-                          <p className="text-xs font-semibold uppercase text-slate-400">Date</p>
+                          <p className="text-xs font-semibold uppercase text-slate-400">{t("common.date")}</p>
                           <p className="mt-0.5 text-base font-bold text-slate-900">
                             {formatDisplayDate(booking.appointment_date)}
                           </p>
@@ -179,7 +292,7 @@ export default function BookingSuccess() {
                           <HiOutlineClock className="h-6 w-6 text-blue-600" />
                         </div>
                         <div>
-                          <p className="text-xs font-semibold uppercase text-slate-400">Time</p>
+                          <p className="text-xs font-semibold uppercase text-slate-400">{t("common.time")}</p>
                           <p className="mt-0.5 text-base font-bold text-slate-900">
                             {formatDisplayTime(booking.appointment_time)}
                           </p>
@@ -194,7 +307,7 @@ export default function BookingSuccess() {
                           <HiOutlinePhone className="h-5 w-5 text-purple-600" />
                         </div>
                         <div>
-                          <p className="text-xs font-semibold uppercase text-slate-400">Client</p>
+                          <p className="text-xs font-semibold uppercase text-slate-400">{t("bookingSuccess.client")}</p>
                           <p className="mt-0.5 text-base font-bold text-slate-900">
                             {booking.client_name}
                           </p>
@@ -205,10 +318,10 @@ export default function BookingSuccess() {
                     {/* Additional Info */}
                     <div className="mt-6 grid gap-3 sm:grid-cols-2">
                       <div className="rounded-lg bg-amber-50 p-3 text-center">
-                        <p className="text-xs text-amber-700">⏱️ Duration: ~45 minutes</p>
+                        <p className="text-xs text-amber-700">{t("bookingSuccess.duration")}</p>
                       </div>
                       <div className="rounded-lg bg-blue-50 p-3 text-center">
-                        <p className="text-xs text-blue-700">📍 Please arrive 5 minutes early</p>
+                        <p className="text-xs text-blue-700">{t("bookingSuccess.arriveEarly")}</p>
                       </div>
                     </div>
                   </div>
@@ -216,13 +329,13 @@ export default function BookingSuccess() {
               </div>
 
               {/* Reminder Message */}
-              <div className="mt-6 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 p-4 border border-emerald-100 animate-fadeIn animation-delay-400">
+              <div className="mt-6 rounded-xl border border-emerald-100 bg-gradient-to-r from-emerald-50 to-teal-50 p-4 animate-fadeIn animation-delay-400">
                 <div className="flex items-center gap-3">
                   <div className="rounded-full bg-emerald-100 p-2">
                     <HiOutlineCalendar className="h-4 w-4 text-emerald-600" />
                   </div>
                   <p className="text-sm font-medium text-slate-700">
-                    A confirmation has been sent to your phone. Please save your booking ID for reference.
+                    {t("bookingSuccess.confirmationNotice")}
                   </p>
                 </div>
               </div>
@@ -235,7 +348,7 @@ export default function BookingSuccess() {
                 >
                   <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-500 group-hover:translate-x-full"></div>
                   <span className="relative flex items-center justify-center gap-2">
-                    Book Another Appointment
+                    {t("bookingSuccess.bookAnother")}
                     <HiOutlineCalendar className="h-4 w-4 transition-transform group-hover:scale-110" />
                   </span>
                 </Link>
@@ -243,23 +356,23 @@ export default function BookingSuccess() {
                 <button
                   type="button"
                   onClick={() => {navigate(`/`)}}
-                  className="group flex-1 flex items-center justify-center gap-2 rounded-xl border-2 border-slate-200 bg-white py-4 text-base font-bold text-slate-700 transition-all hover:border-slate-300 hover:shadow-lg"
+                  className="group flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-slate-200 bg-white py-4 text-base font-bold text-slate-700 transition-all hover:border-slate-300 hover:shadow-lg"
                 >
                   <HiOutlineShare className="h-5 w-5 transition-transform group-hover:scale-110" />
-                  Share Details
+                  {t("bookingSuccess.shareDetails")}
                 </button>
               </div>
             </>
           ) : (
             <div className="rounded-2xl bg-red-50 p-8 text-center">
               <HiOutlineCheckBadge className="mx-auto h-16 w-16 text-red-400" />
-              <p className="mt-4 text-xl font-bold text-red-600">Booking Not Found</p>
-              <p className="mt-2 text-slate-600">We couldn't find your booking details</p>
+              <p className="mt-4 text-xl font-bold text-red-600">{t("bookingSuccess.notFound")}</p>
+              <p className="mt-2 text-slate-600">{t("bookingSuccess.notFoundText")}</p>
               <Link
                 to="/"
                 className="mt-6 inline-block rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 px-6 py-3 text-white font-semibold"
               >
-                Go to Home
+                {t("common.goHome")}
               </Link>
             </div>
           )}

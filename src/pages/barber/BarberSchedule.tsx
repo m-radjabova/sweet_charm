@@ -1,6 +1,7 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   HiMiniArrowLeft,
   HiMiniCheckCircle,
@@ -18,7 +19,7 @@ import { getErrorMessage } from "../../api/auth";
 import { getBarberDashboard, updateBookingStatus } from "../../api/bookings";
 import useContextPro from "../../hooks/useContextPro";
 import type { Booking } from "../../types/types";
-import { formatDisplayTime, getTodayIsoDate } from "../home/bookingUtils";
+import { formatDisplayDate, formatDisplayTime, getTodayIsoDate } from "../home/bookingUtils";
 
 function shiftDate(date: string, offset: number) {
   const parsed = new Date(`${date}T00:00:00`);
@@ -32,6 +33,7 @@ function shiftDate(date: string, offset: number) {
 const tabs = ["all", "confirmed", "completed"] as const;
 
 export default function BarberSchedule() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { state } = useContextPro();
   const [selectedDate, setSelectedDate] = useState(getTodayIsoDate());
@@ -45,14 +47,14 @@ export default function BarberSchedule() {
   const completeMutation = useMutation({
     mutationFn: (bookingId: string) => updateBookingStatus(bookingId, "completed"),
     onSuccess: async () => {
-      toast.success("Appointment completed");
+      toast.success(t("barberDashboard.toast.completed"));
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["barber-dashboard"] }),
         queryClient.invalidateQueries({ queryKey: ["barber-bookings"] }),
       ]);
     },
     onError: (error) => {
-      toast.error(getErrorMessage(error, "Appointment status yangilanmadi"));
+      toast.error(getErrorMessage(error, t("barberDashboard.toast.error")));
     },
   });
 
@@ -80,7 +82,7 @@ export default function BarberSchedule() {
   };
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,#f5f7f2_0%,#f7f7f5_45%,#efede6_100%)] px-4 py-5 sm:px-6 md:px-8 lg:px-12">
+    <div className="barber-theme min-h-screen bg-white px-4 py-20 sm:px-6 md:px-8 lg:px-12">
       <div className="mx-auto max-w-6xl">
         {/* Header Section */}
         <section className="rounded-[30px] border border-white/70 bg-white/88 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur md:p-8">
@@ -95,15 +97,15 @@ export default function BarberSchedule() {
               </Link>
 
               <div>
-                <h1 className="text-3xl font-black tracking-tight text-slate-950 md:text-5xl">Daily Schedule</h1>
-                <p className="mt-1 text-sm font-medium text-slate-400 md:text-lg">{state.user?.full_name ?? "Barber"}</p>
+                <h1 className="text-3xl font-black tracking-tight text-slate-950 md:text-5xl">{t("barberDashboard.schedule")}</h1>
+                <p className="mt-1 text-sm font-medium text-slate-400 md:text-lg">{state.user?.full_name ?? t("roles.barber")}</p>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-3 rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-500 md:px-5 md:py-2.5 md:text-base">
                 <HiMiniCalendarDays className="text-lg md:text-xl" />
-                <span>{dashboardQuery.data?.display_date ?? selectedDate}</span>
+                <span>{formatDisplayDate(selectedDate)}</span>
               </div>
               <Link
                 to="/barber/settings"
@@ -128,8 +130,8 @@ export default function BarberSchedule() {
             </button>
 
             <div className="text-center">
-              <p className="text-2xl font-black text-slate-950 md:text-4xl">Today</p>
-              <p className="mt-1 text-sm text-slate-400 md:text-lg">{dashboardQuery.data?.display_date ?? selectedDate}</p>
+              <p className="text-2xl font-black text-slate-950 md:text-4xl">{t("common.today")}</p>
+              <p className="mt-1 text-sm text-slate-400 md:text-lg">{formatDisplayDate(selectedDate)}</p>
             </div>
 
             <button
@@ -146,19 +148,19 @@ export default function BarberSchedule() {
             <StatCard
               icon={<HiMiniUserGroup className="text-2xl" />}
               value={stats.total}
-              label="Total Appointments"
+              label={t("barberSchedule.totalAppointments")}
               color="slate"
             />
             <StatCard
               icon={<HiMiniClock className="text-2xl" />}
               value={stats.pending}
-              label="Pending"
+              label={t("barberDashboard.pending")}
               color="amber"
             />
             <StatCard
               icon={<HiMiniCheckBadge className="text-2xl" />}
               value={stats.completed}
-              label="Completed"
+              label={t("common.confirmed")}
               color="emerald"
             />
           </div>
@@ -179,9 +181,9 @@ export default function BarberSchedule() {
                 }`}
               >
                 <div className="flex flex-col items-center gap-1">
-                  <span className="text-base font-black capitalize md:text-2xl">{tab}</span>
+                  <span className="text-base font-black capitalize md:text-2xl">{tab === "all" ? t("barberSchedule.all") : tab === "confirmed" ? t("barberDashboard.pending") : t("common.confirmed")}</span>
                   <span className={`text-[11px] font-semibold md:text-sm ${activeTab === tab ? "text-slate-500" : "text-slate-400"}`}>
-                    {getTabCount(tab)} appointments
+                    {t("barberSchedule.appointmentsCount", { count: getTabCount(tab) })}
                   </span>
                 </div>
               </button>
@@ -208,11 +210,11 @@ export default function BarberSchedule() {
             <article className="rounded-[30px] border border-dashed border-slate-200 bg-white/70 px-6 py-16 text-center">
               <div className="mx-auto max-w-md">
                 <div className="mb-4 text-6xl">📅</div>
-                <p className="text-xl font-semibold text-slate-600">No appointments found</p>
+                <p className="text-xl font-semibold text-slate-600">{t("barberDashboard.noAppointments")}</p>
                 <p className="mt-2 text-base text-slate-400">
                   {activeTab === "all" 
-                    ? "There are no appointments scheduled for this day." 
-                    : `No ${activeTab} appointments available for this date.`}
+                    ? t("barberSchedule.noAppointmentsForDay")
+                    : t("barberSchedule.noAppointmentsForStatus", { status: activeTab })}
                 </p>
               </div>
             </article>
@@ -269,6 +271,7 @@ function ScheduleCard({
   onComplete: () => void;
   loading: boolean;
 }) {
+  const { t } = useTranslation();
   const isDone = booking.status === "completed";
 
   return (
@@ -285,7 +288,7 @@ function ScheduleCard({
           }`}
         >
           <span className={`h-2 w-2 rounded-full ${isDone ? "bg-emerald-500" : "bg-amber-500"}`} />
-          {isDone ? "Completed" : "Pending"}
+          {isDone ? t("common.confirmed") : t("barberDashboard.pending")}
         </span>
       </div>
 
@@ -312,7 +315,7 @@ function ScheduleCard({
         {isDone ? (
           <div className="mt-8 inline-flex items-center gap-3 rounded-full bg-emerald-50 px-5 py-3 text-base font-semibold text-emerald-600 md:text-lg">
             <HiMiniCheckCircle className="text-xl text-emerald-500 md:text-2xl" />
-            Appointment completed
+            {t("barberDashboard.toast.completed")}
           </div>
         ) : (
           <button
@@ -322,7 +325,7 @@ function ScheduleCard({
             className="mt-8 flex h-14 w-full items-center justify-center gap-3 rounded-[22px] bg-black text-lg font-black text-white transition hover:bg-slate-800 hover:scale-[1.02] disabled:opacity-60 md:h-16 md:text-xl"
           >
             <HiMiniCheckCircle className="text-xl md:text-2xl" />
-            {loading ? "Updating..." : "Mark as Completed"}
+            {loading ? t("settings.updating") : t("barberSchedule.markCompleted")}
           </button>
         )}
       </div>

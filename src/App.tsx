@@ -5,9 +5,10 @@ import "aos/dist/aos.css";
 import AuthLayout from "./layout/AuthLayout";
 import AdminLayout from "./layout/AdminLayout";
 import MainLayout from "./layout/MainLayout";
+import BarberLayout from "./layout/BarberLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import IsLoading from "./components/IsLoading";
-import NotFound from "./components/NotFound";
+// import NotFound from "./components/NotFound";
 import useLoading from "./hooks/useLoading";
 import HelloAdmin from "./pages/admin/HelloAdmin";
 import AdminBarbers from "./pages/admin/AdminBarbers";
@@ -81,28 +82,16 @@ function App() {
         path="/barber"
         element={
           <ProtectedRoute role={["barber"]}>
-            <BarberDashboard />
+            <BarberLayout />
           </ProtectedRoute>
         }
-      />
-      <Route
-        path="/barber/schedule"
-        element={
-          <ProtectedRoute role={["barber"]}>
-            <BarberSchedule />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/barber/settings"
-        element={
-          <ProtectedRoute role={["barber"]}>
-            <AccountSettings />
-          </ProtectedRoute>
-        }
-      />
+      >
+        <Route index element={<BarberDashboard />} />
+        <Route path="schedule" element={<BarberSchedule />} />
+        <Route path="settings" element={<AccountSettings />} />
+      </Route>
 
-      <Route path="*" element={<NotFound />} />
+      <Route path="*" element={<Home />} />
     </Routes>
   );
 }

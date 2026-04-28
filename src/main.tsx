@@ -6,6 +6,7 @@ import { ToastContainer } from "react-toastify";
 import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import CreateContextPro from "./hooks/CreateContextPro.tsx";
+import "./i18n";
 
 const queryClient = new QueryClient({
   defaultOptions: {
