@@ -1,8 +1,8 @@
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 // import LanguageSwitcher from "../components/LanguageSwitcher";
 
 export default function MainLayout() {
-  const location = useLocation();
+  // const location = useLocation();
   // const isHomePage = location.pathname === "/";
 
   return (
