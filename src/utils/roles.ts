@@ -20,7 +20,8 @@ export function getDefaultRouteForRole(user: Pick<User, "role"> | null | undefin
   const role = getPrimaryRole(user);
   if (role === "admin") return "/admin";
   if (role === "barber") return "/barber";
-  return "/login";
+  if (role === "user") return "/account";
+  return "/user/access";
 }
 
 export function getRoleLabel(role: UserRole | undefined) {

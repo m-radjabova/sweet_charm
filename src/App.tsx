@@ -17,6 +17,7 @@ import BookingDetails from "./pages/home/BookingDetails";
 import BookingSuccess from "./pages/home/BookingSuccess";
 import Home from "./pages/home/Home";
 import SelectTime from "./pages/home/SelectTime";
+import CustomerAccess from "./pages/login/CustomerAccess";
 import AccountSettings from "./pages/settings/AccountSettings";
 
 import Login from "./pages/login/Login";
@@ -25,6 +26,7 @@ import useContextPro from "./hooks/useContextPro";
 import { getDefaultRouteForRole, hasAnyRole } from "./utils/roles";
 import BarberDashboard from "./pages/barber/BarberDashboard";
 import BarberSchedule from "./pages/barber/BarberSchedule";
+import CustomerDashboard from "./pages/account/CustomerDashboard";
 
 function AdminIndexRoute() {
   const {
@@ -61,8 +63,18 @@ function App() {
 
       <Route element={<AuthLayout />}>
         <Route path="/login" element={<Login />} />
-        <Route path="/sign-up" element={<Navigate to="/login" replace />} />
+        <Route path="/sign-up" element={<Navigate to="/user/access" replace />} />
+        <Route path="/user/access" element={<CustomerAccess />} />
       </Route>
+
+      <Route
+        path="/account"
+        element={
+          <ProtectedRoute role={["user"]}>
+            <CustomerDashboard />
+          </ProtectedRoute>
+        }
+      />
 
       <Route
         path="/admin"

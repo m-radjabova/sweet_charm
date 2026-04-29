@@ -81,6 +81,8 @@ function CreateContextPro({ children }: { children: ReactNode }) {
   }, [queryClient]);
 
   const logout = useCallback(async () => {
+    const redirectTo = state.user?.role === "user" ? "/" : "/login";
+
     try {
       await logoutUser();
     } catch {
@@ -89,9 +91,9 @@ function CreateContextPro({ children }: { children: ReactNode }) {
       clearStoredAuth();
       queryClient.clear();
       dispatch({ type: "LOGOUT" });
-      navigate("/login", { replace: true });
+      navigate(redirectTo, { replace: true });
     }
-  }, [navigate, queryClient]);
+  }, [navigate, queryClient, state.user?.role]);
 
   const value = useMemo<ContextType>(
     () => ({

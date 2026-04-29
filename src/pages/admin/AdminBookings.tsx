@@ -106,7 +106,7 @@ export default function AdminBookings() {
 
   const barbersQuery = useQuery({
     queryKey: ["public-barbers"],
-    queryFn: listPublicBarbers,
+    queryFn: () => listPublicBarbers(),
   });
 
   const bookingsQuery = useQuery({

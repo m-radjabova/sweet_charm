@@ -5,11 +5,19 @@ import type {
   Booking,
   BookingCreatePayload,
   BookingStatus,
+  CustomerBookingCreatePayload,
   PublicBarber,
 } from "../types/types";
 
-export async function listPublicBarbers() {
-  const { data } = await apiClient.get<PublicBarber[]>("/public/barbers");
+export async function listPublicBarbers(params?: {
+  lat?: number;
+  lng?: number;
+  radius_km?: number;
+  sort_by?: "distance" | "price_asc" | "price_desc";
+}) {
+  const { data } = await apiClient.get<PublicBarber[]>("/public/barbers", {
+    params,
+  });
   return data;
 }
 
@@ -22,6 +30,11 @@ export async function getBarberAvailability(barberId: string, date: string) {
 
 export async function createPublicBooking(payload: BookingCreatePayload) {
   const { data } = await apiClient.post<Booking>("/public/bookings", payload);
+  return data;
+}
+
+export async function createMyBooking(payload: CustomerBookingCreatePayload) {
+  const { data } = await apiClient.post<Booking>("/bookings", payload);
   return data;
 }
 

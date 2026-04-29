@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useTranslation } from "react-i18next";
 import { 
   HiOutlineCalendarDays, 
   HiOutlineClock, 
@@ -9,9 +8,10 @@ import {
   HiOutlineCheckBadge,
   HiOutlineScissors,
   HiOutlinePhone,
-  HiOutlineCalendar,
   HiOutlineClipboard,
-  HiMiniStar
+  HiMiniStar,
+  HiOutlineArrowRight,
+  HiOutlineSparkles
 } from "react-icons/hi2";
 import { toast } from "react-toastify";
 import { getPublicBooking, submitPublicBookingRating } from "../../api/bookings";
@@ -31,15 +31,15 @@ function SuccessSkeleton() {
   return (
     <div className="animate-pulse">
       <div className="flex flex-col items-center">
-        <div className="h-40 w-40 rounded-full bg-slate-200"></div>
-        <div className="mt-8 h-10 w-64 rounded-lg bg-slate-200"></div>
-        <div className="mt-3 h-6 w-48 rounded-lg bg-slate-200"></div>
+        <div className="h-32 w-32 rounded-full bg-slate-200"></div>
+        <div className="mt-6 h-8 w-48 rounded-lg bg-slate-200"></div>
+        <div className="mt-2 h-5 w-64 rounded-lg bg-slate-200"></div>
       </div>
-      <div className="mt-10 rounded-2xl bg-white p-6 shadow-lg">
+      <div className="mt-8 rounded-2xl bg-white p-6 shadow-xl">
         <div className="space-y-4">
-          <div className="h-20 rounded-xl bg-slate-200"></div>
-          <div className="h-20 rounded-xl bg-slate-200"></div>
-          <div className="h-20 rounded-xl bg-slate-200"></div>
+          <div className="h-24 rounded-xl bg-slate-100"></div>
+          <div className="h-24 rounded-xl bg-slate-100"></div>
+          <div className="h-24 rounded-xl bg-slate-100"></div>
         </div>
       </div>
     </div>
@@ -48,7 +48,6 @@ function SuccessSkeleton() {
 
 export default function BookingSuccess() {
   const { bookingCode = "" } = useParams();
-  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [selectedRating, setSelectedRating] = useState<number | null>(null);
 
@@ -65,7 +64,6 @@ export default function BookingSuccess() {
 
   const booking = bookingQuery.data;
   const isLoading = bookingQuery.isLoading;
-  const navigate = useNavigate();
   const isCompleted = booking?.status === "completed";
 
   const ratingMutation = useMutation({
@@ -78,16 +76,23 @@ export default function BookingSuccess() {
         queryClient.invalidateQueries({ queryKey: ["public-barbers"] }),
         queryClient.invalidateQueries({ queryKey: ["barber-availability", updatedBooking.barber_id] }),
       ]);
-      toast.success(t("bookingSuccess.ratingSaved"));
+      toast.success("Reyting muvaffaqiyatli saqlandi!", {
+        position: "top-right",
+        autoClose: 3000,
+        style: { background: "#10b981", color: "white", borderRadius: "16px" }
+      });
     },
     onError: () => {
-      toast.error(t("bookingSuccess.ratingError"));
+      toast.error("Reyting saqlashda xatolik yuz berdi", {
+        position: "top-right",
+        autoClose: 4000,
+        style: { background: "#ef4444", color: "white", borderRadius: "16px" }
+      });
     },
   });
 
   useEffect(() => {
     if (!booking) return;
-
     setStoredConfirmedBooking({
       bookingCode: booking.booking_code,
       barberId: booking.barber_id,
@@ -100,377 +105,293 @@ export default function BookingSuccess() {
     setSelectedRating(booking.rating ?? null);
   }, [booking]);
 
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText(bookingCode);
+    toast.success("Kod nusxalandi!", {
+      position: "top-right",
+      autoClose: 2000,
+      style: { background: "#3b82f6", color: "white", borderRadius: "16px" }
+    });
+  };
+
+  const handleShare = async () => {
+    try {
+      await navigator.share({
+        title: "Sartarosh bron qilish",
+        text: `Mening bron kodim: ${bookingCode}`,
+        url: window.location.href,
+      });
+    } catch {
+      toast.info("Ulashish uchun qo'llab-quvvatlanmaydi", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+    }
+  };
+
   return (
-    <div className="home-theme min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30">
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-gradient-to-r from-emerald-200/20 to-teal-100/10 blur-3xl"></div>
-        <div className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-gradient-to-l from-slate-200/20 to-slate-100/10 blur-3xl"></div>
-        <div className="absolute top-1/2 left-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-t from-emerald-100/5 to-transparent blur-3xl"></div>
+        <div className="absolute -top-40 -right-40 h-[500px] w-[500px] rounded-full bg-gradient-to-br from-emerald-300/20 to-teal-400/20 blur-3xl animate-pulse" />
+        <div className="absolute -bottom-40 -left-40 h-[500px] w-[500px] rounded-full bg-gradient-to-tr from-slate-400/10 to-indigo-400/10 blur-3xl animate-pulse delay-1000" />
+        <div className="absolute top-1/2 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-gradient-to-r from-emerald-300/5 to-teal-300/5 blur-3xl" />
       </div>
 
-      <div className="relative mx-auto px-4 py-6 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
-          {isLoading ? (
-            <SuccessSkeleton />
-          ) : booking ? (
-            <>
-              {/* Success Header with Animation */}
-              <div className="animate-slideDown">
-                <div className="flex flex-col items-center text-center">
-                  <div className="relative">
-                    {/* Animated checkmark circle */}
-                    <div className="absolute inset-0 rounded-full bg-gradient-to-r from-emerald-400 to-teal-500 animate-pulse opacity-20"></div>
-                    <div className="relative flex h-28 w-28 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-2xl animate-bounceIn sm:h-32 sm:w-32">
-                      <svg className="h-16 w-16" viewBox="0 0 24 24" fill="none">
-                        <path d="M21 12a9 9 0 1 1-3.28-6.95M8.5 12.5l2.5 2.5 5.5-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </div>
-                    <div className="absolute -bottom-2 -right-2 flex h-12 w-12 items-center justify-center rounded-full bg-amber-400 shadow-lg animate-zoomIn">
-                      <HiOutlineScissors className="h-6 w-6 text-white" />
-                    </div>
-                  </div>
-
-                  <h1 className="mt-8 text-4xl font-black tracking-tight text-slate-950 sm:text-5xl lg:text-6xl animate-fadeIn">
-                    {t("bookingSuccess.title")}
-                  </h1>
-                  <p className="mt-3 text-lg text-slate-500 animate-fadeIn animation-delay-200">
-                    {t("bookingSuccess.subtitle")}
-                  </p>
+      <div className="relative mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        {isLoading ? (
+          <SuccessSkeleton />
+        ) : booking ? (
+          <>
+            {/* Success Animation Header */}
+            <div className="mb-8 text-center">
+              <div className="relative inline-block">
+                {/* Outer ring */}
+                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-emerald-400 to-teal-500 animate-ping opacity-20" />
+                {/* Main checkmark circle */}
+                <div className="relative flex h-28 w-28 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-2xl animate-bounceIn">
+                  <svg className="h-14 w-14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M20 6L9 17L4 12" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+                {/* Decorative icon */}
+                <div className="absolute -bottom-2 -right-2 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-amber-400 to-orange-500 shadow-lg animate-zoomIn">
+                  <HiOutlineScissors className="h-5 w-5 text-white" />
                 </div>
               </div>
+              
+              <h1 className="mt-6 text-3xl font-black tracking-tight text-slate-900 sm:text-4xl lg:text-5xl animate-fadeIn">
+                Bron muvaffaqiyatli!
+              </h1>
+              <p className="mt-2 text-slate-500 animate-fadeIn animation-delay-200">
+                Sizning qabul vaqtingiz tasdiqlandi
+              </p>
+            </div>
 
-              {/* Booking Details Card */}
-              <div className="mt-8 lg:mt-10 animate-slideUp">
-                <div className="group relative overflow-hidden rounded-[28px] bg-white shadow-xl transition-all duration-300 hover:shadow-2xl">
-                  {/* Decorative gradient border */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/10 to-teal-400/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
-                  
-                  <div className="relative p-6 sm:p-8">
-                    {/* Header with Booking ID */}
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                      <div>
-                        <p className="text-xs font-black uppercase tracking-wider text-emerald-600">
-                          {t("bookingSuccess.bookingId")}
-                        </p>
-                        <div className="mt-1 flex items-baseline gap-2">
-                          <p className="text-2xl font-black text-slate-950 sm:text-3xl">
-                            #{booking.booking_code}
-                          </p>
-                          <button
-                            onClick={() => {
-                              navigator.clipboard.writeText(booking.booking_code);
-                              toast.success(t("bookingSuccess.idCopied"));
-                            }}
-                            className="rounded-lg bg-slate-100 p-1.5 transition-colors hover:bg-slate-200"
-                          >
-                            <HiOutlineClipboard className="h-4 w-4 text-slate-600" />
-                          </button>
-                        </div>
-                      </div>
-                      <div
-                        className={`flex items-center gap-2 rounded-full px-4 py-2 ${
-                          isCompleted ? "bg-emerald-50" : "bg-amber-50"
-                        }`}
+            {/* Main Booking Card */}
+            <div className="group relative overflow-hidden rounded-2xl bg-white p-6 shadow-xl shadow-slate-900/5 border border-slate-100 transition-all hover:shadow-2xl sm:p-8 animate-slideUp">
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 to-teal-500/5 opacity-0 transition-opacity group-hover:opacity-100" />
+              
+              <div className="relative">
+                {/* Header with Booking ID */}
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-wider text-emerald-600">
+                      Bron kodi
+                    </p>
+                    <div className="mt-1 flex items-center gap-2">
+                      <p className="text-2xl font-black text-slate-900 font-mono">
+                        {booking.booking_code}
+                      </p>
+                      <button
+                        onClick={handleCopyCode}
+                        className="rounded-lg bg-slate-100 p-2 transition-all hover:bg-slate-200 hover:scale-105"
                       >
-                        <HiOutlineCheckBadge className={`h-5 w-5 ${isCompleted ? "text-emerald-600" : "text-amber-600"}`} />
-                        <span className={`text-sm font-bold ${isCompleted ? "text-emerald-700" : "text-amber-700"}`}>
-                          {isCompleted ? t("barberDashboard.done") : t("common.confirmed")}
+                        <HiOutlineClipboard className="h-4 w-4 text-slate-600" />
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className={`inline-flex items-center gap-2 rounded-full px-4 py-2 ${
+                    isCompleted ? "bg-emerald-50" : "bg-amber-50"
+                  }`}>
+                    <HiOutlineCheckBadge className={`h-5 w-5 ${isCompleted ? "text-emerald-600" : "text-amber-600"}`} />
+                    <span className={`text-sm font-bold ${isCompleted ? "text-emerald-700" : "text-amber-700"}`}>
+                      {isCompleted ? "Yakunlangan" : "Tasdiqlangan"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="my-6 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
+
+                {/* Barber Profile */}
+                <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+                  {booking.barber_avatar ? (
+                    <img 
+                      src={booking.barber_avatar} 
+                      alt={booking.barber_name} 
+                      className="h-20 w-20 rounded-xl object-cover shadow-lg ring-4 ring-white transition-transform group-hover:scale-105" 
+                    />
+                  ) : (
+                    <div className="flex h-20 w-20 items-center justify-center rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 text-2xl font-black text-white shadow-lg ring-4 ring-white">
+                      {getInitials(booking.barber_name)}
+                    </div>
+                  )}
+                  
+                  <div className="flex-1">
+                    <h2 className="text-xl font-black text-slate-900">
+                      {booking.barber_name}
+                    </h2>
+                    {booking.barber_specialty?.trim() && (
+                      <div className="mt-1 flex items-center gap-2">
+                        <HiOutlineScissors className="h-4 w-4 text-amber-500" />
+                        <span className="text-sm font-medium text-slate-600">
+                          {booking.barber_specialty.trim()}
                         </span>
                       </div>
+                    )}
+                    <div className="mt-2 flex items-center gap-3">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-600">
+                        <HiMiniStar className="h-3.5 w-3.5" />
+                        {Number(booking.barber_rating ?? 0).toFixed(1)}
+                      </span>
+                      <span className="text-xs text-slate-500">
+                        {booking.barber_reviews_count ?? 0} ta sharh
+                      </span>
                     </div>
+                  </div>
+                </div>
 
-                    <div className="my-6 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
+                <div className="my-6 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
 
-                    {/* Barber Info */}
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                      {booking.barber_avatar ? (
-                        <img 
-                          src={booking.barber_avatar} 
-                          alt={booking.barber_name} 
-                          className="h-20 w-20 rounded-xl object-cover ring-2 ring-white shadow-md transition-transform duration-300 group-hover:scale-105" 
-                        />
-                      ) : (
-                        <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-slate-800 to-slate-600 text-xl font-black text-white shadow-md">
-                          {getInitials(booking.barber_name)}
+                {/* Appointment Details */}
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-4">
+                    <div className="rounded-lg bg-emerald-100 p-2.5">
+                      <HiOutlineCalendarDays className="h-5 w-5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold uppercase text-slate-400">Sana</p>
+                      <p className="font-bold text-slate-900">
+                        {formatDisplayDate(booking.appointment_date)}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-4">
+                    <div className="rounded-lg bg-blue-100 p-2.5">
+                      <HiOutlineClock className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold uppercase text-slate-400">Vaqt</p>
+                      <p className="font-bold text-slate-900">
+                        {formatDisplayTime(booking.appointment_time)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Client & Location */}
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                  <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-4">
+                    <div className="rounded-lg bg-purple-100 p-2.5">
+                      <HiOutlinePhone className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold uppercase text-slate-400">Mijoz</p>
+                      <p className="font-bold text-slate-900">{booking.client_name}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Rating Section (only for completed bookings) */}
+                {isCompleted && (
+                  <div className="mt-6 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 p-5">
+                    <div className="flex flex-col items-center text-center sm:flex-row sm:text-left sm:justify-between gap-4">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <HiMiniStar className="h-5 w-5 text-amber-500" />
+                          <span className="text-sm font-bold text-amber-700">Sartaroshni baholang</span>
                         </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <h2 className="text-xl font-black text-slate-950">
-                          {booking.barber_name}
-                        </h2>
-                        {booking.barber_specialty?.trim() ? (
-                          <div className="mt-1 flex items-center gap-2">
-                            <HiOutlineScissors className="h-4 w-4 text-amber-500" />
-                            <p className="text-sm font-semibold text-slate-600">
-                              {booking.barber_specialty.trim()}
-                            </p>
-                          </div>
-                        ) : null}
-                        <div className="mt-2 flex flex-wrap items-center gap-3 text-xs font-semibold">
-                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-amber-600">
-                            <HiMiniStar className="h-3.5 w-3.5" />
-                            {Number(booking.barber_rating ?? 0).toFixed(1)}
-                          </span>
-                          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-slate-600">
-                            {t("bookingSuccess.reviewsCount", { count: booking.barber_reviews_count ?? 0 })}
-                          </span>
-                        </div>
-
-                        <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
-                          <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">
-                            {t("bookingSuccess.ratingTitle")}
-                          </p>
-                          {isCompleted ? (
-                            <>
-                              <p className="mt-2 text-sm text-slate-600">
-                                {t("bookingSuccess.ratingSubtitle")}
-                              </p>
-                              <div className="mt-3 flex flex-wrap gap-2">
-                                {[1, 2, 3, 4, 5].map((value) => {
-                                  const isActive = (selectedRating ?? 0) >= value;
-
-                                  return (
-                                    <button
-                                      key={value}
-                                      type="button"
-                                      onClick={() => {
-                                        setSelectedRating(value);
-                                        ratingMutation.mutate(value);
-                                      }}
-                                      disabled={ratingMutation.isPending}
-                                      className={`inline-flex h-11 w-11 items-center justify-center rounded-full border transition ${
-                                        isActive
-                                          ? "border-amber-300 bg-amber-50 text-amber-500"
-                                          : "border-slate-200 bg-white text-slate-300"
-                                      } disabled:opacity-60`}
-                                      aria-label={t("bookingSuccess.rateLabel", { count: value })}
-                                    >
-                                      <HiMiniStar className="h-5 w-5" />
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                              <p className="mt-3 text-xs text-slate-500">
-                                {selectedRating
-                                  ? t("bookingSuccess.currentRating", { count: selectedRating })
-                                  : t("bookingSuccess.chooseRating")}
-                              </p>
-                            </>
-                          ) : (
-                            <>
-                              <p className="mt-2 text-sm text-slate-600">
-                                {t("bookingSuccess.ratingPending")}
-                              </p>
-                              <p className="mt-2 text-xs text-slate-500">
-                                {t("bookingSuccess.ratingReturnHint")}
-                              </p>
-                            </>
-                          )}
-                        </div>
+                        <p className="text-sm text-slate-600">
+                          Sizning fikringiz boshqa mijozlar uchun muhim
+                        </p>
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        {[1, 2, 3, 4, 5].map((value) => (
+                          <button
+                            key={value}
+                            onClick={() => ratingMutation.mutate(value)}
+                            disabled={ratingMutation.isPending}
+                            className={`group transition-all hover:scale-110 ${
+                              (selectedRating ?? 0) >= value
+                                ? "text-amber-500"
+                                : "text-slate-300 hover:text-amber-400"
+                            }`}
+                          >
+                            <HiMiniStar className="h-8 w-8" />
+                          </button>
+                        ))}
                       </div>
                     </div>
-
-                    <div className="my-6 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
-
-                    {/* Appointment Details Grid */}
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div className="flex items-center gap-4 rounded-xl bg-gradient-to-r from-slate-50 to-white p-4 shadow-sm">
-                        <div className="rounded-lg bg-amber-50 p-2.5">
-                          <HiOutlineCalendarDays className="h-6 w-6 text-amber-600" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-semibold uppercase text-slate-400">{t("common.date")}</p>
-                          <p className="mt-0.5 text-base font-bold text-slate-900">
-                            {formatDisplayDate(booking.appointment_date)}
-                          </p>
-                        </div>
+                    
+                    {selectedRating && (
+                      <div className="mt-3 text-center text-sm text-emerald-600">
+                        <HiOutlineCheckBadge className="inline h-4 w-4 mr-1" />
+                        Siz {selectedRating} ⭐ baho berdingiz. Rahmat!
                       </div>
+                    )}
+                  </div>
+                )}
 
-                      <div className="flex items-center gap-4 rounded-xl bg-gradient-to-r from-slate-50 to-white p-4 shadow-sm">
-                        <div className="rounded-lg bg-blue-50 p-2.5">
-                          <HiOutlineClock className="h-6 w-6 text-blue-600" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-semibold uppercase text-slate-400">{t("common.time")}</p>
-                          <p className="mt-0.5 text-base font-bold text-slate-900">
-                            {formatDisplayTime(booking.appointment_time)}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Client Information */}
-                    <div className="mt-6 rounded-xl bg-gradient-to-r from-slate-50 to-white p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="rounded-lg bg-purple-50 p-2.5">
-                          <HiOutlinePhone className="h-5 w-5 text-purple-600" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-semibold uppercase text-slate-400">{t("bookingSuccess.client")}</p>
-                          <p className="mt-0.5 text-base font-bold text-slate-900">
-                            {booking.client_name}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Additional Info */}
-                    <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                      <div className="rounded-lg bg-amber-50 p-3 text-center">
-                        <p className="text-xs text-amber-700">{t("bookingSuccess.duration")}</p>
-                      </div>
-                      <div className="rounded-lg bg-blue-50 p-3 text-center">
-                        <p className="text-xs text-blue-700">{t("bookingSuccess.arriveEarly")}</p>
-                      </div>
+                {/* Info Notice */}
+                <div className="mt-6 rounded-xl bg-emerald-50 p-4">
+                  <div className="flex items-start gap-3">
+                    <HiOutlineSparkles className="h-5 w-5 text-emerald-600 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-bold text-emerald-800">Ma'lumot</p>
+                      <p className="text-xs text-emerald-700 mt-1">
+                        Sizning bron raqamingiz {booking.booking_code}. Iltimos, ushbu raqamni saqlab qo'ying yoki sartaroshga ko'rsating.
+                      </p>
                     </div>
                   </div>
                 </div>
               </div>
+            </div>
 
-              {/* Reminder Message */}
-              <div className="mt-6 rounded-xl border border-emerald-100 bg-gradient-to-r from-emerald-50 to-teal-50 p-4 animate-fadeIn animation-delay-400">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-emerald-100 p-2">
-                    <HiOutlineCalendar className="h-4 w-4 text-emerald-600" />
-                  </div>
-                  <p className="text-sm font-medium text-slate-700">
-                    {t("bookingSuccess.confirmationNotice")}
-                  </p>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:gap-4 animate-slideUp animation-delay-600">
-                <Link
-                  to="/"
-                  className="group relative flex-1 overflow-hidden rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 py-4 text-center text-base font-bold text-white shadow-lg transition-all hover:shadow-xl hover:shadow-slate-500/25"
-                >
-                  <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-500 group-hover:translate-x-full"></div>
-                  <span className="relative flex items-center justify-center gap-2">
-                    {t("bookingSuccess.bookAnother")}
-                    <HiOutlineCalendar className="h-4 w-4 transition-transform group-hover:scale-110" />
-                  </span>
-                </Link>
-                
-                <button
-                  type="button"
-                  onClick={() => {navigate(`/`)}}
-                  className="group flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-slate-200 bg-white py-4 text-base font-bold text-slate-700 transition-all hover:border-slate-300 hover:shadow-lg"
-                >
-                  <HiOutlineShare className="h-5 w-5 transition-transform group-hover:scale-110" />
-                  {t("bookingSuccess.shareDetails")}
-                </button>
-              </div>
-            </>
-          ) : (
-            <div className="rounded-2xl bg-red-50 p-8 text-center">
-              <HiOutlineCheckBadge className="mx-auto h-16 w-16 text-red-400" />
-              <p className="mt-4 text-xl font-bold text-red-600">{t("bookingSuccess.notFound")}</p>
-              <p className="mt-2 text-slate-600">{t("bookingSuccess.notFoundText")}</p>
+            {/* Action Buttons */}
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <Link
                 to="/"
-                className="mt-6 inline-block rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 px-6 py-3 text-white font-semibold"
+                className="group flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-slate-800 to-slate-900 px-6 py-3.5 text-sm font-bold text-white shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl"
               >
-                {t("common.goHome")}
+                Yangi bron qilish
+                <HiOutlineArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Link>
+              
+              <button
+                onClick={handleShare}
+                className="group flex-1 inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3.5 text-sm font-bold text-slate-700 shadow-md transition-all hover:shadow-lg hover:scale-[1.02]"
+              >
+                <HiOutlineShare className="h-4 w-4 transition-transform group-hover:scale-110" />
+                Ulashish
+              </button>
+            </div>
+
+            {/* Back to Home Link */}
+            <div className="mt-6 text-center">
+              <Link
+                to="/"
+                className="inline-flex items-center gap-1 text-sm text-slate-400 transition hover:text-slate-600"
+              >
+                Bosh sahifaga qaytish
+                <HiOutlineArrowRight className="h-3 w-3" />
               </Link>
             </div>
-          )}
-        </div>
+          </>
+        ) : (
+          // Error State
+          <div className="rounded-2xl bg-white p-12 text-center shadow-xl border border-slate-100">
+            <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-rose-100">
+              <svg className="h-10 w-10 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-black text-slate-900">Bron topilmadi</h3>
+            <p className="mt-2 text-slate-500">
+              Kechirasiz, ushbu bron ma'lumotlarini topib bo'lmadi
+            </p>
+            <Link
+              to="/"
+              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-slate-800 to-slate-900 px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:scale-105"
+            >
+              Bosh sahifaga qaytish
+              <HiOutlineArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        )}
       </div>
-
-      <style>{`
-        @keyframes slideDown {
-          from {
-            opacity: 0;
-            transform: translateY(-30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-        
-        @keyframes bounceIn {
-          0% {
-            opacity: 0;
-            transform: scale(0.3);
-          }
-          50% {
-            opacity: 1;
-            transform: scale(1.05);
-          }
-          70% {
-            transform: scale(0.9);
-          }
-          100% {
-            transform: scale(1);
-          }
-        }
-        
-        @keyframes zoomIn {
-          from {
-            opacity: 0;
-            transform: scale(0);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-        
-        .animate-slideDown {
-          animation: slideDown 0.5s ease-out;
-        }
-        
-        .animate-slideUp {
-          animation: slideUp 0.5s ease-out;
-        }
-        
-        .animate-fadeIn {
-          animation: fadeIn 0.5s ease-out;
-        }
-        
-        .animate-bounceIn {
-          animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        }
-        
-        .animate-zoomIn {
-          animation: zoomIn 0.3s ease-out 0.3s both;
-        }
-        
-        .animation-delay-200 {
-          animation-delay: 0.2s;
-        }
-        
-        .animation-delay-400 {
-          animation-delay: 0.4s;
-        }
-        
-        .animation-delay-600 {
-          animation-delay: 0.6s;
-        }
-      `}</style>
     </div>
   );
 }

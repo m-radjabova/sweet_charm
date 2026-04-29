@@ -62,7 +62,7 @@ function SideDrawer({
               <div>
                 <h2 className="text-2xl font-black text-slate-950">{title}</h2>
                 <p className="mt-1 text-sm text-slate-500">
-                  {title === "Add New Barber" ? "Create a new barber account" : "Update barber information"}
+                  {title === "Add New Barber" ? "Admin login va parol yaratadi, qolgan profilni barber o'zi to'ldiradi" : "Asosiy login ma'lumotlari va statusni boshqaring"}
                 </p>
               </div>
               <button
@@ -242,6 +242,18 @@ function getInitials(name: string) {
     .toUpperCase();
 }
 
+function getProfileCompletion(user: User) {
+  const values = [
+    user.specialty,
+    user.bio,
+    user.location_text,
+    user.work_start_time,
+    user.work_end_time,
+    user.services?.length ? "services" : "",
+  ];
+  return Math.round((values.filter(Boolean).length / values.length) * 100);
+}
+
 export default function AdminBarbers() {
   const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
@@ -379,14 +391,16 @@ export default function AdminBarbers() {
               </button>
             </div>
           ) : (
-            barbers.map((barber) => (
-              <div
-                key={barber.id}
-                className="group relative transform transition-all duration-300 hover:scale-[1.01]"
-              >
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-slate-400/10 to-slate-600/10 opacity-0 blur-xl transition-opacity duration-500 group-hover:opacity-100"></div>
+            barbers.map((barber) => {
+              const completion = getProfileCompletion(barber);
+              return (
+                <div
+                  key={barber.id}
+                  className="group relative transform transition-all duration-300 hover:scale-[1.01]"
+                >
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-slate-400/10 to-slate-600/10 opacity-0 blur-xl transition-opacity duration-500 group-hover:opacity-100"></div>
                 
-                <article className="relative rounded-2xl border border-slate-200 bg-white p-5 shadow-md transition-all duration-300 hover:shadow-xl">
+                  <article className="relative rounded-2xl border border-slate-200 bg-white p-5 shadow-md transition-all duration-300 hover:shadow-xl">
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                     {/* Barber Info */}
                     <div className="flex min-w-0 flex-1 items-center gap-4">
@@ -430,6 +444,14 @@ export default function AdminBarbers() {
                             <HiOutlineCheckBadge className="h-3 w-3" />
                             {barber.is_active !== false ? "Active" : "Deactivated"}
                           </span>
+                          <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 font-semibold text-slate-600">
+                            Profil {completion}%
+                          </span>
+                        </div>
+
+                        <div className="mt-3 grid gap-2 text-xs text-slate-500 sm:grid-cols-2">
+                          <p>{barber.location_text || "Lokatsiya kiritilmagan"}</p>
+                          <p>{barber.services?.length ? `${barber.services.length} xizmat qo'shilgan` : "Xizmatlar kiritilmagan"}</p>
                         </div>
                       </div>
                     </div>
@@ -500,9 +522,10 @@ export default function AdminBarbers() {
                       </div>
                     </div>
                   </div>
-                </article>
-              </div>
-            ))
+                  </article>
+                </div>
+              );
+            })
           )}
         </div>
       </div>

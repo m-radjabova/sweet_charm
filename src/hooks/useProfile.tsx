@@ -3,12 +3,21 @@ import { toast } from "react-toastify";
 import { getErrorMessage } from "../api/auth";
 import { deleteCurrentUserAvatar, updateCurrentUser, uploadCurrentUserAvatar } from "../api/users";
 import apiClient from "../apiClient/apiClient";
+import type { BarberServiceItem } from "../types/types";
 import useContextPro from "./useContextPro";
 
 type UpdateProfilePayload = {
   full_name?: string;
   email?: string;
+  phone_number?: string | null;
   specialty?: string | null;
+  bio?: string | null;
+  location_text?: string | null;
+  location_lat?: number | null;
+  location_lng?: number | null;
+  work_start_time?: string | null;
+  work_end_time?: string | null;
+  services?: BarberServiceItem[];
 };
 
 type ChangePasswordPayload = {

@@ -1,7 +1,6 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 import {
   HiMiniArrowLeft,
   HiMiniCheckCircle,
@@ -10,9 +9,10 @@ import {
   HiMiniClock,
   HiMiniCog6Tooth,
   HiMiniPhone,
-  HiMiniCalendarDays,
   HiMiniUserGroup,
   HiMiniCheckBadge,
+  HiMiniUser,
+  HiMiniInformationCircle
 } from "react-icons/hi2";
 import { toast } from "react-toastify";
 import { getErrorMessage } from "../../api/auth";
@@ -32,8 +32,8 @@ function shiftDate(date: string, offset: number) {
 
 const tabs = ["all", "confirmed", "completed"] as const;
 
+
 export default function BarberSchedule() {
-  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { state } = useContextPro();
   const [selectedDate, setSelectedDate] = useState(getTodayIsoDate());
@@ -47,14 +47,22 @@ export default function BarberSchedule() {
   const completeMutation = useMutation({
     mutationFn: (bookingId: string) => updateBookingStatus(bookingId, "completed"),
     onSuccess: async () => {
-      toast.success(t("barberDashboard.toast.completed"));
+      toast.success("Xizmat muvaffaqiyatli yakunlandi!", {
+        position: "top-right",
+        autoClose: 3000,
+        style: { background: "#10b981", color: "white", borderRadius: "16px" }
+      });
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["barber-dashboard"] }),
         queryClient.invalidateQueries({ queryKey: ["barber-bookings"] }),
       ]);
     },
     onError: (error) => {
-      toast.error(getErrorMessage(error, t("barberDashboard.toast.error")));
+      toast.error(getErrorMessage(error, "Xatolik yuz berdi"), {
+        position: "top-right",
+        autoClose: 4000,
+        style: { background: "#ef4444", color: "white", borderRadius: "16px" }
+      });
     },
   });
 
@@ -81,263 +89,323 @@ export default function BarberSchedule() {
     return stats.completed;
   };
 
+  const isToday = selectedDate === getTodayIsoDate();
+
   return (
-    <div className="barber-theme min-h-screen bg-white px-4 py-20 sm:px-6 md:px-8 lg:px-12">
-      <div className="mx-auto max-w-6xl">
-        {/* Header Section */}
-        <section className="rounded-[30px] border border-white/70 bg-white/88 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur md:p-8">
-          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-            <div className="flex items-center gap-4">
-              <Link
-                to="/barber"
-                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 text-slate-700 transition hover:border-slate-300 hover:bg-white md:h-14 md:w-14"
-                aria-label="Back to barber dashboard"
-              >
-                <HiMiniArrowLeft className="text-2xl md:text-3xl" />
-              </Link>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-amber-50/30">
+      {/* Animated Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 h-[500px] w-[500px] rounded-full bg-gradient-to-br from-amber-300/20 to-orange-400/20 blur-3xl animate-pulse" />
+        <div className="absolute -bottom-40 -left-40 h-[500px] w-[500px] rounded-full bg-gradient-to-tr from-slate-400/10 to-indigo-400/10 blur-3xl animate-pulse delay-1000" />
+        <div className="absolute top-1/3 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-gradient-to-r from-amber-300/5 to-rose-300/5 blur-3xl" />
+      </div>
 
-              <div>
-                <h1 className="text-3xl font-black tracking-tight text-slate-950 md:text-5xl">{t("barberDashboard.schedule")}</h1>
-                <p className="mt-1 text-sm font-medium text-slate-400 md:text-lg">{state.user?.full_name ?? t("roles.barber")}</p>
-              </div>
+      <div className="relative mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <Link
+            to="/barber"
+            className="group mb-4 inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 text-sm font-medium text-slate-600 shadow-sm backdrop-blur-sm transition-all hover:bg-white hover:shadow-md"
+          >
+            <HiMiniArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+            Dashboardga qaytish
+          </Link>
+
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <h1 className="text-3xl font-black tracking-tight text-slate-900 lg:text-4xl">
+                Kunlik jadval
+              </h1>
+              <p className="mt-2 text-slate-500">
+                Qabullarni boshqaring va mijozlaringizni qabul qiling
+              </p>
             </div>
-
+            
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-3 rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-500 md:px-5 md:py-2.5 md:text-base">
-                <HiMiniCalendarDays className="text-lg md:text-xl" />
-                <span>{formatDisplayDate(selectedDate)}</span>
+              <div className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 shadow-md">
+                <HiMiniUser className="h-4 w-4 text-amber-500" />
+                <span className="text-sm font-medium text-slate-700">
+                  {state.user?.full_name?.split(" ")[0] ?? "Barber"}
+                </span>
               </div>
               <Link
                 to="/barber/settings"
-                className="flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-200 text-slate-400 transition hover:border-slate-300 hover:text-slate-700 md:h-14 md:w-14"
-                aria-label="Open settings"
+                className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-slate-600 shadow-md transition-all hover:scale-105 hover:shadow-lg"
               >
-                <HiMiniCog6Tooth className="text-2xl md:text-3xl" />
+                <HiMiniCog6Tooth className="h-5 w-5" />
               </Link>
             </div>
           </div>
-        </section>
+        </div>
 
-        {/* Date Navigation & Stats */}
-        <section className="mt-6 rounded-[28px] border border-white/70 bg-white/88 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.06)] md:mt-8 md:p-8">
-          <div className="flex items-center justify-between gap-4 md:gap-8">
+        {/* Date Picker Card */}
+        <div className="mb-8 rounded-2xl bg-white p-6 shadow-xl shadow-slate-900/5 border border-slate-100">
+          <div className="flex items-center justify-between gap-4">
             <button
               type="button"
               onClick={() => setSelectedDate((current) => shiftDate(current, -1))}
-              className="flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 text-slate-300 transition hover:border-slate-300 hover:bg-white hover:text-slate-700 md:h-14 md:w-14"
+              className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-all hover:bg-slate-200 hover:scale-105"
             >
-              <HiMiniChevronLeft className="text-2xl md:text-3xl" />
+              <HiMiniChevronLeft className="h-5 w-5" />
             </button>
 
             <div className="text-center">
-              <p className="text-2xl font-black text-slate-950 md:text-4xl">{t("common.today")}</p>
-              <p className="mt-1 text-sm text-slate-400 md:text-lg">{formatDisplayDate(selectedDate)}</p>
+              <p className="text-2xl font-black text-slate-900">
+                {isToday ? "Bugun" : formatDisplayDate(selectedDate)}
+              </p>
+              <p className="mt-1 text-sm text-slate-400">
+                {formatDisplayDate(selectedDate)}
+              </p>
             </div>
 
             <button
               type="button"
               onClick={() => setSelectedDate((current) => shiftDate(current, 1))}
-              className="flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 text-slate-700 transition hover:border-slate-300 hover:bg-white md:h-14 md:w-14"
+              className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-all hover:bg-slate-200 hover:scale-105"
             >
-              <HiMiniChevronRight className="text-2xl md:text-3xl" />
+              <HiMiniChevronRight className="h-5 w-5" />
             </button>
           </div>
+        </div>
 
-          {/* Stats Cards */}
-          <div className="mt-8 grid grid-cols-3 gap-3 md:grid-cols-3 md:gap-4">
-            <StatCard
-              icon={<HiMiniUserGroup className="text-2xl" />}
-              value={stats.total}
-              label={t("barberSchedule.totalAppointments")}
-              color="slate"
-            />
-            <StatCard
-              icon={<HiMiniClock className="text-2xl" />}
-              value={stats.pending}
-              label={t("barberDashboard.pending")}
-              color="amber"
-            />
-            <StatCard
-              icon={<HiMiniCheckBadge className="text-2xl" />}
-              value={stats.completed}
-              label={t("common.confirmed")}
-              color="emerald"
-            />
-          </div>
-        </section>
+        {/* Stats Grid */}
+        <div className="mb-8 grid gap-4 sm:grid-cols-3">
+          <StatCard
+            title="Jami qabullar"
+            value={stats.total}
+            icon={<HiMiniUserGroup className="h-5 w-5" />}
+            color="from-slate-500 to-slate-600"
+            bgColor="bg-slate-50"
+            textColor="text-slate-600"
+          />
+          <StatCard
+            title="Kutilayotgan"
+            value={stats.pending}
+            icon={<HiMiniClock className="h-5 w-5" />}
+            color="from-amber-500 to-orange-600"
+            bgColor="bg-amber-50"
+            textColor="text-amber-600"
+          />
+          <StatCard
+            title="Yakunlangan"
+            value={stats.completed}
+            icon={<HiMiniCheckBadge className="h-5 w-5" />}
+            color="from-emerald-500 to-teal-600"
+            bgColor="bg-emerald-50"
+            textColor="text-emerald-600"
+          />
+        </div>
 
-        {/* Tabs Section */}
-        <section className="mt-6 rounded-[28px] border border-white/70 bg-white/88 p-3 shadow-[0_20px_60px_rgba(15,23,42,0.06)] md:mt-8 md:p-4">
-          <div className="grid grid-cols-3 gap-2">
-            {tabs.map((tab) => (
-              <button
-                key={tab}
-                type="button"
-                onClick={() => setActiveTab(tab)}
-                className={`group relative rounded-[20px] px-4 py-4 text-center transition-all duration-200 ${
-                  activeTab === tab 
-                    ? "bg-white text-slate-950 shadow-sm" 
-                    : "text-slate-400 hover:bg-white/50 hover:text-slate-700"
-                }`}
-              >
-                <div className="flex flex-col items-center gap-1">
-                  <span className="text-base font-black capitalize md:text-2xl">{tab === "all" ? t("barberSchedule.all") : tab === "confirmed" ? t("barberDashboard.pending") : t("common.confirmed")}</span>
-                  <span className={`text-[11px] font-semibold md:text-sm ${activeTab === tab ? "text-slate-500" : "text-slate-400"}`}>
-                    {t("barberSchedule.appointmentsCount", { count: getTabCount(tab) })}
-                  </span>
-                </div>
-              </button>
-            ))}
-          </div>
-        </section>
+        {/* Tabs */}
+        <div className="mb-6 flex gap-2 border-b border-slate-200">
+          {tabs.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-5 py-3 text-sm font-bold transition-all relative ${
+                activeTab === tab
+                  ? "text-slate-900"
+                  : "text-slate-400 hover:text-slate-600"
+              }`}
+            >
+              {tab === "all" && "Barchasi"}
+              {tab === "confirmed" && "Kutilayotgan"}
+              {tab === "completed" && "Yakunlangan"}
+              {activeTab === tab && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full" />
+              )}
+              <span className="ml-2 rounded-full bg-slate-100 px-2 py-0.5 text-xs">
+                {getTabCount(tab)}
+              </span>
+            </button>
+          ))}
+        </div>
 
         {/* Appointments Grid */}
-        <section className="mt-8">
-          {dashboardQuery.isLoading ? (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-[400px] animate-pulse rounded-[34px] bg-white/50 p-6">
-                  <div className="h-8 w-3/4 rounded-lg bg-slate-200"></div>
-                  <div className="mt-4 h-6 w-1/2 rounded-lg bg-slate-200"></div>
-                  <div className="mt-8 space-y-4">
-                    <div className="h-6 w-full rounded-lg bg-slate-200"></div>
-                    <div className="h-6 w-full rounded-lg bg-slate-200"></div>
-                  </div>
+        {dashboardQuery.isLoading ? (
+          <div className="grid gap-5 md:grid-cols-2">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="animate-pulse rounded-2xl bg-white p-6 shadow-lg">
+                <div className="flex justify-between">
+                  <div className="h-7 w-40 rounded bg-slate-200"></div>
+                  <div className="h-7 w-24 rounded-full bg-slate-200"></div>
                 </div>
-              ))}
-            </div>
-          ) : filteredAppointments.length === 0 ? (
-            <article className="rounded-[30px] border border-dashed border-slate-200 bg-white/70 px-6 py-16 text-center">
-              <div className="mx-auto max-w-md">
-                <div className="mb-4 text-6xl">📅</div>
-                <p className="text-xl font-semibold text-slate-600">{t("barberDashboard.noAppointments")}</p>
-                <p className="mt-2 text-base text-slate-400">
-                  {activeTab === "all" 
-                    ? t("barberSchedule.noAppointmentsForDay")
-                    : t("barberSchedule.noAppointmentsForStatus", { status: activeTab })}
-                </p>
+                <div className="mt-4 space-y-3">
+                  <div className="h-5 w-32 rounded bg-slate-200"></div>
+                  <div className="h-5 w-36 rounded bg-slate-200"></div>
+                </div>
+                <div className="mt-6 h-12 rounded-xl bg-slate-200"></div>
               </div>
-            </article>
-          ) : (
-            <div className="grid gap-6 md:grid-cols-2 lg:gap-8">
-              {filteredAppointments.map((booking) => (
-                <ScheduleCard
-                  key={booking.id}
-                  booking={booking}
-                  onComplete={() => completeMutation.mutate(booking.id)}
-                  loading={completeMutation.isPending}
-                />
-              ))}
+            ))}
+          </div>
+        ) : filteredAppointments.length === 0 ? (
+          <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-white/50 p-12 text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
+              <HiMiniInformationCircle className="h-8 w-8 text-slate-400" />
             </div>
-          )}
-        </section>
+            <h3 className="text-lg font-black text-slate-900">
+              Qabullar topilmadi
+            </h3>
+            <p className="mt-2 text-sm text-slate-500">
+              {activeTab === "all" 
+                ? "Bu kunga hech qanday qabul mavjud emas"
+                : "Bu statusdagi qabullar mavjud emas"}
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-5 md:grid-cols-2">
+            {filteredAppointments.map((booking, idx) => (
+              <ScheduleCard
+                key={booking.id}
+                booking={booking}
+                onComplete={() => completeMutation.mutate(booking.id)}
+                loading={completeMutation.isPending && completeMutation.variables === booking.id}
+                index={idx}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-function StatCard({ icon, value, label, color }: { icon: ReactNode; value: number; label: string; color: "slate" | "amber" | "emerald" }) {
-  const colorClasses = {
-    slate: "bg-slate-50 text-slate-700 border-slate-100",
-    amber: "bg-amber-50 text-amber-700 border-amber-100",
-    emerald: "bg-emerald-50 text-emerald-700 border-emerald-100",
-  };
-
-  const iconClasses = {
-    slate: "bg-white text-slate-500",
-    amber: "bg-white text-amber-500",
-    emerald: "bg-white text-emerald-500",
-  };
-
+// Stat Card Component
+function StatCard({
+  title,
+  value,
+  icon,
+  color,
+  bgColor,
+  textColor,
+}: {
+  title: string;
+  value: number;
+  icon: ReactNode;
+  color: string;
+  bgColor: string;
+  textColor: string;
+}) {
   return (
-    <div className={`flex items-center gap-4 rounded-2xl border p-5 transition hover:scale-105 ${colorClasses[color]}`}>
-      <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${iconClasses[color]}`}>
-        {icon}
+    <div className="group relative overflow-hidden rounded-xl bg-white p-5 shadow-md shadow-slate-900/5 transition-all hover:-translate-y-1 hover:shadow-lg">
+      <div className={`absolute inset-0 bg-gradient-to-br ${color} opacity-0 transition-opacity group-hover:opacity-5`} />
+      
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-slate-500">{title}</p>
+          <p className="mt-1 text-3xl font-black text-slate-900">{value}</p>
+        </div>
+        <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${bgColor} ${textColor} shadow-md`}>
+          {icon}
+        </div>
       </div>
-      <div>
-        <p className="text-3xl font-black">{value}</p>
-        <p className="text-sm font-medium opacity-80">{label}</p>
-      </div>
+      
+      <div className={`absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r ${color} transition-all duration-300 group-hover:w-full`} />
     </div>
   );
 }
 
+// Schedule Card Component
 function ScheduleCard({
   booking,
   onComplete,
   loading,
+  index,
 }: {
   booking: Booking;
   onComplete: () => void;
   loading: boolean;
+  index: number;
 }) {
-  const { t } = useTranslation();
-  const isDone = booking.status === "completed";
+  const isCompleted = booking.status === "completed";
+  const isPending = booking.status === "confirmed";
 
   return (
-    <article className={`group relative overflow-hidden rounded-[34px] border transition-all duration-300 hover:shadow-[0_24px_70px_rgba(15,23,42,0.12)] ${
-      isDone 
-        ? "border-emerald-100 bg-white/70" 
-        : "border-white/80 bg-white hover:border-slate-200"
-    }`}>
-      {/* Status Badge - Desktop Optimized */}
-      <div className="absolute right-5 top-5">
-        <span
-          className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold ${
-            isDone ? "bg-emerald-100 text-emerald-700" : "bg-amber-50 text-amber-700"
-          }`}
-        >
-          <span className={`h-2 w-2 rounded-full ${isDone ? "bg-emerald-500" : "bg-amber-500"}`} />
-          {isDone ? t("common.confirmed") : t("barberDashboard.pending")}
-        </span>
-      </div>
+    <div
+      className="group animate-in fade-in slide-in-from-bottom-2 duration-300"
+      style={{ animationDelay: `${index * 100}ms` }}
+    >
+      <div className="relative overflow-hidden rounded-2xl bg-white p-6 shadow-lg shadow-slate-900/5 border border-slate-100 transition-all hover:shadow-xl hover:-translate-y-1">
+        {/* Status Badge */}
+        <div className="absolute right-4 top-4">
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold ${
+              isCompleted
+                ? "bg-emerald-50 text-emerald-700"
+                : isPending
+                ? "bg-amber-50 text-amber-700"
+                : "bg-slate-100 text-slate-600"
+            }`}
+          >
+            <span
+              className={`h-2 w-2 rounded-full ${
+                isCompleted ? "bg-emerald-500" : isPending ? "bg-amber-500" : "bg-slate-500"
+              }`}
+            />
+            {isCompleted && "Yakunlangan"}
+            {isPending && "Kutilmoqda"}
+          </span>
+        </div>
 
-      {/* Content */}
-      <div className="p-6 md:p-8">
+        {/* Client Info */}
         <div className="pr-24">
-          <p className={`text-3xl font-black md:text-4xl ${isDone ? "text-slate-400 line-through" : "text-slate-950"}`}>
+          <h3 className="text-xl font-black text-slate-900">
             {booking.client_name}
+          </h3>
+          <p className="mt-1 font-mono text-sm text-slate-400">
+            #{booking.booking_code}
           </p>
-          <p className="mt-2 text-lg font-semibold text-slate-400 md:text-xl">#{booking.booking_code}</p>
         </div>
 
-        <div className="mt-8 space-y-4">
-          <InfoRow 
-            icon={<HiMiniClock className="text-xl text-slate-400 md:text-2xl" />} 
-            text={formatDisplayTime(booking.appointment_time)} 
-          />
-          <InfoRow 
-            icon={<HiMiniPhone className="text-xl text-slate-400 md:text-2xl" />} 
-            text={booking.client_phone} 
-          />
+        {/* Details */}
+        <div className="mt-5 space-y-3">
+          <div className="flex items-center gap-3 text-slate-600">
+            <div className="rounded-lg bg-amber-50 p-2">
+              <HiMiniClock className="h-4 w-4 text-amber-500" />
+            </div>
+            <span className="font-medium">
+              {formatDisplayTime(booking.appointment_time)}
+            </span>
+          </div>
+          
+          <div className="flex items-center gap-3 text-slate-600">
+            <div className="rounded-lg bg-amber-50 p-2">
+              <HiMiniPhone className="h-4 w-4 text-amber-500" />
+            </div>
+            <span className="font-medium">{booking.client_phone}</span>
+          </div>
         </div>
 
-        {isDone ? (
-          <div className="mt-8 inline-flex items-center gap-3 rounded-full bg-emerald-50 px-5 py-3 text-base font-semibold text-emerald-600 md:text-lg">
-            <HiMiniCheckCircle className="text-xl text-emerald-500 md:text-2xl" />
-            {t("barberDashboard.toast.completed")}
+        {/* Action Button */}
+        {isCompleted ? (
+          <div className="mt-6 flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-emerald-700">
+            <HiMiniCheckCircle className="h-5 w-5" />
+            <span className="text-sm font-bold">Xizmat yakunlangan</span>
           </div>
         ) : (
           <button
             type="button"
             onClick={onComplete}
             disabled={loading}
-            className="mt-8 flex h-14 w-full items-center justify-center gap-3 rounded-[22px] bg-black text-lg font-black text-white transition hover:bg-slate-800 hover:scale-[1.02] disabled:opacity-60 md:h-16 md:text-xl"
+            className="mt-6 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-slate-800 to-slate-900 text-sm font-bold text-white shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl disabled:opacity-50"
           >
-            <HiMiniCheckCircle className="text-xl md:text-2xl" />
-            {loading ? t("settings.updating") : t("barberSchedule.markCompleted")}
+            {loading ? (
+              <>
+                <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                Yakunlanmoqda
+              </>
+            ) : (
+              <>
+                <HiMiniCheckCircle className="h-5 w-5" />
+                Xizmatni yakunlash
+              </>
+            )}
           </button>
         )}
       </div>
-    </article>
-  );
-}
-
-function InfoRow({ icon, text }: { icon: ReactNode; text: string }) {
-  return (
-    <div className="flex items-center gap-4 text-base text-slate-600 md:text-lg">
-      {icon}
-      <span className="font-medium">{text}</span>
     </div>
   );
 }

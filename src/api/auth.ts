@@ -1,9 +1,14 @@
 import apiClient from "../apiClient/apiClient";
-import type { LoginPayload, LoginResponse, User } from "../types/types";
+import type { CustomerAuthPayload, LoginPayload, LoginResponse, User } from "../types/types";
 export { clearStoredAuth, getStoredAccessToken, getStoredRefreshToken, persistTokens } from "./authStorage";
 
 export async function loginUser(payload: LoginPayload) {
   const { data } = await apiClient.post<LoginResponse>("/auth/login", payload);
+  return data;
+}
+
+export async function loginCustomer(payload: CustomerAuthPayload) {
+  const { data } = await apiClient.post<LoginResponse>("/auth/customer", payload);
   return data;
 }
 
@@ -22,6 +27,17 @@ export function normalizeUser(user: User): User {
     role: user.role ?? "user",
     avatar: user.avatar ?? null,
     specialty: user.specialty ?? null,
+    bio: user.bio ?? null,
+    location_text: user.location_text ?? null,
+    location_lat: user.location_lat ?? null,
+    location_lng: user.location_lng ?? null,
+    work_start_time: user.work_start_time ?? null,
+    work_end_time: user.work_end_time ?? null,
+    services: user.services ?? [],
+    telegram_connected: user.telegram_connected ?? false,
+    telegram_notifications_enabled: user.telegram_notifications_enabled ?? false,
+    telegram_marketing_enabled: user.telegram_marketing_enabled ?? false,
+    telegram_connected_at: user.telegram_connected_at ?? null,
   };
 }
 

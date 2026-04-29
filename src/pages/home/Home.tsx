@@ -1,34 +1,22 @@
-import { useMemo, useState } from "react";
+import { type MouseEvent, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { 
-  HiMiniArrowRight, 
-  HiMiniStar, 
-  HiOutlineUser, 
-  HiOutlineCalendar, 
+import { Menu, MenuItem } from "@mui/material";
+import {
+  HiMiniMap,
+  HiMiniMapPin,
+  HiMiniMagnifyingGlass,
+  HiOutlineChevronRight,
   HiOutlineScissors,
-  HiOutlineSparkles,
-  HiOutlineClock,
-  HiOutlineCheckBadge
 } from "react-icons/hi2";
 import { listPublicBarbers } from "../../api/bookings";
+import { getErrorMessage } from "../../api/auth";
 import LanguageSwitcher from "../../components/LanguageSwitcher";
-import { formatDisplayDate, formatDisplayTime, getStoredConfirmedBooking } from "./bookingUtils";
-
-function BrandMark({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
-  const sizes = {
-    sm: "h-8 w-8 rounded-xl",
-    md: "h-10 w-10 rounded-2xl",
-    lg: "h-20 w-20 rounded-2xl"
-  };
-  
-  return (
-    <div className={`${sizes[size]} relative flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-700 text-white shadow-lg transition-all duration-300 hover:shadow-xl`}>
-      <HiOutlineScissors className={size === "lg" ? "h-8 w-8" : "h-5 w-5"} strokeWidth={1.5} />
-    </div>
-  );
-}
+import useContextPro from "../../hooks/useContextPro";
+import { getDefaultRouteForRole, getUserRoleLabel } from "../../utils/roles";
+import { formatDistance, getBrowserLocation, type Coordinates } from "../../utils/location";
+import { showLocationErrorToast } from "../../utils/locationToast";
 
 function getInitials(name: string) {
   return name
@@ -39,377 +27,496 @@ function getInitials(name: string) {
     .toUpperCase();
 }
 
-function getBarberAccent(seed: string) {
-  const accents = [
-    { icon: HiOutlineScissors, color: "from-amber-500 to-orange-500" },
-    { icon: HiOutlineUser, color: "from-blue-500 to-cyan-500" },
-    { icon: HiOutlineSparkles, color: "from-rose-500 to-pink-500" },
-    { icon: HiOutlineCheckBadge, color: "from-emerald-500 to-teal-500" },
-  ] as const;
+function HeaderProfileLink({
+  fullName,
+  avatar,
+  roleLabel,
+  onClick,
+}: {
+  fullName: string;
+  avatar?: string | null;
+  roleLabel: string;
+  onClick: (event: MouseEvent<HTMLButtonElement>) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{ borderRadius: "20px" }}
+      className="flex items-center gap-2 bg-white px-2 py-1.5 pr-3 text-left shadow-sm transition hover:bg-slate-50 sm:gap-3 sm:py-2 sm:pr-4"
+    >
+      {avatar ? (
+        <img
+          src={avatar}
+          alt={fullName}
+          className="h-9 w-9 rounded-full object-cover ring-2 ring-slate-100 sm:h-11 sm:w-11"
+        />
+      ) : (
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 text-sm font-black text-white sm:h-11 sm:w-11">
+          {getInitials(fullName)}
+        </div>
+      )}
 
-  const hash = seed.split("").reduce((total, char) => total + char.charCodeAt(0), 0);
-  return accents[hash % accents.length];
+      <div className="hidden min-w-0 sm:block">
+        <p className="truncate text-sm font-black text-slate-950">{fullName}</p>
+        <p className="truncate text-xs font-medium text-slate-500">
+          {roleLabel}
+        </p>
+      </div>
+
+      <HiOutlineChevronRight className="h-4 w-4 shrink-0 text-slate-400" />
+    </button>
+  );
 }
 
-// Skeleton Components
+function formatMoney(value?: number | null) {
+  if (value == null) return "Narx yo'q";
+  return `${value.toLocaleString("ru-RU")} so'm`;
+}
+
+function formatWorkingHours(start?: string | null, end?: string | null) {
+  if (!start || !end) return "Jadval yo'q";
+  return `${start.slice(0, 5)} - ${end.slice(0, 5)}`;
+}
+
 function BarberCardSkeleton() {
   return (
-    <div className="animate-pulse rounded-[28px] border border-slate-200 bg-white p-4">
-      <div className="flex items-center gap-4">
-        <div className="h-[76px] w-[76px] rounded-[22px] bg-gradient-to-br from-slate-200 to-slate-100"></div>
-        <div className="flex-1 space-y-3">
-          <div className="h-5 w-32 rounded-lg bg-slate-200"></div>
-          <div className="h-4 w-24 rounded-lg bg-slate-200"></div>
-          <div className="flex gap-4">
-            <div className="h-4 w-16 rounded-lg bg-slate-200"></div>
-            <div className="h-4 w-16 rounded-lg bg-slate-200"></div>
-          </div>
+    <div className="animate-pulse overflow-hidden rounded-[28px] bg-white shadow-lg">
+      <div className="h-48 bg-slate-200 sm:h-56" />
+      <div className="space-y-4 p-4 sm:p-5">
+        <div className="h-6 w-3/4 rounded bg-slate-200" />
+        <div className="h-4 w-1/2 rounded bg-slate-100" />
+        <div className="grid grid-cols-3 gap-2">
+          <div className="h-[70px] rounded-2xl bg-slate-100 sm:h-[78px]" />
+          <div className="h-[70px] rounded-2xl bg-slate-100 sm:h-[78px]" />
+          <div className="h-[70px] rounded-2xl bg-slate-100 sm:h-[78px]" />
         </div>
-        <div className="h-12 w-12 rounded-full bg-slate-200"></div>
+        <div className="h-[60px] rounded-[24px] bg-slate-100 sm:h-[70px]" />
+        <div className="h-10 rounded-2xl bg-slate-200 sm:h-12" />
       </div>
     </div>
   );
 }
 
-function HeroSkeleton() {
+function EmptyBarbersState({
+  hasLocationFilter,
+  radiusKm,
+  onExpandRadius,
+  onReset,
+}: {
+  hasLocationFilter: boolean;
+  radiusKm: number;
+  onExpandRadius: () => void;
+  onReset: () => void;
+}) {
+  const { t } = useTranslation();
+  
   return (
-    <div className="animate-pulse rounded-[36px] bg-white/50 p-6 shadow-lg sm:p-8">
-      <div className="flex items-center gap-3">
-        <div className="h-8 w-8 rounded-xl bg-slate-200"></div>
-        <div className="h-4 w-32 rounded bg-slate-200"></div>
-      </div>
-      <div className="mt-6 space-y-3">
-        <div className="h-12 w-64 rounded-lg bg-slate-200"></div>
-        <div className="h-6 w-96 rounded-lg bg-slate-200"></div>
-      </div>
-      <div className="mt-8 space-y-4">
-        {[1, 2, 3, 4].map((i) => (
-          <BarberCardSkeleton key={i} />
-        ))}
+    <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-lg sm:rounded-[36px] sm:p-8 sm:shadow-[0_30px_80px_rgba(15,23,42,0.08)] md:p-10">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(251,191,36,0.08),_transparent_40%),radial-gradient(circle_at_bottom_left,_rgba(15,23,42,0.04),_transparent_40%)]" />
+
+      <div className="relative mx-auto max-w-3xl text-center">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-xl sm:h-20 sm:w-20 sm:rounded-[28px]">
+          {hasLocationFilter ? (
+            <HiMiniMapPin className="h-7 w-7 sm:h-9 sm:w-9" />
+          ) : (
+            <HiMiniMagnifyingGlass className="h-7 w-7 sm:h-9 sm:w-9" />
+          )}
+        </div>
+
+        <h3 className="mt-4 text-2xl font-black tracking-tight text-slate-950 sm:mt-6 sm:text-3xl md:text-4xl">
+          {hasLocationFilter ? "Yaqin atrofda barber topilmadi" : "Hozircha barberlar topilmadi"}
+        </h3>
+
+        <p className="mx-auto mt-2 max-w-2xl text-sm leading-relaxed text-slate-500 sm:mt-3 sm:text-base">
+          {hasLocationFilter
+            ? `${radiusKm} km radius ichida hozircha barber yo'q. Radiusni kattalashtirib ko'ring yoki umumiy ro'yxatga qayting.`
+            : "Barberlar ma'lumoti hali to'liq joylanmagan. Birozdan keyin qayta tekshirib ko'ring."}
+        </p>
+
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-2 sm:mt-8 sm:gap-3">
+          {hasLocationFilter ? (
+            <button
+              type="button"
+              onClick={onExpandRadius}
+              className="inline-flex h-10 items-center justify-center rounded-xl bg-slate-950 px-5 text-sm font-bold text-white shadow-lg transition hover:bg-slate-800 sm:h-12 sm:rounded-2xl sm:px-6"
+            >
+              Radiusni kengaytirish
+            </button>
+          ) : null}
+
+          <button
+            type="button"
+            onClick={onReset}
+            className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-5 text-sm font-bold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 sm:h-12 sm:rounded-2xl sm:px-6"
+          >
+            Filterni tozalash
+          </button>
+        </div>
       </div>
     </div>
   );
 }
 
 export default function Home() {
-  const navigate = useNavigate();
   const { t } = useTranslation();
-  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
-  const confirmedBooking = getStoredConfirmedBooking();
-  
+  const navigate = useNavigate();
+  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+  const [searchLocation, setSearchLocation] = useState<Coordinates | null>(null);
+  const [radiusKm, setRadiusKm] = useState(10);
+  const [sortBy, setSortBy] = useState<"distance" | "price_asc" | "price_desc">("distance");
+  const [detectingLocation, setDetectingLocation] = useState(false);
+
+  const {
+    state: { user },
+    logout,
+  } = useContextPro();
+
   const barbersQuery = useQuery({
-    queryKey: ["public-barbers"],
-    queryFn: listPublicBarbers,
+    queryKey: ["public-barbers", searchLocation?.lat ?? null, searchLocation?.lng ?? null, radiusKm, sortBy],
+    queryFn: () =>
+      listPublicBarbers({
+        lat: searchLocation?.lat,
+        lng: searchLocation?.lng,
+        radius_km: searchLocation ? radiusKm : undefined,
+        sort_by: sortBy,
+      }),
   });
 
   const barbers = useMemo(() => {
-    return (barbersQuery.data ?? []).map((barber) => {
-      const specialty = barber.specialty?.trim() || null;
-      const accent = getBarberAccent(`${barber.id}-${barber.full_name}`);
-
-      return {
-        ...barber,
-        specialty,
-        specialtyIcon: accent.icon,
-        specialtyColor: accent.color,
-      };
-    });
-  }, [barbersQuery.data, t]);
+    return (barbersQuery.data ?? []).map((barber) => ({
+      ...barber,
+      specialty: barber.specialty?.trim() || "Professional barber",
+    }));
+  }, [barbersQuery.data]);
 
   const isLoading = barbersQuery.isLoading;
-  const hasBarbers = !isLoading && barbers.length > 0;
+  const isLoggedIn = Boolean(user?.role);
+  const profileRoute = getDefaultRouteForRole(user);
+  const isMenuOpen = Boolean(menuAnchor);
+
+  useEffect(() => {
+    if (user?.location_lat != null && user?.location_lng != null) {
+      setSearchLocation({ lat: user.location_lat, lng: user.location_lng });
+    }
+  }, [user?.location_lat, user?.location_lng]);
+
+  const handleOpenMenu = (event: MouseEvent<HTMLButtonElement>) => {
+    setMenuAnchor(event.currentTarget);
+  };
+
+  const handleCloseMenu = () => {
+    setMenuAnchor(null);
+  };
+
+  const handleGoToProfile = () => {
+    handleCloseMenu();
+    navigate(profileRoute);
+  };
+
+  const handleLogout = async () => {
+    handleCloseMenu();
+    await logout();
+  };
+
+  const handleUseMyLocation = async () => {
+    try {
+      setDetectingLocation(true);
+      const coords = await getBrowserLocation();
+      setSearchLocation(coords);
+    } catch (error) {
+      showLocationErrorToast(getErrorMessage(error, "Lokatsiyani aniqlab bo'lmadi"));
+    } finally {
+      setDetectingLocation(false);
+    }
+  };
+
+  const handleResetFilters = () => {
+    setSearchLocation(null);
+    setRadiusKm(10);
+    setSortBy("distance");
+  };
+
+  const handleExpandRadius = () => {
+    setRadiusKm((current) => {
+      if (current < 5) return 5;
+      if (current < 10) return 10;
+      if (current < 20) return 20;
+      return current + 10;
+    });
+  };
 
   return (
-    <div className="home-theme min-h-screen overflow-hidden bg-white">
-      {/* Animated Background Elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-gradient-to-r from-amber-200/20 to-amber-100/10 blur-3xl"></div>
-        <div className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-gradient-to-l from-slate-200/20 to-slate-100/10 blur-3xl"></div>
-        <div className="absolute top-1/2 left-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-t from-amber-100/5 to-transparent blur-3xl"></div>
-      </div>
-
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-black/5 bg-white/80 backdrop-blur-xl">
-        <div className="relative mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <Link to="/" className="group flex items-center gap-3 self-start transition-all hover:scale-[1.02]">
-              <BrandMark />
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.28em] text-slate-400 sm:tracking-[0.35em]">{t("brand.name")}</p>
-                <p className="hidden text-xs text-slate-500 sm:block">{t("home.brandSubtitle")}</p>
-              </div>
-            </Link>
-
-            <div className="flex w-full justify-end lg:w-auto">
-              <div className="flex w-full flex-wrap items-center justify-end gap-2 rounded-[28px] border border-white/70 bg-white/72 p-1.5 shadow-[0_16px_40px_rgba(148,163,184,0.18)] backdrop-blur-xl sm:w-auto sm:gap-2">
-                <Link
-                  to="/login"
-                  className="group relative inline-flex h-10 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-white/80 px-5 text-sm font-medium text-slate-700 transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white hover:shadow-md"
-                >
-                  <span className="relative z-10">{t("home.barberLogin")}</span>
-                  <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-slate-100 to-transparent transition-transform duration-300 group-hover:translate-x-0"></div>
-                </Link>
-
-                <Link
-                  to="/login"
-                  className="group relative inline-flex h-10 items-center justify-center overflow-hidden rounded-full bg-gradient-to-r from-slate-900 to-slate-800 px-5 text-sm font-medium text-white shadow-md transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-500/25"
-                >
-                  <span className="relative z-10">{t("home.adminPortal")}</span>
-                  <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-white/20 to-transparent transition-transform duration-500 group-hover:translate-x-0"></div>
-                </Link>
-                <LanguageSwitcher />
-
-              </div>
+    <div className="min-h-screen bg-[#f7f4ee] text-slate-950">
+      <header className="sticky top-0 z-50 border-b border-slate-200/70 bg-white/85 backdrop-blur-2xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2 sm:px-6 sm:py-3 lg:px-8">
+          {/* Logo */}
+          <Link to="/" className="group flex shrink-0 items-center gap-2 sm:gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-950 text-white shadow-lg transition group-hover:scale-105 sm:h-12 sm:w-12 sm:rounded-2xl">
+              <HiOutlineScissors className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
+
+            <div className="hidden sm:block">
+              <p className="text-xs font-black uppercase tracking-[0.35em] text-slate-950 sm:text-sm">
+                {t("brand.name")}
+              </p>
+              <p className="text-[11px] font-medium text-slate-500 sm:text-xs">
+                {t("home.brandSubtitle")}
+              </p>
+            </div>
+          </Link>
+
+          {/* Right Actions */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <LanguageSwitcher />
+
+            {isLoggedIn ? (
+              <>
+                <HeaderProfileLink
+                  fullName={user?.full_name ?? t("home.myAccount")}
+                  avatar={user?.avatar}
+                  roleLabel={getUserRoleLabel(user)}
+                  onClick={handleOpenMenu}
+                />
+
+                <Menu
+                  anchorEl={menuAnchor}
+                  open={isMenuOpen}
+                  onClose={handleCloseMenu}
+                  transformOrigin={{ horizontal: "right", vertical: "top" }}
+                  anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+                  slotProps={{
+                    paper: {
+                      elevation: 0,
+                      sx: {
+                        mt: 1.25,
+                        minWidth: 180,
+                        border: "1px solid rgba(15, 23, 42, 0.08)",
+                        boxShadow: "0 24px 60px rgba(15,23,42,0.16)",
+                        overflow: "hidden",
+                      },
+                    },
+                  }}
+                >
+                  <MenuItem onClick={handleGoToProfile}>
+                    <div className="flex w-full items-center justify-between gap-4">
+                      <span className="text-sm font-bold">
+                        {t("home.myAccount")}
+                      </span>
+                      <HiOutlineChevronRight className="h-4 w-4 text-slate-400" />
+                    </div>
+                  </MenuItem>
+
+                  <MenuItem onClick={() => void handleLogout()}>
+                    <div className="flex w-full items-center justify-between gap-4 text-red-600">
+                      <span className="text-sm font-bold">
+                        {t("home.signOut")}
+                      </span>
+                      <HiOutlineChevronRight className="h-4 w-4 text-red-400" />
+                    </div>
+                  </MenuItem>
+                </Menu>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/user/access"
+                  className="hidden rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 sm:inline-flex sm:px-5 sm:py-2.5"
+                >
+                  Mijoz kabineti
+                </Link>
+
+                <Link
+                  to="/login"
+                  className="rounded-full bg-slate-950 px-4 py-2 text-sm font-bold text-white shadow-lg transition hover:bg-slate-800 sm:px-5 sm:py-2.5"
+                >
+                  Admin panel
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </header>
 
-      <main className="relative mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-12">
-        {confirmedBooking ? (
-          <section className="mb-6 rounded-[28px] border border-emerald-100 bg-gradient-to-r from-emerald-50 to-teal-50 p-4 shadow-sm sm:mb-8 sm:p-5">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div className="min-w-0">
-                <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-700">
-                  {t("home.latestBooking")}
-                </p>
-                <p className="mt-1 text-lg font-black text-slate-950 sm:text-xl">
-                  #{confirmedBooking.bookingCode}
-                </p>
-                <p className="mt-1 text-sm text-slate-600">
-                  {t("home.latestBookingHint", {
-                    date: formatDisplayDate(confirmedBooking.date),
-                    time: formatDisplayTime(confirmedBooking.time),
-                  })}
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => navigate(`/book/success/${confirmedBooking.bookingCode}`)}
-                className="inline-flex h-12 items-center justify-center rounded-full bg-slate-900 px-5 text-sm font-bold text-white shadow-md transition hover:bg-slate-800 hover:shadow-lg"
-              >
-                {t("home.openLatestBooking")}
-              </button>
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10 lg:px-8">
+        <section>
+          <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h1 className="text-3xl font-black tracking-tight sm:text-4xl md:text-5xl">
+                {t("home.ourBarbers")}
+              </h1>
+              <p className="mt-1 text-sm text-slate-500 sm:mt-2 sm:text-base">
+                {t("home.chooseExpert")}
+              </p>
             </div>
-          </section>
-        ) : null}
-
-        <div className="grid gap-6 lg:grid-cols-[0.92fr_1.08fr] lg:gap-8">
-          {/* Hero Section */}
-          <section className="relative">
-            {isLoading ? (
-              <HeroSkeleton />
-            ) : (
-              <div className="relative overflow-hidden rounded-[32px] bg-white/70 p-5 shadow-xl backdrop-blur-sm transition-all duration-500 hover:shadow-2xl sm:p-8">
-                {/* Decorative Gradient */}
-                <div className="absolute inset-0 bg-gradient-to-br from-amber-50/30 to-transparent"></div>
+            
+            <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:min-w-[380px] sm:rounded-3xl md:min-w-[420px]">
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => void handleUseMyLocation()}
+                  disabled={detectingLocation}
+                  className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-slate-950 px-3 py-2 text-sm font-bold text-white transition disabled:opacity-50 sm:flex-none sm:px-4"
+                >
+                  <HiMiniMap className="h-4 w-4" />
+                  {detectingLocation ? "Aniqlanmoqda..." : "Yaqin barberlar"}
+                </button>
                 
-                <div className="relative">
-                  <div className="flex items-center gap-3">
-                    <BrandMark size="sm" />
-                    <p className="text-xs font-bold uppercase tracking-[0.32em] text-amber-600">{t("home.experienceLabel")}</p>
-                  </div>
+                {searchLocation ? (
+                  <button
+                    type="button"
+                    onClick={handleResetFilters}
+                    className="rounded-full border border-slate-200 px-3 py-2 text-sm font-bold text-slate-600 transition hover:bg-slate-50 sm:px-4"
+                  >
+                    Filterni tozalash
+                  </button>
+                ) : null}
+              </div>
 
-                  <h1 className="mt-6 max-w-[12ch] text-4xl font-black leading-[1.02] tracking-tight text-slate-950 sm:text-5xl lg:max-w-none lg:text-6xl">
-                    {t("home.heroTitleStart")}
-                    <span className="bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent"> {t("home.heroTitleAccent")}</span>
-                  </h1>
-                  
-                  <p className="mt-4 max-w-xl text-base text-slate-600 sm:text-lg">
-                    {t("home.heroDescription")}
-                  </p>
-
-                  {/* Stats */}
-                  <div className="mt-6 grid grid-cols-1 gap-3 sm:flex sm:flex-wrap sm:gap-6">
-                    <div className="flex items-center gap-2">
-                      <div className="rounded-full bg-amber-100 p-1.5">
-                        <HiOutlineClock className="h-4 w-4 text-amber-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-slate-900">30+ Min</p>
-                        <p className="text-xs text-slate-500">{t("home.stats.perSession")}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="rounded-full bg-emerald-100 p-1.5">
-                        <HiMiniStar className="h-4 w-4 text-emerald-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-slate-900">4.8 ★</p>
-                        <p className="text-xs text-slate-500">{t("home.stats.customerRating")}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="rounded-full bg-purple-100 p-1.5">
-                        <HiOutlineUser className="h-4 w-4 text-purple-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-slate-900">10+</p>
-                        <p className="text-xs text-slate-500">{t("home.stats.expertBarbers")}</p>
-                      </div>
-                    </div>
-                  </div>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 sm:text-sm">
+                    Radius
+                  </label>
+                  <select
+                    value={radiusKm}
+                    onChange={(event) => setRadiusKm(Number(event.target.value))}
+                    className="mt-1 h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none focus:ring-2 focus:ring-slate-300 sm:h-11"
+                  >
+                    <option value={3}>3 km</option>
+                    <option value={5}>5 km</option>
+                    <option value={10}>10 km</option>
+                    <option value={20}>20 km</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="text-xs font-bold text-slate-700 sm:text-sm">
+                    Saralash
+                  </label>
+                  <select
+                    value={sortBy}
+                    onChange={(event) => setSortBy(event.target.value as "distance" | "price_asc" | "price_desc")}
+                    className="mt-1 h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none focus:ring-2 focus:ring-slate-300 sm:h-11"
+                  >
+                    <option value="distance">Eng yaqin</option>
+                    <option value="price_asc">Eng arzon</option>
+                    <option value="price_desc">Eng qimmat</option>
+                  </select>
                 </div>
               </div>
-            )}
-          </section>
-
-          {/* Barbers Section */}
-          <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-black text-slate-950">{t("home.ourBarbers")}</h2>
-                <p className="text-sm text-slate-500">{t("home.chooseExpert")}</p>
-              </div>
-              {hasBarbers && (
-                <div className="text-xs font-medium text-amber-600">
-                  {t("home.availableCount", { count: barbers.length })}
-                </div>
-              )}
             </div>
+          </div>
 
-            <div
-              className={`space-y-4 ${
-                barbers.length > 4
-                  ? "custom-scrollbar max-h-[43rem] overflow-y-auto pr-2"
-                  : ""
-              }`}
-            >
-              {isLoading ? (
-                <>
-                  <BarberCardSkeleton />
-                  <BarberCardSkeleton />
-                  <BarberCardSkeleton />
-                  <BarberCardSkeleton />
-                </>
-              ) : hasBarbers ? (
-                barbers.map((barber, idx) => {
-                  const SpecialtyIcon = barber.specialtyIcon;
-                  const isHovered = hoveredCard === idx;
-                  
-                  return (
-                    <div
-                      key={barber.id}
-                      className="group relative transform transition-all duration-300 hover:scale-[1.02]"
-                      onMouseEnter={() => setHoveredCard(idx)}
-                      onMouseLeave={() => setHoveredCard(null)}
-                    >
-                      <div className={`absolute inset-0 rounded-2xl bg-gradient-to-r ${barber.specialtyColor} opacity-0 blur-xl transition-opacity duration-500 group-hover:opacity-20`}></div>
-                      
-                      <article
-                        role="link"
-                        tabIndex={0}
-                        onClick={() => navigate(`/book/${barber.id}`)}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter" || event.key === " ") {
-                            event.preventDefault();
-                            navigate(`/book/${barber.id}`);
-                          }
-                        }}
-                        className="relative flex cursor-pointer items-center gap-3 rounded-[28px] border border-slate-200 bg-white p-4 shadow-md transition-all duration-300 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-amber-400 sm:gap-4 sm:p-5"
-                      >
-                        {/* Avatar */}
-                        {barber.avatar ? (
-                          <img 
-                            src={barber.avatar} 
-                            alt={barber.full_name} 
-                            className="h-[72px] w-[72px] rounded-xl object-cover ring-2 ring-white shadow-lg transition-transform duration-300 group-hover:scale-105 sm:h-[80px] sm:w-[80px]" 
-                          />
-                        ) : (
-                          <div className={`flex h-[72px] w-[72px] items-center justify-center rounded-xl bg-gradient-to-br ${barber.specialtyColor} text-xl font-black text-white shadow-lg transition-transform duration-300 group-hover:scale-105 sm:h-[80px] sm:w-[80px]`}>
-                            {getInitials(barber.full_name)}
-                          </div>
-                        )}
+          {isLoading ? (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {[1, 2, 3].map((item) => (
+                <BarberCardSkeleton key={item} />
+              ))}
+            </div>
+          ) : barbers.length === 0 ? (
+            <EmptyBarbersState
+              hasLocationFilter={Boolean(searchLocation)}
+              radiusKm={radiusKm}
+              onExpandRadius={handleExpandRadius}
+              onReset={handleResetFilters}
+            />
+          ) : (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {barbers.map((barber) => (
+                <article
+                  key={barber.id}
+                  className="group relative h-[420px] overflow-hidden rounded-2xl bg-black shadow-lg transition-shadow hover:shadow-xl sm:h-[460px] sm:rounded-[32px] sm:shadow-[0_25px_80px_rgba(0,0,0,0.4)]"
+                >
+                  {/* Image - full cover */}
+                  <img
+                    src={barber.avatar ?? undefined}
+                    alt={barber.full_name}
+                    className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-110"
+                  />
 
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <h2 className="truncate text-lg font-black text-slate-950 sm:text-xl">
-                              {barber.full_name}
-                            </h2>
-                            {isHovered && (
-                              <div className="animate-fadeIn">
-                                <HiOutlineCheckBadge className="h-4 w-4 text-emerald-500" />
-                              </div>
+                  {/* Gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+
+                  {/* Top icon */}
+                  <div className="absolute left-4 top-4 flex h-9 w-9 items-center justify-center rounded-full border border-white/30 bg-white/10 backdrop-blur-lg sm:left-5 sm:top-5 sm:h-11 sm:w-11">
+                    <HiOutlineScissors className="h-4 w-4 text-white sm:h-5 sm:w-5" />
+                  </div>
+
+                  {/* Rating badge */}
+                  <div className="absolute right-4 top-4 rounded-full bg-black/60 px-2 py-0.5 text-xs font-bold text-white backdrop-blur-md sm:right-5 sm:top-5 sm:px-3 sm:py-1 sm:text-sm">
+                    ⭐ {barber.average_rating?.toFixed(1) || "5.0"}
+                  </div>
+
+                  {/* Bottom card - slides up on hover */}
+                  <div className="absolute inset-x-3 bottom-3 translate-y-[60px] transition-all duration-500 ease-out group-hover:translate-y-0 sm:inset-x-4 sm:bottom-4 sm:translate-y-[70px]">
+                    <div className="rounded-xl border border-white/20 bg-white/10 p-3 text-white backdrop-blur-xl sm:rounded-2xl sm:p-4">
+                      {/* Name */}
+                      <h2 className="text-lg font-black leading-tight sm:text-2xl">
+                        {barber.full_name}
+                      </h2>
+
+                      {/* Specialty */}
+                      <p className="mt-0.5 text-xs text-white/70 sm:mt-1 sm:text-sm">
+                        {barber.specialty}
+                      </p>
+
+                      {/* Info grid */}
+                      <div className="mt-3 grid grid-cols-3 gap-1.5 text-[10px] sm:mt-4 sm:gap-2 sm:text-xs">
+                        <div className="rounded-lg bg-white/10 p-1.5 text-center backdrop-blur sm:rounded-xl sm:p-2">
+                          <p className="text-white/50">Jadval</p>
+                          <p className="font-bold leading-tight">
+                            {formatWorkingHours(
+                              barber.work_start_time,
+                              barber.work_end_time,
                             )}
-                          </div>
-                          
-                          {barber.specialty ? (
-                            <div className="mt-1 flex items-center gap-1.5">
-                              <SpecialtyIcon className="h-3.5 w-3.5 text-amber-500" />
-                              <p className="text-sm font-semibold text-slate-500">
-                                {barber.specialty}
-                              </p>
-                            </div>
-                          ) : null}
-                          
-                          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-semibold">
-                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5">
-                              <HiMiniStar className="text-sm text-amber-500" />
-                              <span className="text-slate-700">{barber.average_rating.toFixed(1)}</span>
-                              <span className="text-slate-400">({barber.reviews_count})</span>
-                            </span>
-                            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5">
-                              <HiOutlineUser className="text-sm text-slate-500" />
-                              <span className="text-slate-700">{t("home.bookingsCount", { count: barber.completed_bookings_count })}</span>
-                            </span>
-                          </div>
+                          </p>
                         </div>
 
-                        <Link
-                          to={`/book/${barber.id}`}
-                          className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-r from-slate-900 to-slate-800 text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:shadow-slate-500/25 group-hover:scale-110"
-                        >
-                          <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent translate-x-full transition-transform duration-500 group-hover:translate-x-0"></div>
-                          <HiMiniArrowRight className="relative z-10 text-xl transition-transform duration-300 group-hover:translate-x-0.5" />
-                        </Link>
-                      </article>
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="rounded-2xl border-2 border-dashed border-slate-300 bg-white/50 p-8 text-center backdrop-blur-sm">
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="rounded-full bg-slate-100 p-3">
-                      <HiOutlineScissors className="h-8 w-8 text-slate-400" />
-                    </div>
-                    <p className="text-lg font-bold text-slate-950">{t("home.noBarbersTitle")}</p>
-                    <p className="text-sm text-slate-500">
-                      {t("home.noBarbersDescription")}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
+                        <div className="rounded-lg bg-white/10 p-1.5 text-center backdrop-blur sm:rounded-xl sm:p-2">
+                          <p className="text-white/50">Joy</p>
+                          <p className="line-clamp-1 font-bold leading-tight">
+                            {barber.location_text || "—"}
+                          </p>
+                        </div>
 
-            {/* Booking Tips */}
-            {hasBarbers && (
-              <div className="mt-6 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 p-4">
-                <div className="flex items-start gap-3">
-                  <div className="rounded-full bg-amber-100 p-2">
-                    <HiOutlineCalendar className="h-4 w-4 text-amber-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-slate-900">{t("home.bookingTips")}</p>
-                    <p className="text-xs text-slate-600">
-                      {t("home.bookingTip")}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
+                        <div className="rounded-lg bg-white/10 p-1.5 text-center backdrop-blur sm:rounded-xl sm:p-2">
+                          <p className="text-white/50">Narxi</p>
+                          <p className="truncate font-bold text-amber-300 sm:whitespace-normal">
+                            {formatMoney(barber.price_from)}
+                          </p>
+                        </div>
+                      </div>
 
-            <div className="flex items-center justify-center gap-4 pt-3 text-sm font-semibold text-slate-400 sm:hidden">
-              <Link to="/login" className="underline underline-offset-4 transition hover:text-slate-700">
-                {t("home.barberLogin")}
-              </Link>
-              <span className="text-slate-300">|</span>
-              <Link to="/login" className="underline underline-offset-4 transition hover:text-slate-700">
-                {t("home.adminPortal")}
-              </Link>
+                      {/* Tags */}
+                      <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px] sm:mt-3 sm:gap-2 sm:text-xs">
+                        {barber.distance_km != null ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-400/20 px-2 py-0.5 font-bold text-emerald-200 sm:px-2.5 sm:py-1">
+                            <HiMiniMapPin className="h-3 w-3" />
+                            {formatDistance(barber.distance_km)}
+                          </span>
+                        ) : null}
+                        {barber.services?.some((service) => service.discount_price != null) ? (
+                          <span className="rounded-full bg-rose-400/20 px-2 py-0.5 font-bold text-rose-100 sm:px-2.5 sm:py-1">
+                            Aksiya mavjud
+                          </span>
+                        ) : null}
+                      </div>
+
+                      {/* Book button */}
+                      <Link
+                        to={`/book/${barber.id}`}
+                        className="mt-3 flex h-9 items-center justify-center rounded-lg bg-white/20 text-xs font-bold text-white backdrop-blur-md transition hover:bg-amber-400 hover:text-black sm:mt-4 sm:h-11 sm:rounded-xl sm:text-sm"
+                      >
+                        Bron qilish
+                      </Link>
+                    </div>
+                  </div>
+                </article>
+              ))}
             </div>
-          </section>
-        </div>
+          )}
+        </section>
       </main>
     </div>
   );

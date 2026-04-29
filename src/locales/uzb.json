@@ -50,6 +50,9 @@
   },
   "home": {
     "brandSubtitle": "Premium sartaroshxona",
+    "customerAccess": "Mijoz kabineti",
+    "myAccount": "Mening kabinetim",
+    "signOut": "Chiqish",
     "barberLogin": "Sartarosh kirishi",
     "adminPortal": "Admin panel",
     "experienceLabel": "Sartaroshlik tajribasi",
@@ -109,18 +112,51 @@
     "goBackTryAgain": "Orqaga qayting va qayta urinib ko'ring",
     "contactInfo": "Aloqa ma'lumotlari",
     "contactSubtitle": "Tasdiq xabari shu ma'lumotlarga yuboriladi",
+    "savedProfileSubtitle": "Sizning profilingiz saqlangan. Navbat shu ma'lumotlar bilan tasdiqlanadi.",
+    "registerSubtitle": "Bir marta ro'yxatdan o'ting, keyingi safar ma'lumotlarni qayta kiritmaysiz.",
     "namePlaceholder": "Masalan, Ali Valiyev",
     "validName": "Iltimos, to'g'ri ism kiriting",
     "phonePlaceholder": "+998 90 123 45 67",
     "phoneFormat": "O'zbekiston raqami formati: +998 90 123 45 67",
     "reminder": "Navbatingizdan oldin eslatma yuboramiz",
     "cancellation": "Uchrashuvdan 2 soat oldin bepul bekor qilishingiz mumkin",
+    "registerCardTitle": "Avval mijoz kabinetiga kiring",
+    "registerCardText": "Ism va telefon raqamingiz bir marta saqlanadi. Keyingi navbatlarda shu profil bilan bir bosishda yozilasiz.",
+    "openAccount": "Kabinet orqali davom etish",
     "confirmingBooking": "Band qilish tasdiqlanmoqda...",
     "confirmBooking": "Band qilishni tasdiqlash",
     "toast": {
       "success": "Band qilish muvaffaqiyatli tasdiqlandi",
       "error": "Band qilishni yaratib bo'lmadi"
     }
+  },
+  "customerAccess": {
+    "badge": "Mijoz kirishi",
+    "title": "Bir marta ro'yxatdan o'ting va navbatlaringizni kuzatib boring",
+    "description": "Ism va telefon raqamingiz saqlanadi. Keyingi safar qayta-qayta kiritmasdan to'g'ridan-to'g'ri navbat olasiz.",
+    "formTitle": "Kabinetga kirish",
+    "formSubtitle": "Agar shu telefon bilan oldin kirgan bo'lsangiz, profilingiz avtomatik topiladi.",
+    "info": "Biz shu telefon raqami orqali profilingizni eslab qolamiz va barcha navbatlaringizni bitta kabinetda ko'rsatamiz.",
+    "submit": "Davom etish",
+    "toast": {
+      "success": "Kabinet muvaffaqiyatli ochildi",
+      "error": "Kabinetga kirib bo'lmadi"
+    },
+    "validation": {
+      "fullName": "To'liq ism kamida 3 ta belgi bo'lsin",
+      "phone": "Telefon raqamini to'liq kiriting"
+    }
+  },
+  "customerDashboard": {
+    "badge": "Mening kabinetim",
+    "title": "Navbatlarim",
+    "subtitle": "Tasdiqlangan, bajarilgan va bekor qilingan navbatlaringiz shu yerda ko'rinadi.",
+    "bookingsCount": "{{count}} ta navbat",
+    "newBooking": "Yangi navbat olish",
+    "nextBooking": "Yaqin navbatingiz",
+    "phoneLabel": "Telefon",
+    "emptyTitle": "Hozircha navbatlar yo'q",
+    "emptyDescription": "Bosh sahifadan ustani tanlab, birinchi navbatingizni oling."
   },
   "bookingSuccess": {
     "title": "Hammasi tayyor!",

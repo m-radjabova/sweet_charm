@@ -20,14 +20,24 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const requestUrl = String(originalRequest?.url ?? "");
+    const isAuthRequest =
+      requestUrl.includes("/auth/login") ||
+      requestUrl.includes("/auth/customer") ||
+      requestUrl.includes("/auth/refresh");
 
-    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+    if (
+      error.response?.status === 401 &&
+      originalRequest &&
+      !originalRequest._retry &&
+      !isAuthRequest
+    ) {
       originalRequest._retry = true;
 
       const refreshToken = getStoredRefreshToken();
       if (!refreshToken) {
         clearStoredAuth();
-        window.location.href = "/login";
+        window.location.href = window.location.pathname.startsWith("/account") ? "/user/access" : "/login";
         return Promise.reject(error);
       }
 
@@ -48,7 +58,7 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest);
       } catch (refreshError) {
         clearStoredAuth();
-        window.location.href = "/login";
+        window.location.href = window.location.pathname.startsWith("/account") ? "/user/access" : "/login";
         return Promise.reject(refreshError);
       }
     }
