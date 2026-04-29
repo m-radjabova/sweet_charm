@@ -109,8 +109,7 @@ function EmptyBarbersState({
   onExpandRadius: () => void;
   onReset: () => void;
 }) {
-  const { t } = useTranslation();
-  
+ 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-lg sm:rounded-[36px] sm:p-8 sm:shadow-[0_30px_80px_rgba(15,23,42,0.08)] md:p-10">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(251,191,36,0.08),_transparent_40%),radial-gradient(circle_at_bottom_left,_rgba(15,23,42,0.04),_transparent_40%)]" />
