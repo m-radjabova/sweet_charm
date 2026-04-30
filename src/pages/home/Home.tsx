@@ -14,6 +14,7 @@ import { listPublicBarbers } from "../../api/bookings";
 import { getErrorMessage } from "../../api/auth";
 import LanguageSwitcher from "../../components/LanguageSwitcher";
 import useContextPro from "../../hooks/useContextPro";
+import i18n from "../../i18n";
 import { getDefaultRouteForRole, getUserRoleLabel } from "../../utils/roles";
 import { formatDistance, getBrowserLocation, type Coordinates } from "../../utils/location";
 import { showLocationErrorToast } from "../../utils/locationToast";
@@ -70,12 +71,12 @@ function HeaderProfileLink({
 }
 
 function formatMoney(value?: number | null) {
-  if (value == null) return "Narx yo'q";
-  return `${value.toLocaleString("ru-RU")} so'm`;
+  if (value == null) return i18n.t("common.priceUnavailable");
+  return `${value.toLocaleString("ru-RU")} ${i18n.t("common.currency")}`;
 }
 
 function formatWorkingHours(start?: string | null, end?: string | null) {
-  if (!start || !end) return "Jadval yo'q";
+  if (!start || !end) return i18n.t("common.scheduleUnavailable");
   return `${start.slice(0, 5)} - ${end.slice(0, 5)}`;
 }
 
@@ -105,7 +106,8 @@ function EmptyBarbersState({
   hasLocationFilter: boolean;
   onReset: () => void;
 }) {
- 
+  const { t } = useTranslation();
+
   return (
     <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-lg sm:rounded-[36px] sm:p-8 sm:shadow-[0_30px_80px_rgba(15,23,42,0.08)] md:p-10">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(251,191,36,0.08),_transparent_40%),radial-gradient(circle_at_bottom_left,_rgba(15,23,42,0.04),_transparent_40%)]" />
@@ -120,13 +122,13 @@ function EmptyBarbersState({
         </div>
 
         <h3 className="mt-4 text-2xl font-black tracking-tight text-slate-950 sm:mt-6 sm:text-3xl md:text-4xl">
-          {hasLocationFilter ? "Yaqin atrofda barber topilmadi" : "Hozircha barberlar topilmadi"}
+          {hasLocationFilter ? t("home.emptyNearTitle") : t("home.emptyDefaultTitle")}
         </h3>
 
         <p className="mx-auto mt-2 max-w-2xl text-sm leading-relaxed text-slate-500 sm:mt-3 sm:text-base">
           {hasLocationFilter
-            ? "Sizning lokatsiyangiz bo'yicha hozircha barber topilmadi. Filterni tozalab umumiy ro'yxatga qayting."
-            : "Barberlar ma'lumoti hali to'liq joylanmagan. Birozdan keyin qayta tekshirib ko'ring."}
+            ? t("home.emptyNearText")
+            : t("home.emptyDefaultText")}
         </p>
 
         <div className="mt-6 flex flex-wrap items-center justify-center gap-2 sm:mt-8 sm:gap-3">
@@ -135,7 +137,7 @@ function EmptyBarbersState({
             onClick={onReset}
             className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-5 text-sm font-bold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 sm:h-12 sm:rounded-2xl sm:px-6"
           >
-            Filterni tozalash
+            {t("home.clearFilter")}
           </button>
         </div>
       </div>
@@ -169,9 +171,9 @@ export default function Home() {
   const barbers = useMemo(() => {
     return (barbersQuery.data ?? []).map((barber) => ({
       ...barber,
-      specialty: barber.specialty?.trim() || "Professional barber",
+      specialty: barber.specialty?.trim() || t("home.professionalBarber"),
     }));
-  }, [barbersQuery.data]);
+  }, [barbersQuery.data, t]);
 
   const isLoading = barbersQuery.isLoading;
   const isLoggedIn = Boolean(user?.role);
@@ -204,7 +206,7 @@ export default function Home() {
         setSearchLocation(coords);
         setSortBy("distance");
       } catch (error) {
-        showLocationErrorToast(getErrorMessage(error, "Lokatsiyani aniqlab bo'lmadi"));
+        showLocationErrorToast(getErrorMessage(error, t("home.locationError")));
         setSearchLocation(null);
         setSortBy("default");
       } finally {
@@ -302,14 +304,14 @@ export default function Home() {
                   to="/user/access"
                   className="hidden rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 sm:inline-flex sm:px-5 sm:py-2.5"
                 >
-                  Mijoz kabineti
+                  {t("home.customerAccess")}
                 </Link>
 
                 <Link
                   to="/login"
                   className="rounded-full bg-slate-950 px-4 py-2 text-sm font-bold text-white shadow-lg transition hover:bg-slate-800 sm:px-5 sm:py-2.5"
                 >
-                  Barber kabineti
+                  {t("home.barberLogin")}
                 </Link>
               </>
             )}
@@ -339,11 +341,11 @@ export default function Home() {
         <button
           type="button"
           onClick={handleResetFilters}
-          aria-label="Filtrlarni tozalash"
+          aria-label={t("home.clearFiltersAria")}
           className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-slate-400 backdrop-blur-sm transition-all hover:bg-red-50 hover:text-red-500 hover:shadow-md"
         >
           <HiMiniXMark className="h-4 w-4" />
-          <span className="sr-only">Filtrlarni tozalash</span>
+          <span className="sr-only">{t("home.clearFiltersAria")}</span>
         </button>
       )}
 
@@ -351,13 +353,13 @@ export default function Home() {
       <div className="bg-gradient-to-br from-slate-50/50 to-white p-4">
         <div className="mb-3 flex items-center justify-between">
           <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-            Saralash
+            {t("home.sortLabel")}
           </span>
           {detectingLocation && (
             <div className="flex items-center gap-1.5">
               <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500"></div>
               <span className="text-xs font-medium text-emerald-600">
-                Lokatsiya aniqlanmoqda...
+                {t("home.detectingLocation")}
               </span>
             </div>
           )}
@@ -382,7 +384,7 @@ export default function Home() {
                   <HiMiniMapPin className="h-5 w-5" />
                 )}
               </div>
-              <span className="leading-tight">Eng yaqin</span>
+              <span className="leading-tight">{t("home.nearest")}</span>
             </div>
             {sortBy === "distance" && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-400 to-amber-500"></div>
@@ -406,7 +408,7 @@ export default function Home() {
                   <span className="text-base">$</span>
                 )}
               </div>
-              <span className="leading-tight">Eng arzon</span>
+              <span className="leading-tight">{t("home.cheapest")}</span>
             </div>
             {sortBy === "price_asc" && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-emerald-400 to-teal-400"></div>
@@ -430,7 +432,7 @@ export default function Home() {
                   <span className="text-base">📈</span>
                 )}
               </div>
-              <span className="leading-tight">Eng qimmat</span>
+              <span className="leading-tight">{t("home.expensive")}</span>
             </div>
             {sortBy === "price_desc" && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-400 to-orange-400"></div>
@@ -441,15 +443,15 @@ export default function Home() {
         {/* Aktiv filtrlar ko'rsatkichi */}
         {(sortBy !== "default" || searchLocation) && (
           <div className="mt-3 flex flex-wrap items-center gap-2 pt-2">
-            <span className="text-xs text-slate-400">Aktiv filtr:</span>
+            <span className="text-xs text-slate-400">{t("home.activeFilter")}</span>
             {sortBy !== "default" && (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
                 {sortBy === "distance" && <HiMiniMapPin className="h-3 w-3" />}
                 {sortBy === "price_asc" && <span>$</span>}
                 {sortBy === "price_desc" && <span>🏆</span>}
-                {sortBy === "distance" && "Eng yaqin"}
-                {sortBy === "price_asc" && "Eng arzon"}
-                {sortBy === "price_desc" && "Eng qimmat"}
+                {sortBy === "distance" && t("home.nearest")}
+                {sortBy === "price_asc" && t("home.cheapest")}
+                {sortBy === "price_desc" && t("home.expensive")}
               </span>
             )}
             {searchLocation && (
@@ -536,7 +538,7 @@ export default function Home() {
                         </div>
 
                         <div className="rounded-lg bg-white/10 p-1.5 text-center backdrop-blur sm:rounded-xl sm:p-2">
-                          <p className="text-white/50">Narxi</p>
+                          <p className="text-white/50">{t("home.priceLabel")}</p>
                           <p className="truncate font-bold text-amber-300 sm:whitespace-normal">
                             {formatMoney(barber.price_from)}
                           </p>
@@ -553,7 +555,7 @@ export default function Home() {
                         ) : null}
                         {barber.services?.some((service) => service.discount_price != null) ? (
                           <span className="rounded-full bg-rose-400/20 px-2 py-0.5 font-bold text-rose-100 sm:px-2.5 sm:py-1">
-                            Aksiya mavjud
+                            {t("home.promotionAvailable")}
                           </span>
                         ) : null}
                       </div>
@@ -563,7 +565,7 @@ export default function Home() {
                         to={`/book/${barber.id}`}
                         className="mt-3 flex h-9 items-center justify-center rounded-lg bg-white/20 text-xs font-bold text-white backdrop-blur-md transition hover:bg-amber-400 hover:text-black sm:mt-4 sm:h-11 sm:rounded-xl sm:text-sm"
                       >
-                        Bron qilish
+                        {t("home.bookNow")}
                       </Link>
                     </div>
                   </div>

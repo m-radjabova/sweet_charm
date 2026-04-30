@@ -72,23 +72,26 @@ export default function BarberDashboard() {
   const refreshTelegramMutation = useMutation({
     mutationFn: refreshMyTelegramLink,
     onSuccess: async () => {
-      toast.success("Telegram ulanish havolasi yangilandi");
+      toast.success(t("barberDashboard.telegramLinkRefreshed"));
       await queryClient.invalidateQueries({ queryKey: ["telegram-link", state.user?.id] });
     },
     onError: (error) => {
-      toast.error(getErrorMessage(error, "Telegram havolasini yangilab bo'lmadi"));
+      toast.error(getErrorMessage(error, t("barberDashboard.telegramLinkError")));
     },
   });
   const promotionMutation = useMutation({
     mutationFn: sendTelegramPromotion,
     onSuccess: async (data) => {
       toast.success(
-        `${data.delivered_recipients} ta mijozga yuborildi${data.failed_recipients ? `, ${data.failed_recipients} ta yuborilmadi` : ""}`,
+        t("barberDashboard.promotionSent", {
+          delivered: data.delivered_recipients,
+          failed: data.failed_recipients ?? 0,
+        }),
       );
       await queryClient.invalidateQueries({ queryKey: ["telegram-link", state.user?.id] });
     },
     onError: (error) => {
-      toast.error(getErrorMessage(error, "Aksiyani yuborib bo'lmadi"));
+      toast.error(getErrorMessage(error, t("barberDashboard.promotionError")));
     },
   });
 
@@ -185,7 +188,7 @@ export default function BarberDashboard() {
         {/* Stats Grid */}
         <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
-            title="Bugungi qabul"
+            title={t("barberDashboard.statsToday")}
             value={dashboard?.stats.total ?? 0}
             icon={<HiMiniUsers className="h-5 w-5" />}
             color="from-blue-500 to-indigo-600"
@@ -193,7 +196,7 @@ export default function BarberDashboard() {
             textColor="text-blue-600"
           />
           <StatCard
-            title="Yakunlangan"
+            title={t("barberDashboard.done")}
             value={dashboard?.stats.completed ?? 0}
             icon={<HiMiniCheckBadge className="h-5 w-5" />}
             color="from-emerald-500 to-teal-600"
@@ -201,7 +204,7 @@ export default function BarberDashboard() {
             textColor="text-emerald-600"
           />
           <StatCard
-            title="Kutilayotgan"
+            title={t("barberDashboard.pending")}
             value={dashboard?.stats.pending ?? 0}
             icon={<HiMiniClock className="h-5 w-5" />}
             color="from-amber-500 to-orange-600"
@@ -218,9 +221,12 @@ export default function BarberDashboard() {
                 <HiMiniChartBar className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="font-black text-slate-900">Kunlik progress</h3>
+                <h3 className="font-black text-slate-900">{t("barberDashboard.dailyProgress")}</h3>
                 <p className="text-sm text-slate-500">
-                  {dashboard?.stats.completed ?? 0} / {dashboard?.stats.total ?? 0} xizmat yakunlangan
+                  {t("barberDashboard.completedCount", {
+                    completed: dashboard?.stats.completed ?? 0,
+                    total: dashboard?.stats.total ?? 0,
+                  })}
                 </p>
               </div>
             </div>
@@ -256,7 +262,7 @@ export default function BarberDashboard() {
             <div className="flex-1">
               <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-amber-300">
                 <HiOutlineBell className="h-3 w-3" />
-                NAVBATDAGI MIJOZ
+                {t("barberDashboard.nextClient").toUpperCase()}
               </div>
               
               {nextBooking ? (
@@ -279,10 +285,10 @@ export default function BarberDashboard() {
               ) : (
                 <>
                   <h2 className="mt-4 text-2xl font-black text-white lg:text-3xl">
-                    Bugun boshqa mijoz yo‘q
+                    {t("barberDashboard.noPendingClients")}
                   </h2>
                   <p className="mt-2 text-white/60">
-                    Bugungi qabul yakunlandi. Dam olish vaqti!
+                    {t("barberDashboard.noPendingClientsText")}
                   </p>
                 </>
               )}
@@ -298,12 +304,12 @@ export default function BarberDashboard() {
                 {completeMutation.isPending ? (
                   <>
                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-900 border-t-transparent" />
-                    Yakunlanmoqda
+                    {t("barberDashboard.completing")}
                   </>
                 ) : (
                   <>
                     <HiMiniCheckBadge className="h-5 w-5" />
-                    Xizmatni yakunlash
+                    {t("barberDashboard.completeService")}
                   </>
                 )}
               </button>
@@ -322,8 +328,8 @@ export default function BarberDashboard() {
               <HiMiniCalendarDays className="h-6 w-6" />
             </div>
             <div className="text-left">
-              <p className="text-lg font-black text-slate-900">Kunlik jadval</p>
-              <p className="text-sm text-slate-500">Barcha qabullarni ko‘rish va boshqarish</p>
+              <p className="text-lg font-black text-slate-900">{t("barberDashboard.schedule")}</p>
+              <p className="text-sm text-slate-500">{t("barberDashboard.scheduleSubtitle")}</p>
             </div>
           </div>
           <HiMiniChevronRight className="h-6 w-6 text-slate-300 transition-transform group-hover:translate-x-1" />
@@ -333,16 +339,16 @@ export default function BarberDashboard() {
         <div>
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-black text-slate-900">Bugungi qabullar</h2>
+              <h2 className="text-xl font-black text-slate-900">{t("barberDashboard.todayAppointments")}</h2>
               <p className="text-sm text-slate-500">
-                Jami {appointments.length} ta qabul
+                {t("barberDashboard.totalAppointments", { count: appointments.length })}
               </p>
             </div>
             <Link
               to="/barber/schedule"
               className="text-sm font-bold text-amber-600 transition hover:text-amber-700"
             >
-              Hammasini ko‘rish →
+              {t("barberDashboard.viewAppointments")} →
             </Link>
           </div>
 
@@ -367,10 +373,10 @@ export default function BarberDashboard() {
                 <HiOutlineBellSlash className="h-8 w-8 text-slate-400" />
               </div>
               <h3 className="mt-4 text-lg font-black text-slate-900">
-                Bugun qabul yo‘q
+                {t("barberDashboard.noAppointments")}
               </h3>
               <p className="mt-2 text-sm text-slate-500">
-                Bugungi kunga hech qanday qabul mavjud emas
+                {t("barberDashboard.noAppointmentsText")}
               </p>
             </div>
           ) : (
@@ -409,7 +415,7 @@ export default function BarberDashboard() {
                       {isCompleted ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-600">
                           <HiMiniCheckBadge className="h-3 w-3" />
-                          Yakunlangan
+                          {t("barberDashboard.done")}
                         </span>
                       ) : (
                         <button
@@ -418,7 +424,7 @@ export default function BarberDashboard() {
                           disabled={completeMutation.isPending}
                           className="rounded-lg bg-gradient-to-r from-slate-800 to-slate-900 px-4 py-2 text-sm font-bold text-white transition-all hover:scale-105 disabled:opacity-50"
                         >
-                          Yakunlash
+                          {t("barberDashboard.completeButton")}
                         </button>
                       )}
                     </div>

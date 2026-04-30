@@ -20,6 +20,7 @@ import { toast } from "react-toastify";
 import { createMyBooking, getBarberAvailability } from "../../api/bookings";
 import { getErrorMessage } from "../../api/auth";
 import useContextPro from "../../hooks/useContextPro";
+import i18n from "../../i18n";
 import {
   formatDisplayDate,
   formatDisplayTime,
@@ -61,13 +62,13 @@ function BookingDetailsSkeleton() {
 }
 
 function formatWorkingHours(start?: string | null, end?: string | null) {
-  if (!start || !end) return "Jadval kiritilmagan";
+  if (!start || !end) return i18n.t("common.scheduleUnavailable");
   return `${start.slice(0, 5)} - ${end.slice(0, 5)}`;
 }
 
 function formatMoney(value?: number | null) {
   if (value == null) return "-";
-  return `${value.toLocaleString("ru-RU")} so'm`;
+  return `${value.toLocaleString("ru-RU")} ${i18n.t("common.currency")}`;
 }
 
 export default function BookingDetails() {
@@ -146,15 +147,15 @@ export default function BookingDetails() {
             className="group mb-4 inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 text-sm font-medium text-slate-600 shadow-sm backdrop-blur-sm transition-all hover:bg-white hover:shadow-md"
           >
             <HiMiniArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-            Orqaga
+            {t("common.back")}
           </button>
 
           <div>
             <h1 className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
-              Bronni tasdiqlash
+              {t("bookingDetails.pageTitle")}
             </h1>
             <p className="mt-2 text-slate-500">
-              Ma'lumotlaringizni tekshirib, bronni tasdiqlang
+              {t("bookingDetails.pageSubtitle")}
             </p>
           </div>
         </div>
@@ -174,10 +175,10 @@ export default function BookingDetails() {
                   <div className="flex items-center justify-between mb-4">
                     <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-1 text-xs font-bold text-amber-600">
                       <HiOutlineCheckBadge className="h-3 w-3" />
-                      Bron ma'lumotlari
+                      {t("bookingDetails.bookingInfo")}
                     </span>
                     <span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
-                      Tasdiqlanmoqda
+                      {t("bookingDetails.confirming")}
                     </span>
                   </div>
 
@@ -214,7 +215,7 @@ export default function BookingDetails() {
                         </span>
                         <span className="text-xs text-slate-400">•</span>
                         <span className="text-xs text-slate-500">
-                          {barber.completed_bookings_count} ta qabul
+                          {t("bookingDetails.acceptedCount", { count: barber.completed_bookings_count })}
                         </span>
                       </div>
                     </div>
@@ -229,7 +230,7 @@ export default function BookingDetails() {
                         <HiOutlineCalendarDays className="h-5 w-5 text-amber-600" />
                       </div>
                       <div>
-                        <p className="text-xs font-bold uppercase text-slate-400">Sana</p>
+                        <p className="text-xs font-bold uppercase text-slate-400">{t("common.date")}</p>
                         <p className="mt-0.5 font-bold text-slate-900">
                           {formatDisplayDate(date)}
                         </p>
@@ -241,7 +242,7 @@ export default function BookingDetails() {
                         <HiOutlineClock className="h-5 w-5 text-blue-600" />
                       </div>
                       <div>
-                        <p className="text-xs font-bold uppercase text-slate-400">Vaqt</p>
+                        <p className="text-xs font-bold uppercase text-slate-400">{t("common.time")}</p>
                         <p className="mt-0.5 font-bold text-slate-900">
                           {selectedSlot ? formatDisplayTime(selectedSlot.time) : formatDisplayTime(time)}
                         </p>
@@ -252,7 +253,7 @@ export default function BookingDetails() {
                   {/* Duration Badge */}
                   <div className="mt-5 rounded-xl bg-slate-50 p-3 text-center">
                     <p className="text-xs text-slate-500">
-                      Xizmat davomiyligi: 30-60 daqiqa
+                      {t("bookingDetails.durationRange")}
                     </p>
                   </div>
                 </div>
@@ -263,15 +264,15 @@ export default function BookingDetails() {
                     <div className="flex items-center gap-3">
                       <HiMiniMapPin className="h-5 w-5 text-amber-500" />
                       <div>
-                        <p className="text-xs font-bold text-slate-400">Manzil</p>
+                        <p className="text-xs font-bold text-slate-400">{t("bookingDetails.address")}</p>
                         <p className="text-sm font-medium text-slate-700">
-                          {barber.location_text || "Kiritilmagan"}
+                          {barber.location_text || t("common.notProvided")}
                         </p>
                       </div>
                     </div>
                     {barber.services?.length ? (
                       <div className="rounded-xl bg-slate-50 p-3">
-                        <p className="text-xs font-bold text-slate-400">Xizmatlar va narxlar</p>
+                        <p className="text-xs font-bold text-slate-400">{t("bookingDetails.servicesAndPrices")}</p>
                         <div className="mt-2 space-y-2">
                           {barber.services.map((service, index) => (
                             <div key={`${service.name}-${index}`} className="flex items-center justify-between gap-3 text-sm">
@@ -299,7 +300,7 @@ export default function BookingDetails() {
                     <div className="flex items-center gap-3">
                       <HiOutlineClock className="h-5 w-5 text-amber-500" />
                       <div>
-                        <p className="text-xs font-bold text-slate-400">Ish vaqti</p>
+                        <p className="text-xs font-bold text-slate-400">{t("bookingDetails.hours")}</p>
                         <p className="text-sm font-medium text-slate-700">
                           {formatWorkingHours(barber.work_start_time, barber.work_end_time)}
                         </p>
@@ -313,9 +314,9 @@ export default function BookingDetails() {
                   <div className="flex items-start gap-3">
                     <HiOutlineShieldCheck className="h-5 w-5 text-emerald-600 mt-0.5" />
                     <div>
-                      <p className="text-sm font-bold text-slate-900">Xavfsiz bron</p>
+                      <p className="text-sm font-bold text-slate-900">{t("bookingDetails.secureBooking")}</p>
                       <p className="mt-1 text-xs text-slate-600">
-                        Ma'lumotlaringiz xavfsiz saqlanadi va faqat sartarosh bilan ko'riladi
+                        {t("bookingDetails.secureBookingText")}
                       </p>
                     </div>
                   </div>
@@ -325,10 +326,10 @@ export default function BookingDetails() {
               <div className="rounded-2xl bg-rose-50 p-8 text-center">
                 <HiOutlineInformationCircle className="mx-auto h-12 w-12 text-rose-400" />
                 <p className="mt-3 font-semibold text-rose-600">
-                  Ma'lumot yuklanmadi
+                  {t("bookingDetails.loadFailed")}
                 </p>
                 <p className="mt-1 text-sm text-rose-500">
-                  Qayta urinib ko'ring
+                  {t("bookingDetails.goBackTryAgain")}
                 </p>
               </div>
             )}
@@ -339,12 +340,12 @@ export default function BookingDetails() {
             <div className="rounded-2xl bg-white p-6 shadow-xl shadow-slate-900/5 border border-slate-100">
               <div className="mb-6">
                 <h3 className="text-xl font-black text-slate-900">
-                  {isUserReady ? "Sizning ma'lumotlaringiz" : "Tizimga kiring"}
+                  {isUserReady ? t("bookingDetails.yourInfo") : t("bookingDetails.signInTitle")}
                 </h3>
                 <p className="mt-1 text-sm text-slate-500">
                   {isUserReady 
-                    ? "Ma'lumotlaringiz to'g'riligini tekshiring" 
-                    : "Bron qilish uchun tizimga kirishingiz kerak"}
+                    ? t("bookingDetails.yourInfoSubtitle")
+                    : t("bookingDetails.signInSubtitle")}
                 </p>
               </div>
 
@@ -359,7 +360,7 @@ export default function BookingDetails() {
                         </div>
                         <div>
                           <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                            To'liq ism
+                            {t("common.fullName")}
                           </p>
                           <p className="mt-1 font-bold text-slate-900">
                             {user?.full_name}
@@ -376,7 +377,7 @@ export default function BookingDetails() {
                         </div>
                         <div>
                           <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                            Telefon raqam
+                            {t("common.phoneNumber")}
                           </p>
                           <p className="mt-1 font-bold text-slate-900">
                             {maskStoredPhone(user?.phone_number)}
@@ -389,7 +390,7 @@ export default function BookingDetails() {
                   {/* Cancellation Policy */}
                   <div className="mt-5 rounded-xl bg-slate-50 p-3">
                     <p className="text-center text-xs text-slate-500">
-                      ⚡ Bronni bekor qilish uchun profilingizdagi "Mening bronlarim" bo'limiga o'ting
+                      {t("bookingDetails.cancellationHint")}
                     </p>
                   </div>
 
@@ -414,11 +415,11 @@ export default function BookingDetails() {
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                           </svg>
-                          Tasdiqlanmoqda...
+                          {t("bookingDetails.confirmingBooking")}
                         </>
                       ) : (
                         <>
-                          Bronni tasdiqlash
+                          {t("bookingDetails.confirmBooking")}
                           <HiOutlineCheckBadge className="h-5 w-5 transition-transform group-hover:scale-110" />
                         </>
                       )}
@@ -433,10 +434,10 @@ export default function BookingDetails() {
                       <HiOutlineUser className="h-8 w-8 text-amber-500" />
                     </div>
                     <h4 className="text-lg font-black text-slate-900">
-                      Tizimga kiring
+                      {t("bookingDetails.signInTitle")}
                     </h4>
                     <p className="mt-2 text-sm text-slate-600">
-                      Bron qilish uchun hisobingizga kirishingiz yoki ro'yxatdan o'tishingiz kerak
+                      {t("bookingDetails.signInRequiredText")}
                     </p>
                   </div>
 
@@ -448,14 +449,14 @@ export default function BookingDetails() {
                   >
                     <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-500 group-hover:translate-x-full" />
                     <span className="relative flex items-center justify-center gap-2">
-                      Hisobga kirish
+                      {t("bookingDetails.signInButton")}
                       <HiOutlineArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
                     </span>
                   </button>
 
                   {/* Info Text */}
                   <p className="mt-4 text-center text-xs text-slate-400">
-                    Ro'yxatdan o'tish 1 daqiqa davom etadi
+                    {t("bookingDetails.quickRegisterHint")}
                   </p>
                 </>
               )}

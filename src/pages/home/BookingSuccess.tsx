@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { 
   HiOutlineCalendarDays, 
   HiOutlineClock, 
@@ -47,6 +48,7 @@ function SuccessSkeleton() {
 }
 
 export default function BookingSuccess() {
+  const { t } = useTranslation();
   const { bookingCode = "" } = useParams();
   const queryClient = useQueryClient();
   const [selectedRating, setSelectedRating] = useState<number | null>(null);
@@ -76,14 +78,14 @@ export default function BookingSuccess() {
         queryClient.invalidateQueries({ queryKey: ["public-barbers"] }),
         queryClient.invalidateQueries({ queryKey: ["barber-availability", updatedBooking.barber_id] }),
       ]);
-      toast.success("Reyting muvaffaqiyatli saqlandi!", {
+      toast.success(t("bookingSuccess.ratingSaved"), {
         position: "top-right",
         autoClose: 3000,
         style: { background: "#10b981", color: "white", borderRadius: "16px" }
       });
     },
     onError: () => {
-      toast.error("Reyting saqlashda xatolik yuz berdi", {
+      toast.error(t("bookingSuccess.ratingError"), {
         position: "top-right",
         autoClose: 4000,
         style: { background: "#ef4444", color: "white", borderRadius: "16px" }
@@ -107,7 +109,7 @@ export default function BookingSuccess() {
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(bookingCode);
-    toast.success("Kod nusxalandi!", {
+    toast.success(t("bookingSuccess.idCopied"), {
       position: "top-right",
       autoClose: 2000,
       style: { background: "#3b82f6", color: "white", borderRadius: "16px" }
@@ -117,12 +119,12 @@ export default function BookingSuccess() {
   const handleShare = async () => {
     try {
       await navigator.share({
-        title: "Sartarosh bron qilish",
-        text: `Mening bron kodim: ${bookingCode}`,
+        title: t("bookingSuccess.shareTitle"),
+        text: t("bookingSuccess.shareText", { code: bookingCode }),
         url: window.location.href,
       });
     } catch {
-      toast.info("Ulashish uchun qo'llab-quvvatlanmaydi", {
+      toast.info(t("bookingSuccess.shareUnsupported"), {
         position: "top-right",
         autoClose: 3000,
       });
@@ -161,10 +163,10 @@ export default function BookingSuccess() {
               </div>
               
               <h1 className="mt-6 text-3xl font-black tracking-tight text-slate-900 sm:text-4xl lg:text-5xl animate-fadeIn">
-                Bron muvaffaqiyatli!
+                {t("bookingSuccess.successTitle")}
               </h1>
               <p className="mt-2 text-slate-500 animate-fadeIn animation-delay-200">
-                Sizning qabul vaqtingiz tasdiqlandi
+                {t("bookingSuccess.successSubtitle")}
               </p>
             </div>
 
@@ -177,7 +179,7 @@ export default function BookingSuccess() {
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <p className="text-xs font-black uppercase tracking-wider text-emerald-600">
-                      Bron kodi
+                      {t("bookingSuccess.bookingId")}
                     </p>
                     <div className="mt-1 flex items-center gap-2">
                       <p className="text-2xl font-black text-slate-900 font-mono">
@@ -197,7 +199,7 @@ export default function BookingSuccess() {
                   }`}>
                     <HiOutlineCheckBadge className={`h-5 w-5 ${isCompleted ? "text-emerald-600" : "text-amber-600"}`} />
                     <span className={`text-sm font-bold ${isCompleted ? "text-emerald-700" : "text-amber-700"}`}>
-                      {isCompleted ? "Yakunlangan" : "Tasdiqlangan"}
+                      {isCompleted ? t("bookingSuccess.completed") : t("common.confirmed")}
                     </span>
                   </div>
                 </div>
@@ -236,7 +238,7 @@ export default function BookingSuccess() {
                         {Number(booking.barber_rating ?? 0).toFixed(1)}
                       </span>
                       <span className="text-xs text-slate-500">
-                        {booking.barber_reviews_count ?? 0} ta sharh
+                        {t("bookingSuccess.reviewsCount", { count: booking.barber_reviews_count ?? 0 })}
                       </span>
                     </div>
                   </div>
@@ -251,7 +253,7 @@ export default function BookingSuccess() {
                       <HiOutlineCalendarDays className="h-5 w-5 text-emerald-600" />
                     </div>
                     <div>
-                      <p className="text-xs font-bold uppercase text-slate-400">Sana</p>
+                      <p className="text-xs font-bold uppercase text-slate-400">{t("common.date")}</p>
                       <p className="font-bold text-slate-900">
                         {formatDisplayDate(booking.appointment_date)}
                       </p>
@@ -263,7 +265,7 @@ export default function BookingSuccess() {
                       <HiOutlineClock className="h-5 w-5 text-blue-600" />
                     </div>
                     <div>
-                      <p className="text-xs font-bold uppercase text-slate-400">Vaqt</p>
+                      <p className="text-xs font-bold uppercase text-slate-400">{t("common.time")}</p>
                       <p className="font-bold text-slate-900">
                         {formatDisplayTime(booking.appointment_time)}
                       </p>
@@ -278,7 +280,7 @@ export default function BookingSuccess() {
                       <HiOutlinePhone className="h-5 w-5 text-purple-600" />
                     </div>
                     <div>
-                      <p className="text-xs font-bold uppercase text-slate-400">Mijoz</p>
+                      <p className="text-xs font-bold uppercase text-slate-400">{t("bookingSuccess.client")}</p>
                       <p className="font-bold text-slate-900">{booking.client_name}</p>
                     </div>
                   </div>
@@ -291,10 +293,10 @@ export default function BookingSuccess() {
                       <div>
                         <div className="flex items-center gap-2 mb-1">
                           <HiMiniStar className="h-5 w-5 text-amber-500" />
-                          <span className="text-sm font-bold text-amber-700">Sartaroshni baholang</span>
+                          <span className="text-sm font-bold text-amber-700">{t("bookingSuccess.ratingTitle")}</span>
                         </div>
                         <p className="text-sm text-slate-600">
-                          Sizning fikringiz boshqa mijozlar uchun muhim
+                          {t("bookingSuccess.ratingSubtitle")}
                         </p>
                       </div>
                       
@@ -319,7 +321,7 @@ export default function BookingSuccess() {
                     {selectedRating && (
                       <div className="mt-3 text-center text-sm text-emerald-600">
                         <HiOutlineCheckBadge className="inline h-4 w-4 mr-1" />
-                        Siz {selectedRating} ⭐ baho berdingiz. Rahmat!
+                        {t("bookingSuccess.youRated", { count: selectedRating })}
                       </div>
                     )}
                   </div>
@@ -330,9 +332,9 @@ export default function BookingSuccess() {
                   <div className="flex items-start gap-3">
                     <HiOutlineSparkles className="h-5 w-5 text-emerald-600 mt-0.5" />
                     <div>
-                      <p className="text-sm font-bold text-emerald-800">Ma'lumot</p>
+                      <p className="text-sm font-bold text-emerald-800">{t("bookingSuccess.infoTitle")}</p>
                       <p className="text-xs text-emerald-700 mt-1">
-                        Sizning bron raqamingiz {booking.booking_code}. Iltimos, ushbu raqamni saqlab qo'ying yoki sartaroshga ko'rsating.
+                        {t("bookingSuccess.infoText", { code: booking.booking_code })}
                       </p>
                     </div>
                   </div>
@@ -346,7 +348,7 @@ export default function BookingSuccess() {
                 to="/"
                 className="group flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-slate-800 to-slate-900 px-6 py-3.5 text-sm font-bold text-white shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl"
               >
-                Yangi bron qilish
+                {t("bookingSuccess.bookAnother")}
                 <HiOutlineArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
               
@@ -355,7 +357,7 @@ export default function BookingSuccess() {
                 className="group flex-1 inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3.5 text-sm font-bold text-slate-700 shadow-md transition-all hover:shadow-lg hover:scale-[1.02]"
               >
                 <HiOutlineShare className="h-4 w-4 transition-transform group-hover:scale-110" />
-                Ulashish
+                {t("bookingSuccess.shareDetails")}
               </button>
             </div>
 
@@ -365,7 +367,7 @@ export default function BookingSuccess() {
                 to="/"
                 className="inline-flex items-center gap-1 text-sm text-slate-400 transition hover:text-slate-600"
               >
-                Bosh sahifaga qaytish
+                {t("common.goHome")}
                 <HiOutlineArrowRight className="h-3 w-3" />
               </Link>
             </div>
@@ -378,15 +380,15 @@ export default function BookingSuccess() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h3 className="text-xl font-black text-slate-900">Bron topilmadi</h3>
+            <h3 className="text-xl font-black text-slate-900">{t("bookingSuccess.notFound")}</h3>
             <p className="mt-2 text-slate-500">
-              Kechirasiz, ushbu bron ma'lumotlarini topib bo'lmadi
+              {t("bookingSuccess.notFoundText")}
             </p>
             <Link
               to="/"
               className="mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-slate-800 to-slate-900 px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:scale-105"
             >
-              Bosh sahifaga qaytish
+              {t("common.goHome")}
               <HiOutlineArrowRight className="h-4 w-4" />
             </Link>
           </div>

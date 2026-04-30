@@ -195,7 +195,7 @@ export default function AccountSettings() {
       const coords = await getBrowserLocation();
       await handleLocationChange(coords);
     } catch (error) {
-      showLocationErrorToast(getErrorMessage(error, "Lokatsiyani olib bo'lmadi"));
+      showLocationErrorToast(getErrorMessage(error, t("settings.locationError")));
     } finally {
       setDetectingLocation(false);
     }
@@ -251,7 +251,7 @@ export default function AccountSettings() {
               <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-50 to-amber-100/50 p-5 shadow-lg">
                 <div className="absolute inset-0 bg-gradient-to-r from-amber-400/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                 <p className="text-xs font-black uppercase tracking-wider text-amber-700">
-                  Profil tayyorligi
+                  {t("settings.profileReadiness")}
                 </p>
                 <p className="mt-1 text-4xl font-black text-slate-900">
                   {Math.round((profileCompleteness / 6) * 100)}%
@@ -263,7 +263,7 @@ export default function AccountSettings() {
                   />
                 </div>
                 <p className="mt-2 text-xs text-slate-600">
-                  {6 - profileCompleteness} ta ma'lumot qoldi
+                  {t("settings.fieldsRemaining", { count: 6 - profileCompleteness })}
                 </p>
               </div>
             )}
@@ -280,7 +280,7 @@ export default function AccountSettings() {
                 : "text-slate-400 hover:text-slate-600"
             }`}
           >
-            Sozlamalar
+            {t("settings.tabs.profile")}
             {activeTab === "profile" && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full" />
             )}
@@ -293,7 +293,7 @@ export default function AccountSettings() {
                 : "text-slate-400 hover:text-slate-600"
             }`}
           >
-            Parol
+            {t("settings.tabs.password")}
             {activeTab === "password" && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full" />
             )}
@@ -307,7 +307,7 @@ export default function AccountSettings() {
                   : "text-slate-400 hover:text-slate-600"
               }`}
             >
-              Telegram
+              {t("settings.tabs.telegram")}
               {activeTab === "telegram" && (
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full" />
               )}
@@ -319,9 +319,7 @@ export default function AccountSettings() {
           {/* Sidebar - Avatar */}
           <div className="space-y-6">
             <div className="sticky top-24 rounded-2xl bg-white p-6 shadow-xl shadow-slate-900/5 border border-slate-100">
-              <p className="text-xs font-black uppercase tracking-wider text-slate-400">
-                Avatar
-              </p>
+              <p className="text-xs font-black uppercase tracking-wider text-slate-400">{t("settings.avatar")}</p>
               
               <div className="mt-4 text-center">
                 <div className="relative mx-auto w-32 h-32">
@@ -363,7 +361,7 @@ export default function AccountSettings() {
                     disabled={uploadingAvatar || deletingAvatar}
                     className="w-full rounded-xl bg-gradient-to-r from-slate-800 to-slate-900 py-2.5 text-sm font-bold text-white shadow-lg transition hover:shadow-xl disabled:opacity-50"
                   >
-                    {uploadingAvatar ? "Yuklanmoqda..." : "Rasm yuklash"}
+                    {uploadingAvatar ? t("settings.uploading") : t("settings.uploadImage")}
                   </button>
                   
                   {user?.avatar && (
@@ -373,7 +371,7 @@ export default function AccountSettings() {
                       disabled={deletingAvatar}
                       className="w-full rounded-xl border border-rose-200 bg-rose-50 py-2.5 text-sm font-bold text-rose-600 transition hover:bg-rose-100 disabled:opacity-50"
                     >
-                      {deletingAvatar ? "O‘chirilmoqda..." : "Rasmni o‘chirish"}
+                      {deletingAvatar ? t("settings.removing") : t("settings.removeImage")}
                     </button>
                   )}
                 </div>
@@ -413,24 +411,24 @@ export default function AccountSettings() {
                   </div>
                   <div>
                     <h2 className="text-lg font-black text-slate-900">
-                      Asosiy ma'lumotlar
+                      {t("settings.basicInfo")}
                     </h2>
                     <p className="text-sm text-slate-500">
-                      Shaxsiy ma'lumotlaringizni yangilang
+                      {t("settings.basicInfoSubtitle")}
                     </p>
                   </div>
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <InputField
-                    label="To'liq ism"
+                    label={t("common.fullName")}
                     icon={<HiOutlineUser />}
                     value={fullName}
                     onChange={setFullName}
-                    placeholder="Ismingiz va Familiyangiz"
+                    placeholder={t("settings.fullNamePlaceholder")}
                   />
                   <InputField
-                    label="Email"
+                    label={t("common.email")}
                     icon={<HiOutlineAtSymbol />}
                     value={email}
                     onChange={setEmail}
@@ -439,7 +437,7 @@ export default function AccountSettings() {
                   />
                   {!isBarber && (
                     <InputField
-                      label="Telefon raqam"
+                      label={t("common.phoneNumber")}
                       icon={<HiOutlinePhone />}
                       value={phoneNumber}
                       onChange={setPhoneNumber}
@@ -449,28 +447,28 @@ export default function AccountSettings() {
                   {isBarber && (
                     <>
                       <InputField
-                        label="Mutaxassislik"
+                        label={t("settings.specialtyLabel")}
                         icon={<HiOutlineScissors />}
                         value={specialty}
                         onChange={setSpecialty}
-                        placeholder="Masalan: Erkaklar sartaroshi"
+                        placeholder={t("settings.specialtyPlaceholder")}
                       />
                       <InputField
-                        label="Manzil"
+                        label={t("settings.addressLabel")}
                         icon={<HiMiniMapPin />}
                         value={locationText}
                         onChange={setLocationText}
-                        placeholder="Salon manzili"
+                        placeholder={t("settings.addressPlaceholder")}
                       />
                       <InputField
-                        label="Ish boshlanishi"
+                        label={t("settings.workStart")}
                         icon={<HiOutlineClock />}
                         value={workStartTime}
                         onChange={setWorkStartTime}
                         type="time"
                       />
                       <InputField
-                        label="Ish tugashi"
+                        label={t("settings.workEnd")}
                         icon={<HiOutlineClock />}
                         value={workEndTime}
                         onChange={setWorkEndTime}
@@ -483,10 +481,10 @@ export default function AccountSettings() {
                 {isBarber && (
                   <div className="mt-6">
                     <TextAreaField
-                      label="Qisqa ma'lumot"
+                      label={t("settings.aboutLabel")}
                       value={bio}
                       onChange={setBio}
-                      placeholder="O'zingiz haqingizda, tajribangiz va uslubingiz haqida yozing..."
+                      placeholder={t("settings.aboutPlaceholder")}
                     />
                   </div>
                 )}
@@ -495,9 +493,9 @@ export default function AccountSettings() {
                   <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
-                        <h3 className="font-black text-slate-900">Lokatsiya xaritada</h3>
+                        <h3 className="font-black text-slate-900">{t("settings.mapTitle")}</h3>
                         <p className="text-sm text-slate-500">
-                          Mijozlar sizga yaqin barber sifatida topishi uchun nuqtani xaritada belgilang
+                          {t("settings.mapSubtitle")}
                         </p>
                       </div>
                       <button
@@ -507,7 +505,7 @@ export default function AccountSettings() {
                         className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
                       >
                         <HiMiniMap className="h-4 w-4" />
-                        {detectingLocation ? "Aniqlanmoqda..." : "Mening joyim"}
+                        {detectingLocation ? t("home.detectingLocation") : t("settings.detectMyLocation")}
                       </button>
                     </div>
                     <div className="mt-4">
@@ -520,9 +518,9 @@ export default function AccountSettings() {
                   <div className="mt-8 rounded-xl bg-slate-50 p-5">
                     <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
                       <div>
-                        <h3 className="font-black text-slate-900">Xizmatlar</h3>
+                        <h3 className="font-black text-slate-900">{t("settings.servicesTitle")}</h3>
                         <p className="text-sm text-slate-500">
-                          Mijozlarga taklif qilayotgan xizmatlaringiz
+                          {t("settings.servicesSubtitle")}
                         </p>
                       </div>
                       <button
@@ -536,7 +534,7 @@ export default function AccountSettings() {
                         className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:shadow-md"
                       >
                         <HiMiniPlus className="h-4 w-4" />
-                        Xizmat qo'shish
+                        {t("settings.addService")}
                       </button>
                     </div>
 
@@ -571,7 +569,7 @@ export default function AccountSettings() {
                   className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-slate-800 to-slate-900 py-3 text-sm font-bold text-white shadow-lg transition hover:shadow-xl disabled:opacity-50 lg:w-auto lg:px-8"
                 >
                   <HiOutlineCheckCircle className="h-5 w-5" />
-                  {updatingProfile ? "Saqlanmoqda..." : "Saqlash"}
+                  {updatingProfile ? t("settings.saving") : t("common.save")}
                 </button>
               </div>
             )}
@@ -584,17 +582,17 @@ export default function AccountSettings() {
                   </div>
                   <div>
                     <h2 className="text-lg font-black text-slate-900">
-                      Parolni yangilash
+                      {t("settings.passwordTitle")}
                     </h2>
                     <p className="text-sm text-slate-500">
-                      Hisobingiz xavfsizligi uchun parolingizni yangilang
+                      {t("settings.passwordSubtitle")}
                     </p>
                   </div>
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <InputField
-                    label="Joriy parol"
+                    label={t("settings.currentPassword")}
                     icon={<HiOutlineLockClosed />}
                     value={currentPassword}
                     onChange={setCurrentPassword}
@@ -603,7 +601,7 @@ export default function AccountSettings() {
                   />
                   <div className="md:col-span-2 grid gap-4 md:grid-cols-2">
                     <InputField
-                      label="Yangi parol"
+                      label={t("settings.newPassword")}
                       icon={<HiOutlineKey />}
                       value={newPassword}
                       onChange={setNewPassword}
@@ -611,7 +609,7 @@ export default function AccountSettings() {
                       placeholder="********"
                     />
                     <InputField
-                      label="Yangi parolni tasdiqlang"
+                      label={t("settings.confirmNewPassword")}
                       icon={<HiOutlineLockClosed />}
                       value={confirmPassword}
                       onChange={setConfirmPassword}
@@ -623,7 +621,7 @@ export default function AccountSettings() {
 
                 {newPassword && confirmPassword && newPassword !== confirmPassword && (
                   <div className="mt-3 rounded-xl bg-rose-50 p-3 text-sm text-rose-600">
-                    Parollar mos kelmadi
+                    {t("settings.passwordsMismatch")}
                   </div>
                 )}
 
@@ -634,13 +632,13 @@ export default function AccountSettings() {
                   className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-slate-800 to-slate-900 py-3 text-sm font-bold text-white shadow-lg transition hover:shadow-xl disabled:opacity-50 lg:w-auto lg:px-8"
                 >
                   <HiOutlineCheckCircle className="h-5 w-5" />
-                  {updatingPassword ? "Yangilanmoqda..." : "Parolni yangilash"}
+                  {updatingPassword ? t("settings.updating") : t("settings.changePassword")}
                 </button>
 
                 <div className="mt-5 rounded-xl bg-slate-50 p-4">
                   <div className="flex items-start gap-2 text-sm text-slate-600">
                     <HiOutlineInformationCircle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
-                    <p>Parol kamida 6 ta belgidan iborat bo‘lishi kerak</p>
+                    <p>{t("settings.passwordHint")}</p>
                   </div>
                 </div>
               </div>
@@ -737,11 +735,13 @@ function ServiceCard({
   onUpdate: (service: BarberServiceItem) => void;
   onDelete: () => void;
 }) {
+  const { t } = useTranslation();
+
   return (
     <div className="rounded-xl bg-white p-4 shadow-sm border border-slate-200">
       <div className="flex items-start justify-between mb-3">
         <span className="text-xs font-bold text-slate-400">
-          Xizmat #{index + 1}
+          {t("settings.serviceNumber", { count: index + 1 })}
         </span>
         <button
           type="button"
@@ -753,29 +753,29 @@ function ServiceCard({
       </div>
       <div className="grid gap-3 sm:grid-cols-3">
         <label className="space-y-1">
-          <span className="text-xs font-semibold text-slate-500">Xizmat nomi</span>
+          <span className="text-xs font-semibold text-slate-500">{t("settings.serviceName")}</span>
           <input
             type="text"
             value={service.name}
             onChange={(e) => onUpdate({ ...service, name: e.target.value })}
-            placeholder="Masalan: Scissors Cut"
+            placeholder={t("settings.serviceNamePlaceholder")}
             className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-amber-400 focus:bg-white"
           />
         </label>
         <label className="space-y-1">
-          <span className="text-xs font-semibold text-slate-500">Narxi (so'm)</span>
+          <span className="text-xs font-semibold text-slate-500">{t("settings.servicePrice")}</span>
           <input
             type="number"
             value={service.price || ""}
             onChange={(e) =>
               onUpdate({ ...service, price: Number(e.target.value) || 0 })
             }
-            placeholder="Masalan: 90000"
+            placeholder={t("settings.servicePricePlaceholder")}
             className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-amber-400 focus:bg-white"
           />
         </label>
         <label className="space-y-1">
-          <span className="text-xs font-semibold text-slate-500">Aksiya narxi</span>
+          <span className="text-xs font-semibold text-slate-500">{t("settings.discountPrice")}</span>
           <input
             type="number"
             value={service.discount_price || ""}
@@ -785,12 +785,12 @@ function ServiceCard({
                 discount_price: e.target.value ? Number(e.target.value) : null,
               })
             }
-            placeholder="Bo'lsa kiriting"
+            placeholder={t("settings.optionalPlaceholder")}
             className="w-full rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm outline-none focus:border-emerald-400 focus:bg-white"
           />
         </label>
         <label className="space-y-1 sm:col-span-1">
-          <span className="text-xs font-semibold text-slate-500">Davomiyligi (daqiqada)</span>
+          <span className="text-xs font-semibold text-slate-500">{t("settings.durationMinutes")}</span>
           <input
             type="number"
             value={service.duration_minutes || ""}
@@ -800,19 +800,19 @@ function ServiceCard({
                 duration_minutes: Number(e.target.value) || 0,
               })
             }
-            placeholder="Masalan: 30, 45, 60"
+            placeholder={t("settings.durationPlaceholder")}
             className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-amber-400 focus:bg-white"
           />
         </label>
       </div>
       <p className="mt-2 text-xs text-slate-400">
-        Masalan, `30` = 30 daqiqa, `60` = 1 soat.
+        {t("settings.durationHint")}
       </p>
       <input
         type="text"
         value={service.promotion_text || ""}
         onChange={(e) => onUpdate({ ...service, promotion_text: e.target.value })}
-        placeholder="Aksiya matni, masalan: Faqat bugun 20% chegirma"
+        placeholder={t("settings.promotionPlaceholder")}
         className="mt-3 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-amber-400 focus:bg-white"
       />
     </div>

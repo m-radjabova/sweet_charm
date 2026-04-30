@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 type PromotionComposerProps = {
   subscribersCount: number;
@@ -11,6 +12,7 @@ export default function PromotionComposer({
   sending = false,
   onSend,
 }: PromotionComposerProps) {
+  const { t } = useTranslation();
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
 
@@ -29,14 +31,14 @@ export default function PromotionComposer({
     <div className="rounded-2xl border border-amber-100 bg-white p-5 shadow-xl shadow-slate-900/5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-black uppercase tracking-wide text-amber-600">Qo'shimcha xabar</p>
-          <h3 className="mt-1 text-xl font-black text-slate-900">Telegramga qo'lda xabar yuborish</h3>
+          <p className="text-xs font-black uppercase tracking-wide text-amber-600">{t("promotion.badge")}</p>
+          <h3 className="mt-1 text-xl font-black text-slate-900">{t("promotion.title")}</h3>
           <p className="mt-2 text-sm text-slate-600">
-            Xizmatlardagi aksiya matni saqlanganda mijozlarga avtomatik yuboriladi. Bu bo'lim esa qo'shimcha e'lon uchun.
+            {t("promotion.description")}
           </p>
         </div>
         <div className="rounded-full bg-amber-50 px-3 py-1 text-sm font-bold text-amber-700">
-          {subscribersCount} ta qabul qiluvchi
+          {t("promotion.recipients", { count: subscribersCount })}
         </div>
       </div>
 
@@ -45,7 +47,7 @@ export default function PromotionComposer({
           value={title}
           onChange={(event) => setTitle(event.target.value)}
           maxLength={80}
-          placeholder="Sarlavha, masalan: Juma aksiyasi"
+          placeholder={t("promotion.titlePlaceholder")}
           className="rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-amber-400"
         />
         <textarea
@@ -53,7 +55,7 @@ export default function PromotionComposer({
           onChange={(event) => setMessage(event.target.value)}
           maxLength={600}
           rows={4}
-          placeholder="Bugungi aksiya matnini yozing..."
+          placeholder={t("promotion.messagePlaceholder")}
           className="rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-amber-400"
         />
       </div>
@@ -66,7 +68,7 @@ export default function PromotionComposer({
           disabled={sending || !message.trim() || subscribersCount === 0}
           className="rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-2.5 text-sm font-black text-white shadow-lg transition hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {sending ? "Yuborilmoqda..." : "Telegramga yuborish"}
+          {sending ? t("promotion.sending") : t("promotion.send")}
         </button>
       </div>
     </div>

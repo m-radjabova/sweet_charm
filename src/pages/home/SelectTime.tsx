@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { 
   HiMiniArrowLeft, 
   HiMiniChevronLeft, 
@@ -13,6 +14,7 @@ import {
   HiOutlineInformationCircle
 } from "react-icons/hi2";
 import { getBarberAvailability, listMyBookings } from "../../api/bookings";
+import i18n from "../../i18n";
 import useContextPro from "../../hooks/useContextPro";
 import {
   clearStoredSelection,
@@ -44,12 +46,12 @@ function getInitials(name: string) {
 }
 
 function formatMoney(value?: number | null) {
-  if (value == null) return "Narx ko'rsatilmagan";
-  return `${value.toLocaleString("ru-RU")} so'm`;
+  if (value == null) return i18n.t("common.priceUnavailable");
+  return `${value.toLocaleString("ru-RU")} ${i18n.t("common.currency")}`;
 }
 
 function formatWorkingHours(start?: string | null, end?: string | null) {
-  if (!start || !end) return "Jadval kiritilmagan";
+  if (!start || !end) return i18n.t("common.scheduleUnavailable");
   return `${start.slice(0, 5)} - ${end.slice(0, 5)}`;
 }
 
@@ -89,6 +91,7 @@ function TimeSlotsSkeleton() {
 }
 
 export default function SelectTime() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { barberId = "" } = useParams();
   const {
@@ -225,15 +228,15 @@ export default function SelectTime() {
             className="group mb-4 inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 text-sm font-medium text-slate-600 shadow-sm backdrop-blur-sm transition-all hover:bg-white hover:shadow-md"
           >
             <HiMiniArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-            Orqaga
+            {t("common.back")}
           </button>
 
           <div>
             <h1 className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
-              Vaqt tanlash
+              {t("selectTime.title")}
             </h1>
             <p className="mt-2 text-slate-500">
-              Qulay vaqtingizni belgilang va bron qilishni yakunlang
+              {t("selectTime.pageSubtitle")}
             </p>
           </div>
         </div>
@@ -282,7 +285,7 @@ export default function SelectTime() {
                         </span>
                         <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
                           <HiOutlineUser className="h-3.5 w-3.5" />
-                          {availability.barber.completed_bookings_count} ta qabul
+                          {t("selectTime.acceptedCount", { count: availability.barber.completed_bookings_count })}
                         </span>
                       </div>
                     </div>
@@ -293,16 +296,16 @@ export default function SelectTime() {
                     <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-3">
                       <HiMiniMapPin className="h-5 w-5 text-amber-500" />
                       <div>
-                        <p className="text-xs font-bold text-slate-400">Manzil</p>
+                        <p className="text-xs font-bold text-slate-400">{t("selectTime.address")}</p>
                         <p className="text-sm font-medium text-slate-700">
-                          {availability.barber.location_text || "Kiritilmagan"}
+                          {availability.barber.location_text || t("common.notProvided")}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-3">
                       <HiOutlineClock className="h-5 w-5 text-amber-500" />
                       <div>
-                        <p className="text-xs font-bold text-slate-400">Ish vaqti</p>
+                        <p className="text-xs font-bold text-slate-400">{t("selectTime.hours")}</p>
                         <p className="text-sm font-medium text-slate-700">
                           {formatWorkingHours(availability.barber.work_start_time, availability.barber.work_end_time)}
                         </p>
@@ -314,7 +317,7 @@ export default function SelectTime() {
                   {availability.barber.bio && (
                     <div className="mt-4 rounded-xl bg-slate-50 p-4">
                       <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                        Sartarosh haqida
+                        {t("selectTime.aboutBarber")}
                       </p>
                       <p className="mt-2 text-sm leading-relaxed text-slate-600">
                         {availability.barber.bio}
@@ -327,9 +330,9 @@ export default function SelectTime() {
                     <div className="flex items-center justify-between mb-3">
                       <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-amber-700">
-                          Xizmatlar
+                          {t("selectTime.services")}
                         </p>
-                        <p className="text-xs text-amber-600">Narx va vaqt</p>
+                        <p className="text-xs text-amber-600">{t("selectTime.priceAndTime")}</p>
                       </div>
                       <div className="rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-700 shadow-sm">
                         {formatMoney(availability.barber.price_from)}
@@ -337,11 +340,11 @@ export default function SelectTime() {
                     </div>
 
                     <div className="space-y-2">
-                      {(availability.barber.services?.length ? availability.barber.services : [{ name: "Xizmatlar tez orada qo'shiladi", price: 0, duration_minutes: 30 }]).map((service, idx) => (
+                      {(availability.barber.services?.length ? availability.barber.services : [{ name: t("selectTime.servicesSoon"), price: 0, duration_minutes: 30 }]).map((service, idx) => (
                         <div key={idx} className="flex items-center justify-between rounded-xl bg-white p-3 shadow-sm">
                           <div>
                             <p className="font-bold text-slate-900">{service.name}</p>
-                            <p className="text-xs text-slate-500">{service.duration_minutes} daqiqa</p>
+                            <p className="text-xs text-slate-500">{t("selectTime.durationMinutes", { count: service.duration_minutes })}</p>
                             {service.promotion_text ? (
                               <p className="mt-1 text-xs font-semibold text-rose-500">{service.promotion_text}</p>
                             ) : null}
@@ -379,14 +382,14 @@ export default function SelectTime() {
 
                     <div className="text-center">
                       <p className="text-2xl font-black text-slate-900">
-                        {isToday ? "Bugun" : displayDate}
+                        {isToday ? t("common.today") : displayDate}
                       </p>
                       <p className="text-sm text-slate-400 mt-1">
                         {displayDate}
                       </p>
                       {isRefreshing ? (
                         <p className="mt-1 text-xs font-medium text-amber-600">
-                          Yangilanmoqda...
+                          {t("common.refreshing")}
                         </p>
                       ) : null}
                     </div>
@@ -409,7 +412,7 @@ export default function SelectTime() {
                     </div>
                     <div>
                       <p className="text-xs font-black uppercase tracking-wider text-emerald-700">
-                        Tanlangan vaqt
+                        {t("selectTime.selectedTime")}
                       </p>
                       {selectedTime ? (
                         <>
@@ -425,17 +428,17 @@ export default function SelectTime() {
                           <p className="mt-1 text-xl font-black text-slate-900">
                             {ownedBookedTimeList.length === 1
                               ? selectedSummaryLabel
-                              : `${ownedBookedTimeList.length} ta bron vaqtingiz bor`}
+                              : t("selectTime.yourBookingsCount", { count: ownedBookedTimeList.length })}
                           </p>
                           <p className="text-sm text-emerald-600">
                             {ownedBookedTimeList.length === 1
-                              ? "Avvalgi bron qilgan vaqtingiz"
+                              ? t("selectTime.previousBookingTime")
                               : ownedBookedTimeList.map((time) => formatDisplayTime(time)).join(", ")}
                           </p>
                         </>
                       ) : (
                         <p className="mt-1 text-sm text-slate-500">
-                          Hali vaqt tanlanmagan
+                          {t("selectTime.noTimeSelected")}
                         </p>
                       )}
                     </div>
@@ -454,24 +457,24 @@ export default function SelectTime() {
                 <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
                   <div>
                     <p className="text-sm font-black uppercase tracking-wider text-slate-400">
-                      Bo'sh vaqtlar
+                      {t("selectTime.availableSlots")}
                     </p>
                     <p className="text-xs text-slate-500 mt-1">
-                      {slots.length} ta vaqt mavjud
+                      {t("selectTime.slotsAvailable", { count: slots.length })}
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     {isRefreshing ? (
                       <div className="rounded-full bg-amber-50 px-3 py-1">
                         <p className="text-xs font-semibold text-amber-600">
-                          Vaqtlar yangilanmoqda...
+                          {t("selectTime.slotsRefreshing")}
                         </p>
                       </div>
                     ) : null}
                     {selectedTime && (
                       <div className="rounded-full bg-emerald-50 px-3 py-1 animate-in fade-in duration-300">
                         <p className="text-xs font-semibold text-emerald-600">
-                          Tanlandi: {selectedTimeLabel}
+                          {t("selectTime.selected", { time: selectedTimeLabel })}
                         </p>
                       </div>
                     )}
@@ -483,10 +486,10 @@ export default function SelectTime() {
                     <div className="rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 p-10 text-center">
                       <HiOutlineInformationCircle className="mx-auto h-12 w-12 text-slate-400" />
                       <p className="mt-3 font-semibold text-slate-700">
-                        Bo'sh vaqtlar mavjud emas
+                        {t("selectTime.noSlots")}
                       </p>
                       <p className="text-sm text-slate-500 mt-1">
-                        Boshqa sanani tanlang
+                        {t("selectTime.tryAnotherDate")}
                       </p>
                     </div>
                   ) : (
@@ -521,7 +524,7 @@ export default function SelectTime() {
                           >
                             {isSelected && (
                               <span className="absolute top-1 right-1 rounded-full bg-white/20 px-1.5 py-0.5 text-[9px] font-black uppercase">
-                                Tanlangan
+                                {t("common.selected")}
                               </span>
                             )}
                             {isOwnedBooking && (
@@ -534,9 +537,9 @@ export default function SelectTime() {
                             </div>
                             <div className="text-[10px] opacity-70 mt-0.5">
                               {isSelected && "✓"}
-                              {isOwnedBooking && "Bron qilingan"}
-                              {isBooked && !isOwnedBooking && "Band"}
-                              {isPast && "O'tgan"}
+                              {isOwnedBooking && t("selectTime.bookedByYou")}
+                              {isBooked && !isOwnedBooking && t("common.booked")}
+                              {isPast && t("selectTime.past")}
                             </div>
                           </button>
                         );
@@ -549,19 +552,19 @@ export default function SelectTime() {
                 <div className="mt-6 flex flex-wrap justify-center gap-4 rounded-xl bg-slate-50 p-3">
                   <div className="flex items-center gap-2">
                     <div className="h-4 w-4 rounded bg-gradient-to-r from-slate-800 to-slate-900 shadow-sm" />
-                    <span className="text-xs text-slate-600">Tanlangan</span>
+                    <span className="text-xs text-slate-600">{t("common.selected")}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="h-4 w-4 rounded border border-slate-300 bg-white shadow-sm" />
-                    <span className="text-xs text-slate-600">Bo'sh</span>
+                    <span className="text-xs text-slate-600">{t("common.available")}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="h-4 w-4 rounded bg-slate-100" />
-                    <span className="text-xs text-slate-600">Band</span>
+                    <span className="text-xs text-slate-600">{t("common.booked")}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="h-4 w-4 rounded bg-emerald-100" />
-                    <span className="text-xs text-slate-600">Sizniki</span>
+                    <span className="text-xs text-slate-600">{t("selectTime.yours")}</span>
                   </div>
                 </div>
               </div>
@@ -569,10 +572,10 @@ export default function SelectTime() {
               <div className="rounded-2xl bg-rose-50 p-8 text-center">
                 <HiOutlineInformationCircle className="mx-auto h-12 w-12 text-rose-400" />
                 <p className="mt-3 font-semibold text-rose-600">
-                  Ma'lumot yuklanmadi
+                  {t("selectTime.loadFailed")}
                 </p>
                 <p className="mt-1 text-sm text-rose-500">
-                  Iltimos, qayta urinib ko'ring
+                  {t("common.tryAgainLater")}
                 </p>
               </div>
             )}
@@ -593,11 +596,11 @@ export default function SelectTime() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                       </svg>
-                      Yonalmoqda...
+                      {t("common.redirecting")}
                     </>
                   ) : (
                     <>
-                      Davom etish
+                      {t("selectTime.continue")}
                       <HiMiniChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                     </>
                   )}
