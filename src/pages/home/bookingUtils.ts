@@ -34,10 +34,8 @@ export function getTodayIsoDate() {
 
 export function formatDisplayTime(time: string) {
   const [hoursText = "0", minutes = "00"] = normalizeTimeValue(time).split(":");
-  const hours = Number(hoursText);
-  const normalizedHours = hours % 12 || 12;
-  const meridiem = hours >= 12 ? "PM" : "AM";
-  return `${normalizedHours}:${minutes} ${meridiem}`;
+  const hours = String(Number(hoursText || 0)).padStart(2, "0");
+  return `${hours}:${minutes}`;
 }
 
 export function normalizeTimeValue(time: string) {

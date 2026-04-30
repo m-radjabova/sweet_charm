@@ -6,8 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTranslation } from "react-i18next";
 import {
-  HiMiniMapPin,
-  HiMiniMap,
   HiOutlinePhone,
   HiOutlineScissors,
   HiOutlineUser,
@@ -21,14 +19,12 @@ import {
   persistTokens,
 } from "../../api/auth";
 import useContextPro from "../../hooks/useContextPro";
+import { getPostLoginRoute } from "../../utils/roles";
 import {
   formatUzbekPhone,
   normalizeUzbekPhone,
   toApiPhone,
 } from "../../utils/phone";
-import LocationPickerMap from "../../components/LocationPickerMap";
-import { getBrowserLocation, reverseGeocode, type Coordinates } from "../../utils/location";
-import { showLocationErrorToast } from "../../utils/locationToast";
 
 function BrandMark() {
   return (
@@ -53,16 +49,18 @@ export default function CustomerAccess() {
   } = useContextPro();
 
   const [phoneValue, setPhoneValue] = useState("+998 ");
-  const [selectedLocation, setSelectedLocation] = useState<Coordinates | null>(null);
-  const [locationText, setLocationText] = useState("");
-  const [detectingLocation, setDetectingLocation] = useState(false);
 
   const schema = z.object({
-    full_name: z.string().trim().min(3, t("customerAccess.validation.fullName")),
-    phone_number: z.string().trim().refine(
-      (value) => normalizeUzbekPhone(value).length === 9,
-      { message: t("customerAccess.validation.phone") }
-    ),
+    full_name: z
+      .string()
+      .trim()
+      .min(3, t("customerAccess.validation.fullName")),
+    phone_number: z
+      .string()
+      .trim()
+      .refine((value) => normalizeUzbekPhone(value).length === 9, {
+        message: t("customerAccess.validation.phone"),
+      }),
   });
 
   type FormData = z.infer<typeof schema>;
@@ -84,7 +82,7 @@ export default function CustomerAccess() {
 
   useEffect(() => {
     if (user?.role === "user") {
-      navigate(redirectTo || "/", { replace: true });
+      navigate(redirectTo || getPostLoginRoute(user), { replace: true });
     }
   }, [navigate, redirectTo, user]);
 
@@ -101,7 +99,7 @@ export default function CustomerAccess() {
           autoClose: 3000,
         });
 
-        navigate(redirectTo || "/", { replace: true });
+        navigate(redirectTo || getPostLoginRoute(me), { replace: true });
       } catch (error) {
         clearStoredAuth();
         toast.error(getErrorMessage(error, t("customerAccess.toast.error")));
@@ -118,30 +116,10 @@ export default function CustomerAccess() {
     await authMutation.mutateAsync({
       full_name: values.full_name.trim(),
       phone_number: toApiPhone(values.phone_number),
-      location_text: locationText.trim() || null,
-      location_lat: selectedLocation?.lat ?? null,
-      location_lng: selectedLocation?.lng ?? null,
+      location_text: null,
+      location_lat: null,
+      location_lng: null,
     });
-  };
-
-  const handleLocationChange = async (coords: Coordinates) => {
-    setSelectedLocation(coords);
-    const label = await reverseGeocode(coords);
-    if (label) {
-      setLocationText(label);
-    }
-  };
-
-  const handleDetectLocation = async () => {
-    try {
-      setDetectingLocation(true);
-      const coords = await getBrowserLocation();
-      await handleLocationChange(coords);
-    } catch (error) {
-      showLocationErrorToast(getErrorMessage(error, "Lokatsiyani olib bo'lmadi"));
-    } finally {
-      setDetectingLocation(false);
-    }
   };
 
   const fullNameValue = watch("full_name");
@@ -234,39 +212,6 @@ export default function CustomerAccess() {
               </p>
             )}
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="text-sm font-bold text-slate-800">Lokatsiya</p>
-                <p className="mt-1 text-xs text-slate-500">
-                  Sizga yaqin barberlarni ko'rsatish uchun lokatsiyani tanlang
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => void handleDetectLocation()}
-                disabled={detectingLocation}
-                className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-3 py-2 text-xs font-bold text-white disabled:opacity-50"
-              >
-                <HiMiniMap className="h-4 w-4" />
-                {detectingLocation ? "Aniqlanmoqda..." : "Mening joyim"}
-              </button>
-            </div>
-
-            <div className="mt-4">
-              <LocationPickerMap value={selectedLocation} onChange={(coords) => void handleLocationChange(coords)} heightClassName="h-64" />
-            </div>
-
-            <div className="relative mt-4">
-              <HiMiniMapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                value={locationText}
-                onChange={(event) => setLocationText(event.target.value)}
-                placeholder="Tanlangan lokatsiya nomi"
-                className="w-full rounded-xl border-2 border-slate-200 bg-white py-3 pl-10 pr-4 text-sm outline-none focus:border-amber-400"
-              />
-            </div>
-          </div>
 
           {/* Button */}
           <button
@@ -279,6 +224,17 @@ export default function CustomerAccess() {
               : t("customerAccess.submit")}
           </button>
         </form>
+        <div className="mt-8 text-center">
+          <p className="text-sm text-slate-500">
+            {t("login.needBooking")}{" "}
+            <button
+              onClick={() => navigate("/")}
+              className="font-semibold text-slate-800 underline decoration-amber-400 underline-offset-2 transition-colors hover:text-amber-600"
+            >
+              {t("login.goToBooking")}
+            </button>
+          </p>
+        </div>
       </div>
     </div>
   );

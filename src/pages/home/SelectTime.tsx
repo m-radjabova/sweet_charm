@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { 
@@ -12,7 +12,8 @@ import {
   HiMiniStar,
   HiOutlineInformationCircle
 } from "react-icons/hi2";
-import { getBarberAvailability } from "../../api/bookings";
+import { getBarberAvailability, listMyBookings } from "../../api/bookings";
+import useContextPro from "../../hooks/useContextPro";
 import {
   clearStoredSelection,
   formatDisplayDate,
@@ -90,6 +91,9 @@ function TimeSlotsSkeleton() {
 export default function SelectTime() {
   const navigate = useNavigate();
   const { barberId = "" } = useParams();
+  const {
+    state: { user },
+  } = useContextPro();
   const [searchParams] = useSearchParams();
   const initialDate = searchParams.get("date") ?? getTodayIsoDate();
   const [selectedDate, setSelectedDate] = useState(initialDate);
@@ -100,17 +104,43 @@ export default function SelectTime() {
     queryKey: ["barber-availability", barberId, selectedDate],
     queryFn: () => getBarberAvailability(barberId, selectedDate),
     enabled: Boolean(barberId),
+    placeholderData: (previousData) => previousData,
+  });
+
+  const myBookingsQuery = useQuery({
+    queryKey: ["my-bookings", user?.id, barberId, selectedDate],
+    queryFn: () => listMyBookings({ date: selectedDate }),
+    enabled: Boolean(user?.id && barberId),
+    refetchOnWindowFocus: true,
   });
 
   const availability = availabilityQuery.data;
-  const isLoading = availabilityQuery.isLoading;
+  const isLoading = availabilityQuery.isLoading && !availability;
+  const isRefreshing = availabilityQuery.isFetching && Boolean(availability);
   const canContinue = Boolean(selectedTime && availability?.barber.id);
   const slots = availability?.slots ?? [];
   const confirmedBooking = getStoredConfirmedBooking();
-  const ownedBookedTime =
-    confirmedBooking?.barberId === barberId && confirmedBooking.date === selectedDate
-      ? normalizeTimeValue(confirmedBooking.time)
-      : null;
+  const ownedBookedTimes = useMemo(() => {
+    const times = new Set<string>();
+
+    myBookingsQuery.data
+      ?.filter((booking) => booking.barber_id === barberId && booking.status !== "cancelled")
+      .forEach((booking) => {
+        times.add(normalizeTimeValue(booking.appointment_time));
+      });
+
+    if (
+      confirmedBooking?.barberId === barberId &&
+      confirmedBooking.date === selectedDate &&
+      !times.size
+    ) {
+      times.add(normalizeTimeValue(confirmedBooking.time));
+    }
+
+    return times;
+  }, [barberId, confirmedBooking, myBookingsQuery.data, selectedDate]);
+  const ownedBookedTimeList = Array.from(ownedBookedTimes).sort();
+  const ownedBookedTime = ownedBookedTimeList[0] ?? null;
   const selectedSummaryTime = selectedTime
     ? selectedTime
     : ownedBookedTime ?? "";
@@ -354,6 +384,11 @@ export default function SelectTime() {
                       <p className="text-sm text-slate-400 mt-1">
                         {displayDate}
                       </p>
+                      {isRefreshing ? (
+                        <p className="mt-1 text-xs font-medium text-amber-600">
+                          Yangilanmoqda...
+                        </p>
+                      ) : null}
                     </div>
 
                     <button
@@ -388,10 +423,14 @@ export default function SelectTime() {
                       ) : ownedBookedTime ? (
                         <>
                           <p className="mt-1 text-xl font-black text-slate-900">
-                            {selectedSummaryLabel}
+                            {ownedBookedTimeList.length === 1
+                              ? selectedSummaryLabel
+                              : `${ownedBookedTimeList.length} ta bron vaqtingiz bor`}
                           </p>
                           <p className="text-sm text-emerald-600">
-                            Avvalgi bron qilgan vaqtingiz
+                            {ownedBookedTimeList.length === 1
+                              ? "Avvalgi bron qilgan vaqtingiz"
+                              : ownedBookedTimeList.map((time) => formatDisplayTime(time)).join(", ")}
                           </p>
                         </>
                       ) : (
@@ -421,13 +460,22 @@ export default function SelectTime() {
                       {slots.length} ta vaqt mavjud
                     </p>
                   </div>
-                  {selectedTime && (
-                    <div className="rounded-full bg-emerald-50 px-3 py-1 animate-in fade-in duration-300">
-                      <p className="text-xs font-semibold text-emerald-600">
-                        Tanlandi: {selectedTimeLabel}
-                      </p>
-                    </div>
-                  )}
+                  <div className="flex flex-wrap items-center gap-2">
+                    {isRefreshing ? (
+                      <div className="rounded-full bg-amber-50 px-3 py-1">
+                        <p className="text-xs font-semibold text-amber-600">
+                          Vaqtlar yangilanmoqda...
+                        </p>
+                      </div>
+                    ) : null}
+                    {selectedTime && (
+                      <div className="rounded-full bg-emerald-50 px-3 py-1 animate-in fade-in duration-300">
+                        <p className="text-xs font-semibold text-emerald-600">
+                          Tanlandi: {selectedTimeLabel}
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="max-h-[500px] overflow-y-auto pr-1 custom-scrollbar">
@@ -449,7 +497,7 @@ export default function SelectTime() {
                         const isBooked = slot.status === "booked";
                         const isPast = slot.status === "past";
                         const isDisabled = slot.status !== "available";
-                        const isOwnedBooking = isBooked && ownedBookedTime === normalizedSlotTime;
+                        const isOwnedBooking = isBooked && ownedBookedTimes.has(normalizedSlotTime);
 
                         return (
                           <button
@@ -482,7 +530,7 @@ export default function SelectTime() {
                               </span>
                             )}
                             <div className="text-base font-black sm:text-lg">
-                              {slot.label}
+                              {formatDisplayTime(slot.time)}
                             </div>
                             <div className="text-[10px] opacity-70 mt-0.5">
                               {isSelected && "✓"}

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useReducer, type Dispatch, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, type Dispatch, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { MyContext } from "../context/MyContext";
@@ -43,16 +43,21 @@ function reducer(state: TypeState, action: Action): TypeState {
 function CreateContextPro({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const authRequestIdRef = useRef(0);
   const [state, dispatch] = useReducer(reducer, {
     user: null,
     isLoading: true,
   });
 
   const refreshUser = useCallback(async () => {
+    const requestId = ++authRequestIdRef.current;
+
     if (!getStoredAccessToken()) {
       queryClient.clear();
-      dispatch({ type: "SET_USER", payload: null });
-      dispatch({ type: "SET_LOADING", payload: false });
+      if (requestId === authRequestIdRef.current) {
+        dispatch({ type: "SET_USER", payload: null });
+        dispatch({ type: "SET_LOADING", payload: false });
+      }
       return;
     }
 
@@ -60,13 +65,19 @@ function CreateContextPro({ children }: { children: ReactNode }) {
 
     try {
       const me = await getMe();
-      dispatch({ type: "SET_USER", payload: normalizeUser(me) });
+      if (requestId === authRequestIdRef.current) {
+        dispatch({ type: "SET_USER", payload: normalizeUser(me) });
+      }
     } catch {
-      clearStoredAuth();
-      queryClient.clear();
-      dispatch({ type: "SET_USER", payload: null });
+      if (requestId === authRequestIdRef.current) {
+        clearStoredAuth();
+        queryClient.clear();
+        dispatch({ type: "SET_USER", payload: null });
+      }
     } finally {
-      dispatch({ type: "SET_LOADING", payload: false });
+      if (requestId === authRequestIdRef.current) {
+        dispatch({ type: "SET_LOADING", payload: false });
+      }
     }
   }, [queryClient]);
 
@@ -75,13 +86,16 @@ function CreateContextPro({ children }: { children: ReactNode }) {
   }, [refreshUser]);
 
   const login = useCallback((tokens: LoginResponse, user: User) => {
+    authRequestIdRef.current += 1;
     persistTokens(tokens);
     queryClient.clear();
     dispatch({ type: "SET_USER", payload: normalizeUser(user) });
+    dispatch({ type: "SET_LOADING", payload: false });
   }, [queryClient]);
 
   const logout = useCallback(async () => {
-    const redirectTo = state.user?.role === "user" ? "/" : "/login";
+    authRequestIdRef.current += 1;
+    const redirectTo = state.user?.role === "user" ? "/" : "/";
 
     try {
       await logoutUser();

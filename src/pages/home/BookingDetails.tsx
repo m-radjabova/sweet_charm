@@ -22,6 +22,7 @@ import { getErrorMessage } from "../../api/auth";
 import useContextPro from "../../hooks/useContextPro";
 import {
   formatDisplayDate,
+  formatDisplayTime,
   getTodayIsoDate,
   setStoredConfirmedBooking,
 } from "./bookingUtils";
@@ -242,7 +243,7 @@ export default function BookingDetails() {
                       <div>
                         <p className="text-xs font-bold uppercase text-slate-400">Vaqt</p>
                         <p className="mt-0.5 font-bold text-slate-900">
-                          {selectedSlot?.label ?? time}
+                          {selectedSlot ? formatDisplayTime(selectedSlot.time) : formatDisplayTime(time)}
                         </p>
                       </div>
                     </div>

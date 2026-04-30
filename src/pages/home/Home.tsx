@@ -1,12 +1,12 @@
-import { type MouseEvent, useEffect, useMemo, useState } from "react";
+import { type MouseEvent, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Menu, MenuItem } from "@mui/material";
 import {
-  HiMiniMap,
   HiMiniMapPin,
   HiMiniMagnifyingGlass,
+  HiMiniXMark,
   HiOutlineChevronRight,
   HiOutlineScissors,
 } from "react-icons/hi2";
@@ -100,13 +100,9 @@ function BarberCardSkeleton() {
 
 function EmptyBarbersState({
   hasLocationFilter,
-  radiusKm,
-  onExpandRadius,
   onReset,
 }: {
   hasLocationFilter: boolean;
-  radiusKm: number;
-  onExpandRadius: () => void;
   onReset: () => void;
 }) {
  
@@ -129,21 +125,11 @@ function EmptyBarbersState({
 
         <p className="mx-auto mt-2 max-w-2xl text-sm leading-relaxed text-slate-500 sm:mt-3 sm:text-base">
           {hasLocationFilter
-            ? `${radiusKm} km radius ichida hozircha barber yo'q. Radiusni kattalashtirib ko'ring yoki umumiy ro'yxatga qayting.`
+            ? "Sizning lokatsiyangiz bo'yicha hozircha barber topilmadi. Filterni tozalab umumiy ro'yxatga qayting."
             : "Barberlar ma'lumoti hali to'liq joylanmagan. Birozdan keyin qayta tekshirib ko'ring."}
         </p>
 
         <div className="mt-6 flex flex-wrap items-center justify-center gap-2 sm:mt-8 sm:gap-3">
-          {hasLocationFilter ? (
-            <button
-              type="button"
-              onClick={onExpandRadius}
-              className="inline-flex h-10 items-center justify-center rounded-xl bg-slate-950 px-5 text-sm font-bold text-white shadow-lg transition hover:bg-slate-800 sm:h-12 sm:rounded-2xl sm:px-6"
-            >
-              Radiusni kengaytirish
-            </button>
-          ) : null}
-
           <button
             type="button"
             onClick={onReset}
@@ -162,8 +148,7 @@ export default function Home() {
   const navigate = useNavigate();
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const [searchLocation, setSearchLocation] = useState<Coordinates | null>(null);
-  const [radiusKm, setRadiusKm] = useState(10);
-  const [sortBy, setSortBy] = useState<"distance" | "price_asc" | "price_desc">("distance");
+  const [sortBy, setSortBy] = useState<"default" | "distance" | "price_asc" | "price_desc">("default");
   const [detectingLocation, setDetectingLocation] = useState(false);
 
   const {
@@ -172,13 +157,12 @@ export default function Home() {
   } = useContextPro();
 
   const barbersQuery = useQuery({
-    queryKey: ["public-barbers", searchLocation?.lat ?? null, searchLocation?.lng ?? null, radiusKm, sortBy],
+    queryKey: ["public-barbers", searchLocation?.lat ?? null, searchLocation?.lng ?? null, sortBy],
     queryFn: () =>
       listPublicBarbers({
         lat: searchLocation?.lat,
         lng: searchLocation?.lng,
-        radius_km: searchLocation ? radiusKm : undefined,
-        sort_by: sortBy,
+        sort_by: sortBy === "default" ? undefined : sortBy,
       }),
   });
 
@@ -193,12 +177,6 @@ export default function Home() {
   const isLoggedIn = Boolean(user?.role);
   const profileRoute = getDefaultRouteForRole(user);
   const isMenuOpen = Boolean(menuAnchor);
-
-  useEffect(() => {
-    if (user?.location_lat != null && user?.location_lng != null) {
-      setSearchLocation({ lat: user.location_lat, lng: user.location_lng });
-    }
-  }, [user?.location_lat, user?.location_lng]);
 
   const handleOpenMenu = (event: MouseEvent<HTMLButtonElement>) => {
     setMenuAnchor(event.currentTarget);
@@ -218,31 +196,33 @@ export default function Home() {
     await logout();
   };
 
-  const handleUseMyLocation = async () => {
-    try {
-      setDetectingLocation(true);
-      const coords = await getBrowserLocation();
-      setSearchLocation(coords);
-    } catch (error) {
-      showLocationErrorToast(getErrorMessage(error, "Lokatsiyani aniqlab bo'lmadi"));
-    } finally {
-      setDetectingLocation(false);
+  const handleSortChange = async (nextSort: "default" | "distance" | "price_asc" | "price_desc") => {
+    if (nextSort === "distance") {
+      try {
+        setDetectingLocation(true);
+        const coords = await getBrowserLocation();
+        setSearchLocation(coords);
+        setSortBy("distance");
+      } catch (error) {
+        showLocationErrorToast(getErrorMessage(error, "Lokatsiyani aniqlab bo'lmadi"));
+        setSearchLocation(null);
+        setSortBy("default");
+      } finally {
+        setDetectingLocation(false);
+      }
+      return;
     }
+
+    if (sortBy === "distance") {
+      setSearchLocation(null);
+    }
+
+    setSortBy(nextSort);
   };
 
   const handleResetFilters = () => {
     setSearchLocation(null);
-    setRadiusKm(10);
-    setSortBy("distance");
-  };
-
-  const handleExpandRadius = () => {
-    setRadiusKm((current) => {
-      if (current < 5) return 5;
-      if (current < 10) return 10;
-      if (current < 20) return 20;
-      return current + 10;
-    });
+    setSortBy("default");
   };
 
   return (
@@ -329,7 +309,7 @@ export default function Home() {
                   to="/login"
                   className="rounded-full bg-slate-950 px-4 py-2 text-sm font-bold text-white shadow-lg transition hover:bg-slate-800 sm:px-5 sm:py-2.5"
                 >
-                  Admin panel
+                  Barber kabineti
                 </Link>
               </>
             )}
@@ -339,73 +319,151 @@ export default function Home() {
 
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10 lg:px-8">
         <section>
-          <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h1 className="text-3xl font-black tracking-tight sm:text-4xl md:text-5xl">
-                {t("home.ourBarbers")}
-              </h1>
-              <p className="mt-1 text-sm text-slate-500 sm:mt-2 sm:text-base">
-                {t("home.chooseExpert")}
-              </p>
-            </div>
-            
-            <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:min-w-[380px] sm:rounded-3xl md:min-w-[420px]">
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => void handleUseMyLocation()}
-                  disabled={detectingLocation}
-                  className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-slate-950 px-3 py-2 text-sm font-bold text-white transition disabled:opacity-50 sm:flex-none sm:px-4"
-                >
-                  <HiMiniMap className="h-4 w-4" />
-                  {detectingLocation ? "Aniqlanmoqda..." : "Yaqin barberlar"}
-                </button>
-                
-                {searchLocation ? (
-                  <button
-                    type="button"
-                    onClick={handleResetFilters}
-                    className="rounded-full border border-slate-200 px-3 py-2 text-sm font-bold text-slate-600 transition hover:bg-slate-50 sm:px-4"
-                  >
-                    Filterni tozalash
-                  </button>
-                ) : null}
-              </div>
+<div className="mb-12 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+  {/* Chap tomon: Sarlavha va tavsif */}
+  <div className="space-y-3">
+    <h1 className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 bg-clip-text text-4xl font-black tracking-tight text-transparent sm:text-5xl md:text-6xl">
+      {t("home.ourBarbers")}
+    </h1>
+    <p className="max-w-xl text-base text-slate-500 sm:text-lg">
+      {t("home.chooseExpert")}
+    </p>
+  </div>
 
-              <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                <div>
-                  <label className="text-xs font-bold text-slate-700 sm:text-sm">
-                    Radius
-                  </label>
-                  <select
-                    value={radiusKm}
-                    onChange={(event) => setRadiusKm(Number(event.target.value))}
-                    className="mt-1 h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none focus:ring-2 focus:ring-slate-300 sm:h-11"
-                  >
-                    <option value={3}>3 km</option>
-                    <option value={5}>5 km</option>
-                    <option value={10}>10 km</option>
-                    <option value={20}>20 km</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="text-xs font-bold text-slate-700 sm:text-sm">
-                    Saralash
-                  </label>
-                  <select
-                    value={sortBy}
-                    onChange={(event) => setSortBy(event.target.value as "distance" | "price_asc" | "price_desc")}
-                    className="mt-1 h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none focus:ring-2 focus:ring-slate-300 sm:h-11"
-                  >
-                    <option value="distance">Eng yaqin</option>
-                    <option value="price_asc">Eng arzon</option>
-                    <option value="price_desc">Eng qimmat</option>
-                  </select>
-                </div>
-              </div>
+  {/* O‘ng tomon: Filtr va saralash */}
+  <div className="w-full lg:w-auto lg:min-w-[380px]">
+    <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white/80 shadow-xl shadow-slate-200/50 backdrop-blur-xl transition-all hover:shadow-2xl">
+      
+      {/* Reset button */}
+      {(sortBy !== "default" || searchLocation) && (
+        <button
+          type="button"
+          onClick={handleResetFilters}
+          aria-label="Filtrlarni tozalash"
+          className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-slate-400 backdrop-blur-sm transition-all hover:bg-red-50 hover:text-red-500 hover:shadow-md"
+        >
+          <HiMiniXMark className="h-4 w-4" />
+          <span className="sr-only">Filtrlarni tozalash</span>
+        </button>
+      )}
+
+      {/* Asosiy filtr tugmalari */}
+      <div className="bg-gradient-to-br from-slate-50/50 to-white p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+            Saralash
+          </span>
+          {detectingLocation && (
+            <div className="flex items-center gap-1.5">
+              <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500"></div>
+              <span className="text-xs font-medium text-emerald-600">
+                Lokatsiya aniqlanmoqda...
+              </span>
             </div>
+          )}
+        </div>
+
+        <div className="grid grid-cols-3 gap-3">
+          {/* Eng yaqin */}
+          <button
+            onClick={() => void handleSortChange("distance")}
+            disabled={detectingLocation}
+            className={`group relative overflow-hidden rounded-xl px-4 py-3 text-center text-sm font-semibold transition-all duration-300 ${
+              sortBy === "distance"
+                ? "bg-gradient-to-br from-slate-800 to-slate-900 text-white shadow-lg shadow-slate-800/20"
+                : "bg-white text-slate-600 shadow-sm ring-1 ring-slate-200/80 hover:shadow-md hover:ring-slate-300"
+            } ${detectingLocation ? "cursor-not-allowed opacity-50" : ""}`}
+          >
+            <div className="relative z-10 flex flex-col items-center gap-1.5">
+              <div className="rounded-full bg-white/10 p-1.5 transition-all duration-300 group-hover:scale-110 group-hover:bg-white/20">
+                {sortBy === "distance" ? (
+                  <HiMiniMapPin className="h-5 w-5" />
+                ) : (
+                  <HiMiniMapPin className="h-5 w-5" />
+                )}
+              </div>
+              <span className="leading-tight">Eng yaqin</span>
+            </div>
+            {sortBy === "distance" && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-400 to-amber-500"></div>
+            )}
+          </button>
+
+          {/* Eng arzon */}
+          <button
+            onClick={() => void handleSortChange("price_asc")}
+            className={`group relative overflow-hidden rounded-xl px-4 py-3 text-center text-sm font-semibold transition-all duration-300 ${
+              sortBy === "price_asc"
+                ? "bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-lg shadow-emerald-600/20"
+                : "bg-white text-slate-600 shadow-sm ring-1 ring-slate-200/80 hover:shadow-md hover:ring-slate-300"
+            }`}
+          >
+            <div className="relative z-10 flex flex-col items-center gap-1.5">
+              <div className="rounded-full bg-white/10 p-1.5 transition-all duration-300 group-hover:scale-110 group-hover:bg-white/20">
+                {sortBy === "price_asc" ? (
+                  <span className="text-base">💰</span>
+                ) : (
+                  <span className="text-base">$</span>
+                )}
+              </div>
+              <span className="leading-tight">Eng arzon</span>
+            </div>
+            {sortBy === "price_asc" && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-emerald-400 to-teal-400"></div>
+            )}
+          </button>
+
+          {/* Eng qimmat */}
+          <button
+            onClick={() => void handleSortChange("price_desc")}
+            className={`group relative overflow-hidden rounded-xl px-4 py-3 text-center text-sm font-semibold transition-all duration-300 ${
+              sortBy === "price_desc"
+                ? "bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/20"
+                : "bg-white text-slate-600 shadow-sm ring-1 ring-slate-200/80 hover:shadow-md hover:ring-slate-300"
+            }`}
+          >
+            <div className="relative z-10 flex flex-col items-center gap-1.5">
+              <div className="rounded-full bg-white/10 p-1.5 transition-all duration-300 group-hover:scale-110 group-hover:bg-white/20">
+                {sortBy === "price_desc" ? (
+                  <span className="text-base">🏆</span>
+                ) : (
+                  <span className="text-base">📈</span>
+                )}
+              </div>
+              <span className="leading-tight">Eng qimmat</span>
+            </div>
+            {sortBy === "price_desc" && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-400 to-orange-400"></div>
+            )}
+          </button>
+        </div>
+
+        {/* Aktiv filtrlar ko'rsatkichi */}
+        {(sortBy !== "default" || searchLocation) && (
+          <div className="mt-3 flex flex-wrap items-center gap-2 pt-2">
+            <span className="text-xs text-slate-400">Aktiv filtr:</span>
+            {sortBy !== "default" && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
+                {sortBy === "distance" && <HiMiniMapPin className="h-3 w-3" />}
+                {sortBy === "price_asc" && <span>$</span>}
+                {sortBy === "price_desc" && <span>🏆</span>}
+                {sortBy === "distance" && "Eng yaqin"}
+                {sortBy === "price_asc" && "Eng arzon"}
+                {sortBy === "price_desc" && "Eng qimmat"}
+              </span>
+            )}
+            {searchLocation && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
+                <HiMiniMapPin className="h-3 w-3" />
+                {`${searchLocation.lat.toFixed(4)}, ${searchLocation.lng.toFixed(4)}`}
+              </span>
+            )}
           </div>
+        )}
+      </div>
+    </div>
+  </div>
+</div>
 
           {isLoading ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -416,8 +474,6 @@ export default function Home() {
           ) : barbers.length === 0 ? (
             <EmptyBarbersState
               hasLocationFilter={Boolean(searchLocation)}
-              radiusKm={radiusKm}
-              onExpandRadius={handleExpandRadius}
               onReset={handleResetFilters}
             />
           ) : (

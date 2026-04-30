@@ -24,6 +24,12 @@ export function getDefaultRouteForRole(user: Pick<User, "role"> | null | undefin
   return "/user/access";
 }
 
+export function getPostLoginRoute(user: Pick<User, "role"> | null | undefined) {
+  const role = getPrimaryRole(user);
+  if (role === "user") return "/";
+  return getDefaultRouteForRole(user);
+}
+
 export function getRoleLabel(role: UserRole | undefined) {
   switch (role) {
     case "admin":

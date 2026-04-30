@@ -21,7 +21,7 @@ import {
   persistTokens,
 } from "../../api/auth";
 import useContextPro from "../../hooks/useContextPro";
-import { getDefaultRouteForRole, getRoleLabel } from "../../utils/roles";
+import { getPostLoginRoute, getRoleLabel } from "../../utils/roles";
 
 function BrandMark() {
   return (
@@ -58,9 +58,7 @@ export default function Login() {
 
   useEffect(() => {
     if (user?.role) {
-      navigate(user.role === "user" ? "/" : getDefaultRouteForRole(user), {
-        replace: true,
-      });
+      navigate(getPostLoginRoute(user), { replace: true });
     }
   }, [navigate, user]);
 
@@ -187,7 +185,7 @@ export default function Login() {
         draggable: true,
       });
 
-      navigate(getDefaultRouteForRole(me), { replace: true });
+      navigate(getPostLoginRoute(me), { replace: true });
     } catch (error) {
       clearStoredAuth();
       handleLoginError(error);
