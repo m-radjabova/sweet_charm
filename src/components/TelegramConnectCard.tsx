@@ -30,6 +30,25 @@ function formatTokenExpiry(locale: string, value?: string | null) {
   }).format(date);
 }
 
+function buildTelegramAppUrl(info?: TelegramLinkInfo) {
+  if (!info?.bot_username) return null;
+
+  const params = new URLSearchParams({ domain: info.bot_username });
+
+  if (info.deep_link_url) {
+    try {
+      const start = new URL(info.deep_link_url).searchParams.get("start");
+      if (start) {
+        params.set("start", start);
+      }
+    } catch {
+      // Keep opening the bot even if the web deep link cannot be parsed.
+    }
+  }
+
+  return `tg://resolve?${params.toString()}`;
+}
+
 type TelegramConnectCardProps = {
   info?: TelegramLinkInfo;
   role: UserRole;
@@ -61,6 +80,7 @@ export default function TelegramConnectCard({
   const locale = i18n.language.startsWith("ru") ? "ru-RU" : "uz-UZ";
   const connectedAt = formatConnectedAt(locale, info?.telegram_connected_at);
   const tokenExpiresAt = formatTokenExpiry(locale, info?.token_expires_at);
+  const telegramAppUrl = buildTelegramAppUrl(info);
 
   const handleCopyLink = async () => {
     if (!info?.deep_link_url) return;
@@ -253,11 +273,10 @@ export default function TelegramConnectCard({
             {/* Action Buttons */}
             <div className="flex flex-wrap gap-3 pt-2">
               <a
-                href={info?.deep_link_url ?? info?.bot_url ?? "#"}
-                target="_blank"
+                href={telegramAppUrl ?? info?.deep_link_url ?? info?.bot_url ?? "#"}
                 rel="noreferrer"
                 className={`group/btn inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold text-white shadow-lg transition-all duration-300 ${
-                  info?.deep_link_url || info?.bot_url
+                  telegramAppUrl || info?.deep_link_url || info?.bot_url
                     ? "bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 hover:shadow-xl hover:scale-105"
                     : "pointer-events-none bg-slate-300"
                 }`}

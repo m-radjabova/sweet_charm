@@ -1,6 +1,7 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   HiMiniArrowLeft,
   HiMiniCheckCircle,
@@ -34,6 +35,7 @@ const tabs = ["all", "confirmed", "completed"] as const;
 
 
 export default function BarberSchedule() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { state } = useContextPro();
   const [selectedDate, setSelectedDate] = useState(getTodayIsoDate());
@@ -47,7 +49,7 @@ export default function BarberSchedule() {
   const completeMutation = useMutation({
     mutationFn: (bookingId: string) => updateBookingStatus(bookingId, "completed"),
     onSuccess: async () => {
-      toast.success("Xizmat muvaffaqiyatli yakunlandi!", {
+      toast.success(t("barberSchedule.toast.completed"), {
         position: "top-right",
         autoClose: 3000,
         style: { background: "#10b981", color: "white", borderRadius: "16px" }
@@ -58,7 +60,7 @@ export default function BarberSchedule() {
       ]);
     },
     onError: (error) => {
-      toast.error(getErrorMessage(error, "Xatolik yuz berdi"), {
+      toast.error(getErrorMessage(error, t("barberSchedule.toast.error")), {
         position: "top-right",
         autoClose: 4000,
         style: { background: "#ef4444", color: "white", borderRadius: "16px" }
@@ -108,16 +110,16 @@ export default function BarberSchedule() {
             className="group mb-4 inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 text-sm font-medium text-slate-600 shadow-sm backdrop-blur-sm transition-all hover:bg-white hover:shadow-md"
           >
             <HiMiniArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-            Dashboardga qaytish
+            {t("barberSchedule.backToDashboard")}
           </Link>
 
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <h1 className="text-3xl font-black tracking-tight text-slate-900 lg:text-4xl">
-                Kunlik jadval
+                {t("barberSchedule.title")}
               </h1>
               <p className="mt-2 text-slate-500">
-                Qabullarni boshqaring va mijozlaringizni qabul qiling
+                {t("barberSchedule.subtitle")}
               </p>
             </div>
             
@@ -125,7 +127,7 @@ export default function BarberSchedule() {
               <div className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 shadow-md">
                 <HiMiniUser className="h-4 w-4 text-amber-500" />
                 <span className="text-sm font-medium text-slate-700">
-                  {state.user?.full_name?.split(" ")[0] ?? "Barber"}
+                  {state.user?.full_name?.split(" ")[0] ?? t("roles.barber")}
                 </span>
               </div>
               <Link
@@ -151,7 +153,7 @@ export default function BarberSchedule() {
 
             <div className="text-center">
               <p className="text-2xl font-black text-slate-900">
-                {isToday ? "Bugun" : formatDisplayDate(selectedDate)}
+                {isToday ? t("common.today") : formatDisplayDate(selectedDate)}
               </p>
               <p className="mt-1 text-sm text-slate-400">
                 {formatDisplayDate(selectedDate)}
@@ -171,7 +173,7 @@ export default function BarberSchedule() {
         {/* Stats Grid */}
         <div className="mb-8 grid gap-4 sm:grid-cols-3">
           <StatCard
-            title="Jami qabullar"
+            title={t("barberSchedule.statsTotal")}
             value={stats.total}
             icon={<HiMiniUserGroup className="h-5 w-5" />}
             color="from-slate-500 to-slate-600"
@@ -179,7 +181,7 @@ export default function BarberSchedule() {
             textColor="text-slate-600"
           />
           <StatCard
-            title="Kutilayotgan"
+            title={t("barberSchedule.statsPending")}
             value={stats.pending}
             icon={<HiMiniClock className="h-5 w-5" />}
             color="from-amber-500 to-orange-600"
@@ -187,7 +189,7 @@ export default function BarberSchedule() {
             textColor="text-amber-600"
           />
           <StatCard
-            title="Yakunlangan"
+            title={t("barberSchedule.statsCompleted")}
             value={stats.completed}
             icon={<HiMiniCheckBadge className="h-5 w-5" />}
             color="from-emerald-500 to-teal-600"
@@ -208,9 +210,9 @@ export default function BarberSchedule() {
                   : "text-slate-400 hover:text-slate-600"
               }`}
             >
-              {tab === "all" && "Barchasi"}
-              {tab === "confirmed" && "Kutilayotgan"}
-              {tab === "completed" && "Yakunlangan"}
+              {tab === "all" && t("barberSchedule.all")}
+              {tab === "confirmed" && t("barberSchedule.confirmed")}
+              {tab === "completed" && t("barberSchedule.completed")}
               {activeTab === tab && (
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full" />
               )}
@@ -244,12 +246,17 @@ export default function BarberSchedule() {
               <HiMiniInformationCircle className="h-8 w-8 text-slate-400" />
             </div>
             <h3 className="text-lg font-black text-slate-900">
-              Qabullar topilmadi
+              {t("barberSchedule.emptyTitle")}
             </h3>
             <p className="mt-2 text-sm text-slate-500">
               {activeTab === "all" 
-                ? "Bu kunga hech qanday qabul mavjud emas"
-                : "Bu statusdagi qabullar mavjud emas"}
+                ? t("barberSchedule.noAppointmentsForDay")
+                : t("barberSchedule.noAppointmentsForStatus", {
+                    status:
+                      activeTab === "confirmed"
+                        ? t("barberSchedule.confirmed")
+                        : t("barberSchedule.completed"),
+                  })}
             </p>
           </div>
         ) : (
@@ -317,6 +324,7 @@ function ScheduleCard({
   loading: boolean;
   index: number;
 }) {
+  const { t } = useTranslation();
   const isCompleted = booking.status === "completed";
   const isPending = booking.status === "confirmed";
 
@@ -342,8 +350,8 @@ function ScheduleCard({
                 isCompleted ? "bg-emerald-500" : isPending ? "bg-amber-500" : "bg-slate-500"
               }`}
             />
-            {isCompleted && "Yakunlangan"}
-            {isPending && "Kutilmoqda"}
+            {isCompleted && t("barberSchedule.completed")}
+            {isPending && t("barberSchedule.pending")}
           </span>
         </div>
 
@@ -380,7 +388,7 @@ function ScheduleCard({
         {isCompleted ? (
           <div className="mt-6 flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-emerald-700">
             <HiMiniCheckCircle className="h-5 w-5" />
-            <span className="text-sm font-bold">Xizmat yakunlangan</span>
+            <span className="text-sm font-bold">{t("barberSchedule.serviceCompleted")}</span>
           </div>
         ) : (
           <button
@@ -395,12 +403,12 @@ function ScheduleCard({
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
-                Yakunlanmoqda
+                {t("barberSchedule.completing")}
               </>
             ) : (
               <>
                 <HiMiniCheckCircle className="h-5 w-5" />
-                Xizmatni yakunlash
+                {t("barberSchedule.completeService")}
               </>
             )}
           </button>

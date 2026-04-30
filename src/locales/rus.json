@@ -98,6 +98,9 @@
     "expensive": "Сначала дороже",
     "activeFilter": "Активный фильтр:",
     "priceLabel": "Цена",
+    "scheduleLabel": "График",
+    "locationLabel": "Адрес",
+    "emptyDash": "—",
     "promotionAvailable": "Есть акция",
     "bookNow": "Записаться",
     "specialities": {
@@ -207,14 +210,29 @@
   },
   "customerDashboard": {
     "badge": "Мой кабинет",
-    "title": "Мои записи",
-    "subtitle": "Здесь отображаются подтверждённые, выполненные и отменённые записи.",
-    "bookingsCount": "Записей: {{count}}",
-    "newBooking": "Новая запись",
+    "customerBadge": "Клиент",
+    "title": "Мои бронирования",
+    "subtitle": "Все ваши забронированные визиты",
+    "bookingsCount": "Бронирований: {{count}}",
+    "totalLabel": "Всего: {{count}}",
+    "newBooking": "Новое бронирование",
     "nextBooking": "Ближайшая запись",
+    "details": "Подробнее",
+    "bookNow": "Забронировать",
     "phoneLabel": "Телефон",
-    "emptyTitle": "Пока записей нет",
-    "emptyDescription": "Выберите барбера на главной странице и оформите первую запись."
+    "emptyTitle": "Бронирования не найдены",
+    "emptyDescription": "Вы ещё ничего не бронировали",
+    "stats": {
+      "total": "Все бронирования",
+      "completed": "Завершено",
+      "pending": "Ожидаются",
+      "cancelled": "Отменено"
+    },
+    "status": {
+      "completed": "Завершено",
+      "cancelled": "Отменено",
+      "pending": "Ожидается"
+    }
   },
   "bookingSuccess": {
     "title": "Всё готово!",
@@ -366,12 +384,29 @@
     }
   },
   "barberSchedule": {
+    "title": "Расписание на день",
+    "subtitle": "Управляйте записями и принимайте клиентов вовремя",
+    "backToDashboard": "Вернуться в дашборд",
     "totalAppointments": "Все записи",
     "all": "Все",
+    "confirmed": "Подтверждённые",
+    "completed": "Завершённые",
+    "pending": "Ожидаются",
     "appointmentsCount": "Записей: {{count}}",
+    "statsTotal": "Всего приёмов",
+    "statsPending": "Ожидаются",
+    "statsCompleted": "Завершены",
+    "emptyTitle": "Записи не найдены",
+    "serviceCompleted": "Услуга завершена",
+    "completing": "Завершаем...",
+    "completeService": "Завершить услугу",
     "noAppointmentsForDay": "На этот день записи не назначены.",
     "noAppointmentsForStatus": "Нет записей со статусом \"{{status}}\" на эту дату.",
-    "markCompleted": "Отметить как выполненное"
+    "markCompleted": "Отметить как выполненное",
+    "toast": {
+      "completed": "Услуга успешно завершена",
+      "error": "Произошла ошибка"
+    }
   },
   "notFound": {
     "title": "Страница не найдена",

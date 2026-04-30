@@ -521,7 +521,7 @@ export default function Home() {
                       {/* Info grid */}
                       <div className="mt-3 grid grid-cols-3 gap-1.5 text-[10px] sm:mt-4 sm:gap-2 sm:text-xs">
                         <div className="rounded-lg bg-white/10 p-1.5 text-center backdrop-blur sm:rounded-xl sm:p-2">
-                          <p className="text-white/50">Jadval</p>
+                          <p className="text-white/50">{t("home.scheduleLabel")}</p>
                           <p className="font-bold leading-tight">
                             {formatWorkingHours(
                               barber.work_start_time,
@@ -531,9 +531,9 @@ export default function Home() {
                         </div>
 
                         <div className="rounded-lg bg-white/10 p-1.5 text-center backdrop-blur sm:rounded-xl sm:p-2">
-                          <p className="text-white/50">Joy</p>
+                          <p className="text-white/50">{t("home.locationLabel")}</p>
                           <p className="line-clamp-1 font-bold leading-tight">
-                            {barber.location_text || "—"}
+                            {barber.location_text || t("home.emptyDash")}
                           </p>
                         </div>
 

@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { 
   HiOutlineCalendarDays, 
   HiOutlineClock, 
@@ -24,7 +25,7 @@ function getStatusConfig(status: string) {
     case "completed":
       return {
         icon: HiOutlineCheckBadge,
-        label: "Yakunlangan",
+        labelKey: "customerDashboard.status.completed",
         color: "emerald",
         bgColor: "bg-emerald-50",
         textColor: "text-emerald-700",
@@ -33,7 +34,7 @@ function getStatusConfig(status: string) {
     case "cancelled":
       return {
         icon: HiOutlineXCircle,
-        label: "Bekor qilingan",
+        labelKey: "customerDashboard.status.cancelled",
         color: "rose",
         bgColor: "bg-rose-50",
         textColor: "text-rose-700",
@@ -42,7 +43,7 @@ function getStatusConfig(status: string) {
     default:
       return {
         icon: HiOutlinePending,
-        label: "Kutilmoqda",
+        labelKey: "customerDashboard.status.pending",
         color: "amber",
         bgColor: "bg-amber-50",
         textColor: "text-amber-700",
@@ -61,6 +62,7 @@ function getInitials(name: string) {
 }
 
 export default function CustomerDashboard() {
+  const { t } = useTranslation();
   const {
     state: { user },
     logout,
@@ -91,11 +93,6 @@ export default function CustomerDashboard() {
       await queryClient.invalidateQueries({ queryKey: ["telegram-link", user?.id] });
     },
   });
-  const nextBooking = useMemo(
-    () => bookings.find((booking) => booking.status === "confirmed") ?? bookings[0] ?? null,
-    [bookings],
-  );
-
   const stats = useMemo(() => {
     const total = bookings.length;
     const completed = bookings.filter(b => b.status === "completed").length;
@@ -136,7 +133,7 @@ export default function CustomerDashboard() {
               <div>
                 <div className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-600 mb-2">
                   <HiMiniSparkles className="h-3 w-3" />
-                  Mijoz
+                  {t("customerDashboard.customerBadge")}
                 </div>
                 <h1 className="text-2xl font-black text-slate-900 lg:text-3xl">
                   {user?.full_name}
@@ -148,7 +145,7 @@ export default function CustomerDashboard() {
                   </span>
                   <span className="inline-flex items-center gap-1">
                     <HiOutlineTicket className="h-3.5 w-3.5" />
-                    {stats.total} ta bron
+                    {t("customerDashboard.bookingsCount", { count: stats.total })}
                   </span>
                 </div>
               </div>
@@ -159,7 +156,7 @@ export default function CustomerDashboard() {
                 to="/"
                 className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-slate-700 shadow-md transition-all hover:shadow-lg hover:scale-105"
               >
-                Yangi bron
+                {t("customerDashboard.newBooking")}
                 <HiOutlineArrowRight className="h-4 w-4" />
               </Link>
               <button
@@ -167,7 +164,7 @@ export default function CustomerDashboard() {
                 onClick={() => void logout()}
                 className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-rose-600 px-5 py-2.5 text-sm font-bold text-white shadow-md transition-all hover:shadow-lg hover:scale-105"
               >
-                Chiqish
+                {t("home.signOut")}
               </button>
             </div>
           </div>
@@ -176,7 +173,7 @@ export default function CustomerDashboard() {
         {/* Stats Grid */}
         <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
-            title="Jami bronlar"
+            title={t("customerDashboard.stats.total")}
             value={stats.total}
             icon={<HiOutlineTicket className="h-5 w-5" />}
             color="from-blue-500 to-indigo-600"
@@ -184,7 +181,7 @@ export default function CustomerDashboard() {
             textColor="text-blue-600"
           />
           <StatCard
-            title="Yakunlangan"
+            title={t("customerDashboard.stats.completed")}
             value={stats.completed}
             icon={<HiOutlineCheckBadge className="h-5 w-5" />}
             color="from-emerald-500 to-teal-600"
@@ -192,7 +189,7 @@ export default function CustomerDashboard() {
             textColor="text-emerald-600"
           />
           <StatCard
-            title="Kutilayotgan"
+            title={t("customerDashboard.stats.pending")}
             value={stats.pending}
             icon={<HiOutlinePending className="h-5 w-5" />}
             color="from-amber-500 to-orange-600"
@@ -200,7 +197,7 @@ export default function CustomerDashboard() {
             textColor="text-amber-600"
           />
           <StatCard
-            title="Bekor qilingan"
+            title={t("customerDashboard.stats.cancelled")}
             value={stats.cancelled}
             icon={<HiOutlineXCircle className="h-5 w-5" />}
             color="from-rose-500 to-pink-600"
@@ -219,53 +216,18 @@ export default function CustomerDashboard() {
           />
         </div>
 
-        {/* Next Booking Highlight */}
-        {nextBooking && (
-          <div className="group relative mb-8 overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 p-6 shadow-lg transition-all hover:shadow-xl">
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-emerald-400/20 to-teal-400/20 opacity-0 transition-opacity group-hover:opacity-100" />
-            <div className="relative">
-              <div className="flex items-center gap-2 mb-4">
-                <HiMiniSparkles className="h-5 w-5 text-emerald-600" />
-                <span className="text-xs font-black uppercase tracking-wider text-emerald-700">
-                  Navbatdagi bron
-                </span>
-              </div>
-              <div className="grid gap-5 md:grid-cols-3">
-                <div>
-                  <p className="text-xs font-bold uppercase text-emerald-600/70">Sartarosh</p>
-                  <p className="mt-1 text-xl font-black text-slate-900">
-                    {nextBooking.barber_name}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs font-bold uppercase text-emerald-600/70">Sana</p>
-                  <p className="mt-1 text-xl font-black text-slate-900">
-                    {formatDisplayDate(nextBooking.appointment_date)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs font-bold uppercase text-emerald-600/70">Vaqt</p>
-                  <p className="mt-1 text-xl font-black text-slate-900">
-                    {formatDisplayTime(nextBooking.appointment_time)}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Bookings List */}
         <div className="rounded-2xl bg-white p-6 shadow-xl shadow-slate-900/5 border border-slate-100">
           <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h2 className="text-xl font-black text-slate-900">Bronlarim</h2>
+              <h2 className="text-xl font-black text-slate-900">{t("customerDashboard.title")}</h2>
               <p className="mt-1 text-sm text-slate-500">
-                Barcha bron qilgan uchrashuvlaringiz
+                {t("customerDashboard.subtitle")}
               </p>
             </div>
             {bookings.length > 0 && (
               <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-bold text-slate-600">
-                Jami: {bookings.length}
+                {t("customerDashboard.totalLabel", { count: bookings.length })}
               </span>
             )}
           </div>
@@ -308,7 +270,7 @@ export default function CustomerDashboard() {
                           </h3>
                           <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold ${statusConfig.bgColor} ${statusConfig.textColor}`}>
                             <StatusIcon className="h-3 w-3" />
-                            {statusConfig.label}
+                            {t(statusConfig.labelKey)}
                           </span>
                         </div>
                         <p className="mt-1 text-sm text-slate-400 font-mono">
@@ -320,7 +282,7 @@ export default function CustomerDashboard() {
                         to={`/book/success/${booking.booking_code}`}
                         className="inline-flex items-center gap-2 rounded-lg bg-slate-800 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-slate-700 hover:scale-105"
                       >
-                        Batafsil
+                        {t("customerDashboard.details")}
                         <HiOutlineArrowRight className="h-4 w-4" />
                       </Link>
                     </div>
@@ -331,7 +293,7 @@ export default function CustomerDashboard() {
                           <HiOutlineCalendarDays className="h-4 w-4 text-amber-500" />
                         </div>
                         <div>
-                          <p className="text-xs font-bold uppercase text-slate-400">Sana</p>
+                          <p className="text-xs font-bold uppercase text-slate-400">{t("common.date")}</p>
                           <p className="font-bold text-slate-900">
                             {formatDisplayDate(booking.appointment_date)}
                           </p>
@@ -343,7 +305,7 @@ export default function CustomerDashboard() {
                           <HiOutlineClock className="h-4 w-4 text-amber-500" />
                         </div>
                         <div>
-                          <p className="text-xs font-bold uppercase text-slate-400">Vaqt</p>
+                          <p className="text-xs font-bold uppercase text-slate-400">{t("common.time")}</p>
                           <p className="font-bold text-slate-900">
                             {formatDisplayTime(booking.appointment_time)}
                           </p>
@@ -355,7 +317,7 @@ export default function CustomerDashboard() {
                           <HiOutlinePhone className="h-4 w-4 text-amber-500" />
                         </div>
                         <div>
-                          <p className="text-xs font-bold uppercase text-slate-400">Telefon</p>
+                          <p className="text-xs font-bold uppercase text-slate-400">{t("customerDashboard.phoneLabel")}</p>
                           <p className="font-bold text-slate-900">
                             {maskStoredPhone(booking.client_phone)}
                           </p>
@@ -372,16 +334,16 @@ export default function CustomerDashboard() {
                   <HiOutlineTicket className="h-8 w-8 text-slate-400" />
                 </div>
                 <h3 className="text-lg font-black text-slate-900">
-                  Hech qanday bron topilmadi
+                  {t("customerDashboard.emptyTitle")}
                 </h3>
                 <p className="mt-2 text-sm text-slate-500">
-                  Hali hech qanday bron qilmagansiz
+                  {t("customerDashboard.emptyDescription")}
                 </p>
                 <Link
                   to="/"
                   className="mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-slate-800 to-slate-900 px-6 py-2.5 text-sm font-bold text-white shadow-lg transition-all hover:scale-105"
                 >
-                  Bron qilish
+                  {t("customerDashboard.bookNow")}
                   <HiOutlineArrowRight className="h-4 w-4" />
                 </Link>
               </div>

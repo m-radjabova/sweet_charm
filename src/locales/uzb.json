@@ -98,6 +98,9 @@
     "expensive": "Eng qimmat",
     "activeFilter": "Faol filtr:",
     "priceLabel": "Narxi",
+    "scheduleLabel": "Jadval",
+    "locationLabel": "Joy",
+    "emptyDash": "—",
     "promotionAvailable": "Aksiya mavjud",
     "bookNow": "Bron qilish",
     "specialities": {
@@ -207,14 +210,29 @@
   },
   "customerDashboard": {
     "badge": "Mening kabinetim",
-    "title": "Navbatlarim",
-    "subtitle": "Tasdiqlangan, bajarilgan va bekor qilingan navbatlaringiz shu yerda ko'rinadi.",
-    "bookingsCount": "{{count}} ta navbat",
-    "newBooking": "Yangi navbat olish",
+    "customerBadge": "Mijoz",
+    "title": "Bronlarim",
+    "subtitle": "Barcha bron qilgan uchrashuvlaringiz",
+    "bookingsCount": "{{count}} ta bron",
+    "totalLabel": "Jami: {{count}}",
+    "newBooking": "Yangi bron",
     "nextBooking": "Yaqin navbatingiz",
+    "details": "Batafsil",
+    "bookNow": "Bron qilish",
     "phoneLabel": "Telefon",
-    "emptyTitle": "Hozircha navbatlar yo'q",
-    "emptyDescription": "Bosh sahifadan ustani tanlab, birinchi navbatingizni oling."
+    "emptyTitle": "Hech qanday bron topilmadi",
+    "emptyDescription": "Hali hech qanday bron qilmagansiz",
+    "stats": {
+      "total": "Jami bronlar",
+      "completed": "Yakunlangan",
+      "pending": "Kutilayotgan",
+      "cancelled": "Bekor qilingan"
+    },
+    "status": {
+      "completed": "Yakunlangan",
+      "cancelled": "Bekor qilingan",
+      "pending": "Kutilmoqda"
+    }
   },
   "bookingSuccess": {
     "title": "Hammasi tayyor!",
@@ -367,12 +385,29 @@
     }
   },
   "barberSchedule": {
+    "title": "Kunlik jadval",
+    "subtitle": "Qabullarni boshqaring va mijozlaringizni qabul qiling",
+    "backToDashboard": "Dashboardga qaytish",
     "totalAppointments": "Jami navbatlar",
     "all": "Barchasi",
+    "confirmed": "Tasdiqlangan",
+    "completed": "Yakunlangan",
+    "pending": "Kutilmoqda",
     "appointmentsCount": "{{count}} ta navbat",
+    "statsTotal": "Jami qabullar",
+    "statsPending": "Kutilayotgan",
+    "statsCompleted": "Yakunlangan",
+    "emptyTitle": "Qabullar topilmadi",
+    "serviceCompleted": "Xizmat yakunlangan",
+    "completing": "Yakunlanmoqda...",
+    "completeService": "Xizmatni yakunlash",
     "noAppointmentsForDay": "Bu kunga navbatlar belgilanmagan.",
     "noAppointmentsForStatus": "\"{{status}}\" holatidagi navbatlar topilmadi.",
-    "markCompleted": "Bajarildi deb belgilash"
+    "markCompleted": "Bajarildi deb belgilash",
+    "toast": {
+      "completed": "Xizmat muvaffaqiyatli yakunlandi",
+      "error": "Xatolik yuz berdi"
+    }
   },
   "notFound": {
     "title": "Sahifa topilmadi",
