@@ -390,7 +390,7 @@ export default function AccountSettings() {
               </div>
             </div>
 
-            {!isBarber && (
+            {user?.role === "user" && (
               <TelegramConnectCard
                 info={telegramQuery.data}
                 role={user?.role ?? "user"}

@@ -109,7 +109,7 @@ export interface UpdateCurrentUserPayload {
   services?: BarberServiceItem[];
 }
 
-export type BookingStatus = "confirmed" | "completed" | "cancelled";
+export type BookingStatus = "pending" | "confirmed" | "completed" | "cancelled";
 
 export interface PublicBarber {
   id: string;
@@ -179,8 +179,10 @@ export interface Booking {
 
 export interface BarberDashboardStats {
   total: number;
+  confirmed: number;
   completed: number;
   pending: number;
+  cancelled: number;
   completion_ratio: number;
 }
 

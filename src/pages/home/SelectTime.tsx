@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { 
   HiMiniArrowLeft, 
@@ -11,12 +11,19 @@ import {
   HiOutlineUser,
   HiOutlineScissors,
   HiMiniStar,
-  HiOutlineInformationCircle
+  HiOutlineInformationCircle,
+  HiOutlineCheckBadge,
+  HiOutlineXCircle
 } from "react-icons/hi2";
-import { getBarberAvailability, listMyBookings } from "../../api/bookings";
+import { toast } from "react-toastify";
+import { getErrorMessage } from "../../api/auth";
+import { cancelMyBooking, createCustomerBookingsSocket, getBarberAvailability, listMyBookings } from "../../api/bookings";
+import ConfirmActionDialog from "../../components/ConfirmActionDialog";
 import i18n from "../../i18n";
 import useContextPro from "../../hooks/useContextPro";
+import type { Booking } from "../../types/types";
 import {
+  clearStoredConfirmedBooking,
   clearStoredSelection,
   formatDisplayDate,
   formatDisplayTime,
@@ -93,6 +100,7 @@ function TimeSlotsSkeleton() {
 export default function SelectTime() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { barberId = "" } = useParams();
   const {
     state: { user },
@@ -102,6 +110,7 @@ export default function SelectTime() {
   const [selectedDate, setSelectedDate] = useState(initialDate);
   const [selectedTime, setSelectedTime] = useState("");
   const [isNavigating, setIsNavigating] = useState(false);
+  const [bookingToCancel, setBookingToCancel] = useState<Booking | null>(null);
 
   const availabilityQuery = useQuery({
     queryKey: ["barber-availability", barberId, selectedDate],
@@ -121,16 +130,23 @@ export default function SelectTime() {
   const isLoading = availabilityQuery.isLoading && !availability;
   const isRefreshing = availabilityQuery.isFetching && Boolean(availability);
   const canContinue = Boolean(selectedTime && availability?.barber.id);
-  const slots = availability?.slots ?? [];
+  const slots = useMemo(() => availability?.slots ?? [], [availability?.slots]);
   const confirmedBooking = getStoredConfirmedBooking();
-  const ownedBookedTimes = useMemo(() => {
-    const times = new Set<string>();
-
+  const ownedBookingsByTime = useMemo(() => {
+    const bookingsByTime = new Map<string, Booking>();
     myBookingsQuery.data
       ?.filter((booking) => booking.barber_id === barberId && booking.status !== "cancelled")
       .forEach((booking) => {
-        times.add(normalizeTimeValue(booking.appointment_time));
+        bookingsByTime.set(normalizeTimeValue(booking.appointment_time), booking);
       });
+    return bookingsByTime;
+  }, [barberId, myBookingsQuery.data]);
+  const ownedBookedTimes = useMemo(() => {
+    const times = new Set<string>();
+
+    ownedBookingsByTime.forEach((_booking, time) => {
+      times.add(time);
+    });
 
     if (
       confirmedBooking?.barberId === barberId &&
@@ -141,7 +157,7 @@ export default function SelectTime() {
     }
 
     return times;
-  }, [barberId, confirmedBooking, myBookingsQuery.data, selectedDate]);
+  }, [barberId, confirmedBooking, ownedBookingsByTime, selectedDate]);
   const ownedBookedTimeList = Array.from(ownedBookedTimes).sort();
   const ownedBookedTime = ownedBookedTimeList[0] ?? null;
   const selectedSummaryTime = selectedTime
@@ -210,6 +226,49 @@ export default function SelectTime() {
   const isToday = selectedDate === getTodayIsoDate();
   const displayDate = formatDisplayDate(selectedDate);
   const selectedTimeLabel = selectedTime ? formatDisplayTime(selectedTime) : "";
+
+  const cancelBookingMutation = useMutation({
+    mutationFn: cancelMyBooking,
+    onSuccess: async () => {
+      clearStoredConfirmedBooking();
+      setBookingToCancel(null);
+      setSelectedTime("");
+      toast.success(t("selectTime.cancelSuccess"));
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["my-bookings"] }),
+        queryClient.invalidateQueries({ queryKey: ["barber-availability", barberId, selectedDate] }),
+      ]);
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error, t("selectTime.cancelError")));
+    },
+  });
+
+  useEffect(() => {
+    if (!user?.id || !barberId) return;
+
+    const socket = createCustomerBookingsSocket();
+    if (!socket) return;
+
+    socket.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+        const booking = payload?.booking as Booking | undefined;
+        if (payload?.type !== "booking.created" && payload?.type !== "booking.status_updated") return;
+        if (!booking || booking.barber_id !== barberId) return;
+
+        void queryClient.invalidateQueries({ queryKey: ["my-bookings"] });
+        void queryClient.invalidateQueries({ queryKey: ["barber-availability", barberId, selectedDate] });
+      } catch {
+        void queryClient.invalidateQueries({ queryKey: ["my-bookings"] });
+        void queryClient.invalidateQueries({ queryKey: ["barber-availability", barberId, selectedDate] });
+      }
+    };
+
+    return () => {
+      socket.close();
+    };
+  }, [barberId, queryClient, selectedDate, user?.id]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-amber-50/30">
@@ -501,6 +560,40 @@ export default function SelectTime() {
                         const isPast = slot.status === "past";
                         const isDisabled = slot.status !== "available";
                         const isOwnedBooking = isBooked && ownedBookedTimes.has(normalizedSlotTime);
+                        const ownedBooking = ownedBookingsByTime.get(normalizedSlotTime);
+
+                        if (isOwnedBooking) {
+                          return (
+                            <div
+                              key={slot.time}
+                              className="relative animate-in overflow-hidden rounded-xl bg-emerald-50 px-2 py-3 text-center font-bold text-emerald-700 shadow-md ring-1 ring-emerald-100 duration-300"
+                              style={{ animationDelay: `${idx * 30}ms` }}
+                            >
+                              <span className="absolute right-1 top-1 inline-flex items-center gap-0.5 rounded-full bg-emerald-500 px-1.5 py-0.5 text-[9px] font-black text-white">
+                                <HiOutlineCheckBadge className="h-2.5 w-2.5" />
+                                {t("selectTime.yours")}
+                              </span>
+                              <div className="text-base font-black sm:text-lg">
+                                {formatDisplayTime(slot.time)}
+                              </div>
+                              <div className="mt-1 inline-flex items-center justify-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-black text-emerald-700">
+                                <HiOutlineCheckBadge className="h-3 w-3" />
+                                <span>{t("selectTime.bookedByYouShort")}</span>
+                              </div>
+                              {ownedBooking ? (
+                                <button
+                                  type="button"
+                                  onClick={() => setBookingToCancel(ownedBooking)}
+                                  className="mt-2 inline-flex h-8 items-center justify-center gap-1 rounded-full bg-white px-3 text-[11px] font-black text-rose-600 shadow-sm ring-1 ring-rose-100 transition hover:bg-rose-50"
+                                  title={t("selectTime.cancelBooking")}
+                                >
+                                  <HiOutlineXCircle className="h-3.5 w-3.5" />
+                                  <span>{t("selectTime.cancelBookingShort")}</span>
+                                </button>
+                              ) : null}
+                            </div>
+                          );
+                        }
 
                         return (
                           <button
@@ -527,18 +620,12 @@ export default function SelectTime() {
                                 {t("common.selected")}
                               </span>
                             )}
-                            {isOwnedBooking && (
-                              <span className="absolute top-1 right-1 rounded-full bg-emerald-500 px-1.5 py-0.5 text-[9px] font-black text-white">
-                                Sizniki
-                              </span>
-                            )}
                             <div className="text-base font-black sm:text-lg">
                               {formatDisplayTime(slot.time)}
                             </div>
                             <div className="text-[10px] opacity-70 mt-0.5">
                               {isSelected && "✓"}
-                              {isOwnedBooking && t("selectTime.bookedByYou")}
-                              {isBooked && !isOwnedBooking && t("common.booked")}
+                              {isBooked && t("common.booked")}
                               {isPast && t("selectTime.past")}
                             </div>
                           </button>
@@ -610,6 +697,24 @@ export default function SelectTime() {
           </div>
         </div>
       </div>
+      <ConfirmActionDialog
+        open={Boolean(bookingToCancel)}
+        title={t("selectTime.cancelDialogTitle")}
+        description={t("selectTime.cancelDialogDescription", {
+          time: bookingToCancel ? formatDisplayTime(bookingToCancel.appointment_time) : "",
+          date: bookingToCancel ? formatDisplayDate(bookingToCancel.appointment_date) : "",
+        })}
+        confirmText={t("selectTime.cancelDialogConfirm")}
+        cancelText={t("selectTime.cancelDialogClose")}
+        loading={cancelBookingMutation.isPending}
+        tone="danger"
+        onConfirm={() => {
+          if (bookingToCancel) {
+            cancelBookingMutation.mutate(bookingToCancel.id);
+          }
+        }}
+        onClose={() => setBookingToCancel(null)}
+      />
     </div>
   );
 }

@@ -12,7 +12,6 @@ import IsLoading from "./components/IsLoading";
 import useLoading from "./hooks/useLoading";
 import HelloAdmin from "./pages/admin/HelloAdmin";
 import AdminBarbers from "./pages/admin/AdminBarbers";
-import AdminBookings from "./pages/admin/AdminBookings";
 import BookingDetails from "./pages/home/BookingDetails";
 import BookingSuccess from "./pages/home/BookingSuccess";
 import Home from "./pages/home/Home";
@@ -63,7 +62,7 @@ function App() {
 
       <Route element={<AuthLayout />}>
         <Route path="/login" element={<Login />} />
-        <Route path="/sign-up" element={<Navigate to="/user/access" replace />} />
+        <Route path="/sign-up" element={<Navigate to="/login" replace />} />
         <Route path="/user/access" element={<CustomerAccess />} />
       </Route>
 
@@ -86,7 +85,7 @@ function App() {
       >
         <Route index element={<AdminIndexRoute />} />
         <Route path="barbers" element={<AdminBarbers />} />
-        <Route path="bookings" element={<AdminBookings />} />
+        <Route path="bookings" element={<Navigate to="/admin" replace />} />
         <Route path="settings" element={<AccountSettings />} />
       </Route>
 

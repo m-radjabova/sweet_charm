@@ -97,3 +97,8 @@ export function setStoredConfirmedBooking(value: StoredConfirmedBooking) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(CONFIRMED_BOOKING_STORAGE_KEY, JSON.stringify(value));
 }
+
+export function clearStoredConfirmedBooking() {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(CONFIRMED_BOOKING_STORAGE_KEY);
+}

@@ -37,7 +37,8 @@
     "notProvided": "Не указано",
     "loading": "Загрузка...",
     "refreshing": "Обновляем...",
-    "save": "Сохранить"
+    "save": "Сохранить",
+    "saving": "Сохранение..."
   },
   "login": {
     "subtitle": "С возвращением. Введите свои данные, чтобы продолжить.",
@@ -142,6 +143,15 @@
     "availableSlots": "Свободные слоты",
     "slotsRefreshing": "Обновляем время...",
     "bookedByYou": "Ваше бронирование",
+    "bookedByYouShort": "Ваша",
+    "cancelBooking": "Отменить",
+    "cancelBookingShort": "Отмена",
+    "cancelSuccess": "Бронь отменена",
+    "cancelError": "Не удалось отменить бронь",
+    "cancelDialogTitle": "Отменить бронь?",
+    "cancelDialogDescription": "Бронь на {{date}} в {{time}} будет отменена, и это время снова станет доступным.",
+    "cancelDialogConfirm": "Да, отменить",
+    "cancelDialogClose": "Нет, оставить",
     "past": "Прошло",
     "yours": "Ваше"
   },
@@ -218,12 +228,48 @@
     "newBooking": "Новое бронирование",
     "nextBooking": "Ближайшая запись",
     "details": "Подробнее",
+    "cancelBooking": "Отменить",
+    "cancelling": "Отмена...",
+    "cancelSuccess": "Бронь отменена",
+    "cancelError": "Не удалось отменить бронь",
     "bookNow": "Забронировать",
     "phoneLabel": "Телефон",
     "emptyTitle": "Бронирования не найдены",
     "emptyDescription": "Вы ещё ничего не бронировали",
+    "searchPlaceholder": "Поиск по коду или барберу",
+    "activeFilter": "Активный фильтр",
+    "clearFilters": "Сбросить фильтры",
+    "noResultsTitle": "Ничего не найдено",
+    "noResultsDescription": "Попробуйте изменить поиск или фильтр.",
+    "telegramTitle": "Подключение Telegram",
+    "telegramConnected": "Telegram подключён. Вы будете получать уведомления о статусе брони.",
+    "telegramNotConnected": "Подключите Telegram, чтобы быстрее получать уведомления о брони.",
+    "telegramStatusConnected": "Подключён",
+    "telegramStatusWaiting": "Не подключён",
+    "telegramSubscribers": "{{count}} подписчиков",
+    "telegramOpenBot": "Открыть бота",
+    "telegramRefresh": "Обновить ссылку",
+    "telegramRefreshSuccess": "Telegram-ссылка обновлена",
+    "telegramRefreshError": "Не удалось обновить Telegram-ссылку",
+    "telegramBenefit": "Когда барбер подтвердит, завершит или отменит вашу бронь, вы получите уведомление в Telegram.",
+    "tabs": {
+      "bookings": "Брони",
+      "telegram": "Telegram"
+    },
+    "sort": {
+      "newest": "Новые",
+      "oldest": "Старые"
+    },
+    "filter": {
+      "all": "Все",
+      "pending": "Ожидает подтверждения",
+      "confirmed": "Подтверждено",
+      "completed": "Завершено",
+      "cancelled": "Отменено"
+    },
     "stats": {
       "total": "Все бронирования",
+      "confirmed": "Подтверждено",
       "completed": "Завершено",
       "pending": "Ожидаются",
       "cancelled": "Отменено"
@@ -231,7 +277,9 @@
     "status": {
       "completed": "Завершено",
       "cancelled": "Отменено",
-      "pending": "Ожидается"
+      "confirmed": "Подтверждено",
+      "pending": "Ожидает подтверждения",
+      "awaitingApproval": "Ожидает подтверждения барбера"
     }
   },
   "bookingSuccess": {
@@ -259,10 +307,20 @@
     "notFoundText": "Мы не смогли найти данные вашей записи",
     "successTitle": "Запись успешно подтверждена",
     "successSubtitle": "Ваш визит подтверждён",
+    "pendingTitle": "Запись ожидает подтверждения барбера",
+    "pendingSubtitle": "После подтверждения барбером запись станет окончательной.",
+    "cancelledTitle": "Запись отменена",
+    "cancelledSubtitle": "Это время снова доступно для бронирования.",
     "shareTitle": "Запись к барберу",
     "shareText": "Мой код брони: {{code}}",
     "shareUnsupported": "Общий доступ не поддерживается на этом устройстве",
     "completed": "Завершено",
+    "pending": "Ожидает подтверждения",
+    "cancelled": "Отменено",
+    "cancelBooking": "Отменить запись",
+    "cancelling": "Отмена...",
+    "cancelSuccess": "Бронь отменена",
+    "cancelError": "Не удалось отменить бронь",
     "infoTitle": "Информация",
     "infoText": "Номер вашей записи: {{code}}. Сохраните его или покажите барберу.",
     "youRated": "Вы поставили {{count}} звёзд. Спасибо!"
@@ -356,6 +414,9 @@
     "todaySchedule": "Расписание на сегодня",
     "done": "Готово",
     "pending": "В ожидании",
+    "confirmed": "Подтверждено",
+    "awaitingApproval": "Нужно подтвердить",
+    "cancelled": "Отменено",
     "progress": "Прогресс за сегодня",
     "completedCount": "Выполнено {{completed}} из {{total}}",
     "nextClient": "Следующий клиент",
@@ -374,11 +435,15 @@
     "completing": "Завершаем...",
     "completeService": "Завершить услугу",
     "completeButton": "Завершить",
+    "confirmButton": "Подтвердить",
+    "rejectButton": "Отклонить",
     "telegramLinkRefreshed": "Ссылка для подключения Telegram обновлена",
     "telegramLinkError": "Не удалось обновить Telegram-ссылку",
     "promotionSent": "Отправлено {{delivered}}, не доставлено {{failed}}",
     "promotionError": "Не удалось отправить сообщение",
     "toast": {
+      "confirmed": "Бронь подтверждена",
+      "cancelled": "Бронь отменена, время снова доступно",
       "completed": "Запись отмечена как выполненная",
       "error": "Не удалось обновить статус записи"
     }
@@ -391,19 +456,27 @@
     "all": "Все",
     "confirmed": "Подтверждённые",
     "completed": "Завершённые",
+    "cancelled": "Отменённые",
     "pending": "Ожидаются",
+    "pendingApproval": "Нужно подтвердить",
     "appointmentsCount": "Записей: {{count}}",
     "statsTotal": "Всего приёмов",
     "statsPending": "Ожидаются",
+    "statsConfirmed": "Подтверждены",
     "statsCompleted": "Завершены",
     "emptyTitle": "Записи не найдены",
     "serviceCompleted": "Услуга завершена",
+    "serviceCancelled": "Бронь отменена",
     "completing": "Завершаем...",
     "completeService": "Завершить услугу",
+    "confirmBooking": "Подтвердить бронь",
+    "rejectBooking": "Отклонить",
     "noAppointmentsForDay": "На этот день записи не назначены.",
     "noAppointmentsForStatus": "Нет записей со статусом \"{{status}}\" на эту дату.",
     "markCompleted": "Отметить как выполненное",
     "toast": {
+      "confirmed": "Бронь подтверждена",
+      "cancelled": "Бронь отменена, время снова доступно",
       "completed": "Услуга успешно завершена",
       "error": "Произошла ошибка"
     }

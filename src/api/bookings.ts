@@ -1,4 +1,5 @@
 import apiClient from "../apiClient/apiClient";
+import { getStoredAccessToken } from "./authStorage";
 import type {
   BarberDashboard,
   BarberAvailability,
@@ -84,4 +85,29 @@ export async function updateBookingStatus(bookingId: string, status: BookingStat
     status,
   });
   return data;
+}
+
+export async function cancelMyBooking(bookingId: string) {
+  const { data } = await apiClient.patch<Booking>(`/bookings/${bookingId}/cancel`);
+  return data;
+}
+
+export function createBarberBookingsSocket() {
+  return createBookingsSocket("/ws/bookings/barber");
+}
+
+export function createCustomerBookingsSocket() {
+  return createBookingsSocket("/ws/bookings/customer");
+}
+
+function createBookingsSocket(path: string) {
+  const token = getStoredAccessToken();
+  const baseUrl = import.meta.env.VITE_API_URL ?? import.meta.env.VITE_API_ORIGIN;
+
+  if (!token || !baseUrl) {
+    return null;
+  }
+
+  const wsBaseUrl = String(baseUrl).replace(/^http/, "ws").replace(/\/$/, "");
+  return new WebSocket(`${wsBaseUrl}${path}?token=${encodeURIComponent(token)}`);
 }

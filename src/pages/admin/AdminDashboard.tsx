@@ -15,8 +15,7 @@ import {
 import { listAdminBookings } from "../../api/bookings";
 import { getErrorMessage } from "../../api/auth";
 import { listBarbers } from "../../api/users";
-import type { Booking } from "../../types/types";
-import { formatDisplayDate, formatDisplayTime, getTodayIsoDate } from "../home/bookingUtils";
+import { formatDisplayDate, getTodayIsoDate } from "../home/bookingUtils";
 
 function shiftDate(date: string, offset: number) {
   const parsed = new Date(`${date}T00:00:00`);
@@ -88,28 +87,6 @@ function PerformanceSkeleton() {
   );
 }
 
-function BookingsSkeleton() {
-  return (
-    <div className="animate-pulse space-y-4">
-      {[1, 2, 3].map((i) => (
-        <div key={i} className="grid gap-4 py-5 md:grid-cols-5">
-          <div className="space-y-2">
-            <div className="h-6 w-32 rounded bg-slate-200"></div>
-            <div className="h-4 w-24 rounded bg-slate-200"></div>
-          </div>
-          <div className="h-6 w-28 rounded bg-slate-200"></div>
-          <div className="space-y-2">
-            <div className="h-5 w-20 rounded bg-slate-200"></div>
-            <div className="h-4 w-28 rounded bg-slate-200"></div>
-          </div>
-          <div className="h-8 w-24 rounded-full bg-slate-200"></div>
-          <div className="h-5 w-16 rounded bg-slate-200"></div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function MetricCard({
   label,
   value,
@@ -148,27 +125,6 @@ function MetricCard({
         <p className={`mt-1 text-xs ${tone === "primary" ? "text-white/50" : "text-slate-400"}`}>{note}</p>
       </div>
     </div>
-  );
-}
-
-function BookingStatusBadge({ status }: { status: Booking["status"] }) {
-  const styleMap = {
-    completed: "bg-emerald-100 text-emerald-700 border-emerald-200",
-    confirmed: "bg-amber-100 text-amber-700 border-amber-200",
-    cancelled: "bg-rose-100 text-rose-700 border-rose-200",
-  } as const;
-
-  const iconMap = {
-    completed: <HiMiniCheckBadge className="h-3 w-3" />,
-    confirmed: <HiMiniClock className="h-3 w-3" />,
-    cancelled: <HiMiniCalendarDays className="h-3 w-3" />,
-  };
-
-  return (
-    <span className={`inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-bold capitalize ${styleMap[status]}`}>
-      {iconMap[status]}
-      {status === "confirmed" ? "pending" : status}
-    </span>
   );
 }
 
@@ -282,14 +238,6 @@ export default function AdminDashboard() {
         return right.completed - left.completed;
       });
 
-    const recentBookings = [...bookings]
-      .sort((left, right) => {
-        const leftStamp = new Date(`${left.appointment_date}T${left.appointment_time}`).getTime();
-        const rightStamp = new Date(`${right.appointment_date}T${right.appointment_time}`).getTime();
-        return leftStamp - rightStamp;
-      })
-      .slice(0, 8);
-
     const completed = bookings.filter((booking) => booking.status === "completed").length;
     const pending = bookings.filter((booking) => booking.status === "confirmed").length;
     const cancelled = bookings.filter((booking) => booking.status === "cancelled").length;
@@ -302,7 +250,6 @@ export default function AdminDashboard() {
       pending,
       cancelled,
       activeBarbers,
-      recentBookings,
       barberPerformance: barberPerformance.slice(0, 5),
       maxChartValue,
     };
@@ -529,79 +476,6 @@ export default function AdminDashboard() {
                   </div>
                 ))}
               </div>
-            )}
-          </SectionShell>
-        </div>
-
-        {/* Recent Bookings */}
-        <div className="mt-6">
-          <SectionShell
-            title="Recent Bookings"
-            subtitle={`Last ${Math.min(dashboardData.recentBookings.length, 8)} appointments`}
-            action={
-              <Link 
-                to="/admin/bookings" 
-                className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
-              >
-                View all
-                <HiMiniChevronRight className="h-4 w-4" />
-              </Link>
-            }
-          >
-            {isLoading ? (
-              <BookingsSkeleton />
-            ) : dashboardData.recentBookings.length === 0 ? (
-              <EmptyState
-                title="No recent bookings"
-                description="Bookings will appear here when customers schedule appointments"
-              />
-            ) : (
-              <>
-                {/* Desktop Header */}
-                <div className="hidden md:grid md:grid-cols-[1.5fr_1fr_1.2fr_0.8fr_0.7fr] gap-4 border-b border-slate-100 pb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
-                  <div>Client</div>
-                  <div>Barber</div>
-                  <div>Date & Time</div>
-                  <div>Status</div>
-                  <div>ID</div>
-                </div>
-
-                {/* Booking List */}
-                <div className="divide-y divide-slate-100">
-                  {dashboardData.recentBookings.map((booking) => (
-                    <div key={booking.id} className="py-4 first:pt-0">
-                      <div className="grid gap-3 md:grid-cols-[1.5fr_1fr_1.2fr_0.8fr_0.7fr] md:items-center">
-                        {/* Client Info */}
-                        <div>
-                          <p className="font-black text-slate-900">{booking.client_name}</p>
-                          <p className="mt-0.5 text-xs text-slate-400">{booking.client_phone}</p>
-                        </div>
-
-                        {/* Barber */}
-                        <div>
-                          <p className="font-semibold text-slate-700">{booking.barber_name}</p>
-                        </div>
-
-                        {/* Date & Time */}
-                        <div>
-                          <p className="font-semibold text-slate-900">{formatDisplayTime(booking.appointment_time)}</p>
-                          <p className="mt-0.5 text-xs text-slate-400">{formatDisplayDate(booking.appointment_date)}</p>
-                        </div>
-
-                        {/* Status */}
-                        <div>
-                          <BookingStatusBadge status={booking.status} />
-                        </div>
-
-                        {/* Booking ID */}
-                        <div>
-                          <p className="font-mono text-sm font-bold text-slate-500">#{booking.booking_code}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </>
             )}
           </SectionShell>
         </div>

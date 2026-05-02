@@ -13,13 +13,15 @@ import {
   HiMiniUserGroup,
   HiMiniCheckBadge,
   HiMiniUser,
-  HiMiniInformationCircle
+  HiMiniInformationCircle,
+  HiMiniXCircle
 } from "react-icons/hi2";
 import { toast } from "react-toastify";
 import { getErrorMessage } from "../../api/auth";
 import { getBarberDashboard, updateBookingStatus } from "../../api/bookings";
 import useContextPro from "../../hooks/useContextPro";
 import type { Booking } from "../../types/types";
+import type { BookingStatus } from "../../types/types";
 import { formatDisplayDate, formatDisplayTime, getTodayIsoDate } from "../home/bookingUtils";
 
 function shiftDate(date: string, offset: number) {
@@ -31,7 +33,7 @@ function shiftDate(date: string, offset: number) {
   return `${year}-${month}-${day}`;
 }
 
-const tabs = ["all", "confirmed", "completed"] as const;
+const tabs = ["all", "pending", "confirmed", "completed", "cancelled"] as const;
 
 
 export default function BarberSchedule() {
@@ -46,10 +48,17 @@ export default function BarberSchedule() {
     queryFn: () => getBarberDashboard(selectedDate),
   });
 
-  const completeMutation = useMutation({
-    mutationFn: (bookingId: string) => updateBookingStatus(bookingId, "completed"),
-    onSuccess: async () => {
-      toast.success(t("barberSchedule.toast.completed"), {
+  const statusMutation = useMutation({
+    mutationFn: ({ bookingId, status }: { bookingId: string; status: BookingStatus }) =>
+      updateBookingStatus(bookingId, status),
+    onSuccess: async (booking) => {
+      const toastKey =
+        booking.status === "confirmed"
+          ? "barberSchedule.toast.confirmed"
+          : booking.status === "cancelled"
+            ? "barberSchedule.toast.cancelled"
+            : "barberSchedule.toast.completed";
+      toast.success(t(toastKey), {
         position: "top-right",
         autoClose: 3000,
         style: { background: "#10b981", color: "white", borderRadius: "16px" }
@@ -77,18 +86,24 @@ export default function BarberSchedule() {
 
   const stats = useMemo(() => {
     const completed = appointments.filter((booking) => booking.status === "completed").length;
-    const pending = appointments.filter((booking) => booking.status === "confirmed").length;
+    const pending = appointments.filter((booking) => booking.status === "pending").length;
+    const confirmed = appointments.filter((booking) => booking.status === "confirmed").length;
+    const cancelled = appointments.filter((booking) => booking.status === "cancelled").length;
     return {
       total: appointments.length,
       completed,
+      confirmed,
       pending,
+      cancelled,
     };
   }, [appointments]);
 
   const getTabCount = (tab: typeof tabs[number]) => {
     if (tab === "all") return stats.total;
-    if (tab === "confirmed") return stats.pending;
-    return stats.completed;
+    if (tab === "pending") return stats.pending;
+    if (tab === "confirmed") return stats.confirmed;
+    if (tab === "completed") return stats.completed;
+    return stats.cancelled;
   };
 
   const isToday = selectedDate === getTodayIsoDate();
@@ -189,6 +204,14 @@ export default function BarberSchedule() {
             textColor="text-amber-600"
           />
           <StatCard
+            title={t("barberSchedule.statsConfirmed")}
+            value={stats.confirmed}
+            icon={<HiMiniClock className="h-5 w-5" />}
+            color="from-blue-500 to-indigo-600"
+            bgColor="bg-blue-50"
+            textColor="text-blue-600"
+          />
+          <StatCard
             title={t("barberSchedule.statsCompleted")}
             value={stats.completed}
             icon={<HiMiniCheckBadge className="h-5 w-5" />}
@@ -211,8 +234,10 @@ export default function BarberSchedule() {
               }`}
             >
               {tab === "all" && t("barberSchedule.all")}
+              {tab === "pending" && t("barberSchedule.pendingApproval")}
               {tab === "confirmed" && t("barberSchedule.confirmed")}
               {tab === "completed" && t("barberSchedule.completed")}
+              {tab === "cancelled" && t("barberSchedule.cancelled")}
               {activeTab === tab && (
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full" />
               )}
@@ -253,9 +278,13 @@ export default function BarberSchedule() {
                 ? t("barberSchedule.noAppointmentsForDay")
                 : t("barberSchedule.noAppointmentsForStatus", {
                     status:
-                      activeTab === "confirmed"
+                      activeTab === "pending"
+                        ? t("barberSchedule.pendingApproval")
+                        : activeTab === "confirmed"
                         ? t("barberSchedule.confirmed")
-                        : t("barberSchedule.completed"),
+                        : activeTab === "completed"
+                          ? t("barberSchedule.completed")
+                          : t("barberSchedule.cancelled"),
                   })}
             </p>
           </div>
@@ -265,8 +294,8 @@ export default function BarberSchedule() {
               <ScheduleCard
                 key={booking.id}
                 booking={booking}
-                onComplete={() => completeMutation.mutate(booking.id)}
-                loading={completeMutation.isPending && completeMutation.variables === booking.id}
+                onChangeStatus={(status) => statusMutation.mutate({ bookingId: booking.id, status })}
+                loading={statusMutation.isPending && statusMutation.variables?.bookingId === booking.id}
                 index={idx}
               />
             ))}
@@ -315,18 +344,20 @@ function StatCard({
 // Schedule Card Component
 function ScheduleCard({
   booking,
-  onComplete,
+  onChangeStatus,
   loading,
   index,
 }: {
   booking: Booking;
-  onComplete: () => void;
+  onChangeStatus: (status: BookingStatus) => void;
   loading: boolean;
   index: number;
 }) {
   const { t } = useTranslation();
   const isCompleted = booking.status === "completed";
-  const isPending = booking.status === "confirmed";
+  const isPending = booking.status === "pending";
+  const isConfirmed = booking.status === "confirmed";
+  const isCancelled = booking.status === "cancelled";
 
   return (
     <div
@@ -341,17 +372,27 @@ function ScheduleCard({
               isCompleted
                 ? "bg-emerald-50 text-emerald-700"
                 : isPending
-                ? "bg-amber-50 text-amber-700"
-                : "bg-slate-100 text-slate-600"
+                  ? "bg-sky-50 text-sky-700"
+                  : isCancelled
+                    ? "bg-rose-50 text-rose-700"
+                    : "bg-amber-50 text-amber-700"
             }`}
           >
             <span
               className={`h-2 w-2 rounded-full ${
-                isCompleted ? "bg-emerald-500" : isPending ? "bg-amber-500" : "bg-slate-500"
+                isCompleted
+                  ? "bg-emerald-500"
+                  : isPending
+                    ? "bg-sky-500"
+                    : isCancelled
+                      ? "bg-rose-500"
+                      : "bg-amber-500"
               }`}
             />
             {isCompleted && t("barberSchedule.completed")}
-            {isPending && t("barberSchedule.pending")}
+            {isPending && t("barberSchedule.pendingApproval")}
+            {isConfirmed && t("barberSchedule.confirmed")}
+            {isCancelled && t("barberSchedule.cancelled")}
           </span>
         </div>
 
@@ -385,33 +426,49 @@ function ScheduleCard({
         </div>
 
         {/* Action Button */}
-        {isCompleted ? (
-          <div className="mt-6 flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-emerald-700">
-            <HiMiniCheckCircle className="h-5 w-5" />
-            <span className="text-sm font-bold">{t("barberSchedule.serviceCompleted")}</span>
+        {isCompleted || isCancelled ? (
+          <div className={`mt-6 flex items-center gap-2 rounded-xl px-4 py-3 ${
+            isCompleted ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"
+          }`}>
+            {isCompleted ? <HiMiniCheckCircle className="h-5 w-5" /> : <HiMiniXCircle className="h-5 w-5" />}
+            <span className="text-sm font-bold">
+              {isCompleted ? t("barberSchedule.serviceCompleted") : t("barberSchedule.serviceCancelled")}
+            </span>
           </div>
         ) : (
-          <button
-            type="button"
-            onClick={onComplete}
-            disabled={loading}
-            className="mt-6 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-slate-800 to-slate-900 text-sm font-bold text-white shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl disabled:opacity-50"
-          >
-            {loading ? (
-              <>
-                <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                {t("barberSchedule.completing")}
-              </>
-            ) : (
-              <>
+          <div className="mt-6 grid gap-2 sm:grid-cols-2">
+            {isPending && (
+              <button
+                type="button"
+                onClick={() => onChangeStatus("confirmed")}
+                disabled={loading}
+                className="flex h-12 items-center justify-center gap-2 rounded-xl bg-emerald-600 text-sm font-bold text-white shadow-lg transition-all hover:bg-emerald-700 disabled:opacity-50"
+              >
                 <HiMiniCheckCircle className="h-5 w-5" />
-                {t("barberSchedule.completeService")}
-              </>
+                {loading ? t("common.saving") : t("barberSchedule.confirmBooking")}
+              </button>
             )}
-          </button>
+            {isConfirmed && (
+              <button
+                type="button"
+                onClick={() => onChangeStatus("completed")}
+                disabled={loading}
+                className="flex h-12 items-center justify-center gap-2 rounded-xl bg-slate-900 text-sm font-bold text-white shadow-lg transition-all hover:bg-slate-800 disabled:opacity-50"
+              >
+                <HiMiniCheckCircle className="h-5 w-5" />
+                {loading ? t("barberSchedule.completing") : t("barberSchedule.completeService")}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => onChangeStatus("cancelled")}
+              disabled={loading}
+              className="flex h-12 items-center justify-center gap-2 rounded-xl border border-rose-200 bg-white text-sm font-bold text-rose-600 shadow-sm transition-all hover:bg-rose-50 disabled:opacity-50"
+            >
+              <HiMiniXCircle className="h-5 w-5" />
+              {t("barberSchedule.rejectBooking")}
+            </button>
+          </div>
         )}
       </div>
     </div>

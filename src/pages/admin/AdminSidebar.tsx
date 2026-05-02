@@ -5,11 +5,11 @@ import { useTranslation } from "react-i18next";
 import { 
   HiBars3BottomLeft, 
   HiMiniArrowLeftOnRectangle, 
-  HiMiniCalendarDays, 
   HiMiniCog6Tooth,
   HiMiniScissors, 
   HiMiniSquares2X2,
   HiMiniXMark,
+  HiMiniChevronRight,
   HiOutlineBell
 } from "react-icons/hi2";
 import useContextPro from "../../hooks/useContextPro";
@@ -50,7 +50,6 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const menuItems = [
     { label: t("sidebar.dashboard"), to: "/admin", icon: HiMiniSquares2X2, description: t("sidebar.dashboardDesc") },
     { label: t("sidebar.barbers"), to: "/admin/barbers", icon: HiMiniScissors, description: t("sidebar.barbersDesc") },
-    { label: t("sidebar.bookings"), to: "/admin/bookings", icon: HiMiniCalendarDays, description: t("sidebar.bookingsDesc") },
     { label: t("sidebar.settings"), to: "/admin/settings", icon: HiMiniCog6Tooth, description: t("sidebar.settingsDesc") },
   ];
 
@@ -128,7 +127,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                   transition-all duration-300 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0
                   ${isActive ? "text-white/60" : "text-slate-400"}
                 `}>
-                  <HiMiniCalendarDays className="h-3 w-3 rotate-180" />
+                  <HiMiniChevronRight className="h-3 w-3" />
                 </div>
               </NavLink>
             );

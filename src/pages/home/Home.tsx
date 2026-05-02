@@ -299,21 +299,12 @@ export default function Home() {
                 </Menu>
               </>
             ) : (
-              <>
-                <Link
-                  to="/user/access"
-                  className="hidden rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 sm:inline-flex sm:px-5 sm:py-2.5"
-                >
-                  {t("home.customerAccess")}
-                </Link>
-
-                <Link
-                  to="/login"
-                  className="rounded-full bg-slate-950 px-4 py-2 text-sm font-bold text-white shadow-lg transition hover:bg-slate-800 sm:px-5 sm:py-2.5"
-                >
-                  {t("home.barberLogin")}
-                </Link>
-              </>
+              <Link
+                to="/login"
+                className="rounded-full bg-slate-950 px-4 py-2 text-sm font-bold text-white shadow-lg transition hover:bg-slate-800 sm:px-5 sm:py-2.5"
+              >
+                Ro'yxatdan o'tish
+              </Link>
             )}
           </div>
         </div>

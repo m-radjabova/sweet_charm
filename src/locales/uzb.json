@@ -37,7 +37,8 @@
     "notProvided": "Kiritilmagan",
     "loading": "Yuklanmoqda...",
     "refreshing": "Yangilanmoqda...",
-    "save": "Saqlash"
+    "save": "Saqlash",
+    "saving": "Saqlanmoqda..."
   },
   "login": {
     "subtitle": "Xush kelibsiz. Davom etish uchun ma'lumotlaringizni kiriting.",
@@ -142,6 +143,15 @@
     "availableSlots": "Bo'sh vaqtlar",
     "slotsRefreshing": "Vaqtlar yangilanmoqda...",
     "bookedByYou": "Bron qilingan",
+    "bookedByYouShort": "Band",
+    "cancelBooking": "Bekor qilish",
+    "cancelBookingShort": "Bekor",
+    "cancelSuccess": "Bron bekor qilindi",
+    "cancelError": "Bronni bekor qilib bo'lmadi",
+    "cancelDialogTitle": "Bronni bekor qilasizmi?",
+    "cancelDialogDescription": "{{date}} kuni {{time}} dagi bron bekor qilinadi va bu vaqt boshqalar uchun ochiladi.",
+    "cancelDialogConfirm": "Ha, bekor qilish",
+    "cancelDialogClose": "Yo'q, qoldirish",
     "past": "O'tgan",
     "yours": "Sizniki"
   },
@@ -218,12 +228,48 @@
     "newBooking": "Yangi bron",
     "nextBooking": "Yaqin navbatingiz",
     "details": "Batafsil",
+    "cancelBooking": "x",
+    "cancelling": "Bekor qilinmoqda...",
+    "cancelSuccess": "Bron bekor qilindi",
+    "cancelError": "Bronni bekor qilib bo'lmadi",
     "bookNow": "Bron qilish",
     "phoneLabel": "Telefon",
     "emptyTitle": "Hech qanday bron topilmadi",
     "emptyDescription": "Hali hech qanday bron qilmagansiz",
+    "searchPlaceholder": "Kod yoki barber bo'yicha qidirish",
+    "activeFilter": "Faol filtr",
+    "clearFilters": "Filtrlarni tozalash",
+    "noResultsTitle": "Natija topilmadi",
+    "noResultsDescription": "Qidiruv yoki filtr shartlarini o'zgartirib ko'ring.",
+    "telegramTitle": "Telegram ulanishi",
+    "telegramConnected": "Telegram ulangan. Bron holatlari bo'yicha xabarlar keladi.",
+    "telegramNotConnected": "Telegramni ulang va bron xabarlarini tezroq oling.",
+    "telegramStatusConnected": "Ulangan",
+    "telegramStatusWaiting": "Ulanmagan",
+    "telegramSubscribers": "{{count}} ta obunachi",
+    "telegramOpenBot": "Botni ochish",
+    "telegramRefresh": "Linkni yangilash",
+    "telegramRefreshSuccess": "Telegram link yangilandi",
+    "telegramRefreshError": "Telegram linkni yangilab bo'lmadi",
+    "telegramBenefit": "Barber broningizni tasdiqlasa, yakunlasa yoki bekor qilsa, Telegram orqali xabar olasiz.",
+    "tabs": {
+      "bookings": "Bronlar",
+      "telegram": "Telegram"
+    },
+    "sort": {
+      "newest": "Yangi",
+      "oldest": "Eski"
+    },
+    "filter": {
+      "all": "Barchasi",
+      "pending": "Tasdiq kutilmoqda",
+      "confirmed": "Tasdiqlangan",
+      "completed": "Yakunlangan",
+      "cancelled": "Bekor qilingan"
+    },
     "stats": {
       "total": "Jami bronlar",
+      "confirmed": "Tasdiqlangan",
       "completed": "Yakunlangan",
       "pending": "Kutilayotgan",
       "cancelled": "Bekor qilingan"
@@ -231,7 +277,9 @@
     "status": {
       "completed": "Yakunlangan",
       "cancelled": "Bekor qilingan",
-      "pending": "Kutilmoqda"
+      "confirmed": "Tasdiqlangan",
+      "pending": "Tasdiq kutilmoqda",
+      "awaitingApproval": "Barber tasdig'ini kutmoqda"
     }
   },
   "bookingSuccess": {
@@ -259,10 +307,20 @@
     "notFoundText": "Band qilish ma'lumotlarini topa olmadik",
     "successTitle": "Bron muvaffaqiyatli tasdiqlandi",
     "successSubtitle": "Sizning qabul vaqtingiz tasdiqlandi",
+    "pendingTitle": "Bron barber tasdig'ini kutmoqda",
+    "pendingSubtitle": "Barber tasdiqlagandan keyin broningiz yakuniy bo'ladi.",
+    "cancelledTitle": "Bron bekor qilindi",
+    "cancelledSubtitle": "Bu vaqt qayta bron qilish uchun ochildi.",
     "shareTitle": "Sartaroshga yozilish",
     "shareText": "Mening bron kodim: {{code}}",
     "shareUnsupported": "Ulashish bu qurilmada qo'llab-quvvatlanmaydi",
     "completed": "Yakunlangan",
+    "pending": "Tasdiq kutilmoqda",
+    "cancelled": "Bekor qilingan",
+    "cancelBooking": "Bronni bekor qilish",
+    "cancelling": "Bekor qilinmoqda...",
+    "cancelSuccess": "Bron bekor qilindi",
+    "cancelError": "Bronni bekor qilib bo'lmadi",
     "infoTitle": "Ma'lumot",
     "infoText": "Sizning bron raqamingiz {{code}}. Uni saqlab qo'ying yoki barberga ko'rsating.",
     "youRated": "Siz {{count}} yulduz berdingiz. Rahmat!"
@@ -357,6 +415,9 @@
     "todaySchedule": "Bugungi jadval",
     "done": "Bajarildi",
     "pending": "Kutilmoqda",
+    "confirmed": "Tasdiqlangan",
+    "awaitingApproval": "Tasdiqlash kerak",
+    "cancelled": "Bekor qilingan",
     "progress": "Bugungi natija",
     "completedCount": "{{completed}} / {{total}} ta bajarildi",
     "nextClient": "Keyingi mijoz",
@@ -375,11 +436,15 @@
     "completing": "Yakunlanmoqda...",
     "completeService": "Xizmatni yakunlash",
     "completeButton": "Yakunlash",
+    "confirmButton": "Tasdiqlash",
+    "rejectButton": "Rad etish",
     "telegramLinkRefreshed": "Telegram ulanish havolasi yangilandi",
     "telegramLinkError": "Telegram havolasini yangilab bo'lmadi",
     "promotionSent": "{{delivered}} ta mijozga yuborildi, {{failed}} tasiga yetib bormadi",
     "promotionError": "Xabarni yuborib bo'lmadi",
     "toast": {
+      "confirmed": "Bron tasdiqlandi",
+      "cancelled": "Bron bekor qilindi va vaqt ochildi",
       "completed": "Navbat bajarilgan deb belgilandi",
       "error": "Navbat holatini yangilab bo'lmadi"
     }
@@ -392,19 +457,27 @@
     "all": "Barchasi",
     "confirmed": "Tasdiqlangan",
     "completed": "Yakunlangan",
+    "cancelled": "Bekor qilingan",
     "pending": "Kutilmoqda",
+    "pendingApproval": "Tasdiqlash kerak",
     "appointmentsCount": "{{count}} ta navbat",
     "statsTotal": "Jami qabullar",
     "statsPending": "Kutilayotgan",
+    "statsConfirmed": "Tasdiqlangan",
     "statsCompleted": "Yakunlangan",
     "emptyTitle": "Qabullar topilmadi",
     "serviceCompleted": "Xizmat yakunlangan",
+    "serviceCancelled": "Bron bekor qilingan",
     "completing": "Yakunlanmoqda...",
     "completeService": "Xizmatni yakunlash",
+    "confirmBooking": "Bronni tasdiqlash",
+    "rejectBooking": "Rad etish",
     "noAppointmentsForDay": "Bu kunga navbatlar belgilanmagan.",
     "noAppointmentsForStatus": "\"{{status}}\" holatidagi navbatlar topilmadi.",
     "markCompleted": "Bajarildi deb belgilash",
     "toast": {
+      "confirmed": "Bron tasdiqlandi",
+      "cancelled": "Bron bekor qilindi va vaqt ochildi",
       "completed": "Xizmat muvaffaqiyatli yakunlandi",
       "error": "Xatolik yuz berdi"
     }

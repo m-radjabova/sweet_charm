@@ -79,7 +79,6 @@ function NotFound() {
           <div className="flex flex-wrap justify-center gap-4 text-xs">
             <button onClick={() => navigate('/admin')} className="text-slate-500 hover:text-blue-600">{t("sidebar.dashboard")}</button>
             <button onClick={() => navigate('/admin/barbers')} className="text-slate-500 hover:text-blue-600">{t("sidebar.barbers")}</button>
-            <button onClick={() => navigate('/admin/bookings')} className="text-slate-500 hover:text-blue-600">{t("sidebar.bookings")}</button>
             <button onClick={() => navigate('/admin/settings')} className="text-slate-500 hover:text-blue-600">{t("sidebar.settings")}</button>
           </div>
         </div>

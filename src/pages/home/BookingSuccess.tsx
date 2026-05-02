@@ -10,13 +10,17 @@ import {
   HiOutlineScissors,
   HiOutlinePhone,
   HiOutlineClipboard,
+  HiOutlineXCircle,
   HiMiniStar,
   HiOutlineArrowRight,
   HiOutlineSparkles
 } from "react-icons/hi2";
 import { toast } from "react-toastify";
-import { getPublicBooking, submitPublicBookingRating } from "../../api/bookings";
-import { formatDisplayDate, formatDisplayTime, setStoredConfirmedBooking } from "./bookingUtils";
+import { getErrorMessage } from "../../api/auth";
+import { cancelMyBooking, createCustomerBookingsSocket, getPublicBooking, submitPublicBookingRating } from "../../api/bookings";
+import type { Booking } from "../../types/types";
+import useContextPro from "../../hooks/useContextPro";
+import { clearStoredConfirmedBooking, formatDisplayDate, formatDisplayTime, setStoredConfirmedBooking } from "./bookingUtils";
 
 function getInitials(name: string) {
   return name
@@ -51,6 +55,7 @@ export default function BookingSuccess() {
   const { t } = useTranslation();
   const { bookingCode = "" } = useParams();
   const queryClient = useQueryClient();
+  const { state } = useContextPro();
   const [selectedRating, setSelectedRating] = useState<number | null>(null);
 
   const bookingQuery = useQuery({
@@ -59,7 +64,7 @@ export default function BookingSuccess() {
     enabled: Boolean(bookingCode),
     refetchInterval: (query) => {
       const currentBooking = query.state.data;
-      return currentBooking?.status === "completed" ? false : 10000;
+      return currentBooking?.status === "completed" || currentBooking?.status === "cancelled" ? false : 10000;
     },
     refetchOnWindowFocus: true,
   });
@@ -67,6 +72,13 @@ export default function BookingSuccess() {
   const booking = bookingQuery.data;
   const isLoading = bookingQuery.isLoading;
   const isCompleted = booking?.status === "completed";
+  const isCancelled = booking?.status === "cancelled";
+  const isPending = booking?.status === "pending";
+  const canCancel = Boolean(
+    state.user?.id &&
+      booking?.customer_id === state.user.id &&
+      (booking.status === "pending" || booking.status === "confirmed"),
+  );
 
   const ratingMutation = useMutation({
     mutationFn: (rating: number) => submitPublicBookingRating(bookingCode, rating),
@@ -92,9 +104,56 @@ export default function BookingSuccess() {
       });
     },
   });
+  const cancelMutation = useMutation({
+    mutationFn: () => cancelMyBooking(booking?.id ?? ""),
+    onSuccess: async (updatedBooking) => {
+      clearStoredConfirmedBooking();
+      queryClient.setQueryData(["public-booking", bookingCode], updatedBooking);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["public-booking", bookingCode] }),
+        queryClient.invalidateQueries({ queryKey: ["my-bookings"] }),
+        queryClient.invalidateQueries({ queryKey: ["barber-availability", updatedBooking.barber_id] }),
+      ]);
+      toast.success(t("bookingSuccess.cancelSuccess"));
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error, t("bookingSuccess.cancelError")));
+    },
+  });
+
+  useEffect(() => {
+    if (!state.user?.id || !bookingCode) return;
+
+    const socket = createCustomerBookingsSocket();
+    if (!socket) return;
+
+    socket.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+        const updatedBooking = payload?.booking as Booking | undefined;
+        if (payload?.type !== "booking.created" && payload?.type !== "booking.status_updated") return;
+        if (!updatedBooking || updatedBooking.booking_code !== bookingCode) return;
+
+        queryClient.setQueryData(["public-booking", bookingCode], updatedBooking);
+        void queryClient.invalidateQueries({ queryKey: ["my-bookings"] });
+        void queryClient.invalidateQueries({ queryKey: ["barber-availability", updatedBooking.barber_id] });
+      } catch {
+        void queryClient.invalidateQueries({ queryKey: ["public-booking", bookingCode] });
+      }
+    };
+
+    return () => {
+      socket.close();
+    };
+  }, [bookingCode, queryClient, state.user?.id]);
 
   useEffect(() => {
     if (!booking) return;
+    if (booking.status === "cancelled") {
+      clearStoredConfirmedBooking();
+      setSelectedRating(booking.rating ?? null);
+      return;
+    }
     setStoredConfirmedBooking({
       bookingCode: booking.booking_code,
       barberId: booking.barber_id,
@@ -163,10 +222,18 @@ export default function BookingSuccess() {
               </div>
               
               <h1 className="mt-6 text-3xl font-black tracking-tight text-slate-900 sm:text-4xl lg:text-5xl animate-fadeIn">
-                {t("bookingSuccess.successTitle")}
+                {isCancelled
+                  ? t("bookingSuccess.cancelledTitle")
+                  : isPending
+                    ? t("bookingSuccess.pendingTitle")
+                    : t("bookingSuccess.successTitle")}
               </h1>
               <p className="mt-2 text-slate-500 animate-fadeIn animation-delay-200">
-                {t("bookingSuccess.successSubtitle")}
+                {isCancelled
+                  ? t("bookingSuccess.cancelledSubtitle")
+                  : isPending
+                    ? t("bookingSuccess.pendingSubtitle")
+                    : t("bookingSuccess.successSubtitle")}
               </p>
             </div>
 
@@ -195,11 +262,35 @@ export default function BookingSuccess() {
                   </div>
                   
                   <div className={`inline-flex items-center gap-2 rounded-full px-4 py-2 ${
-                    isCompleted ? "bg-emerald-50" : "bg-amber-50"
+                    isCompleted
+                      ? "bg-emerald-50"
+                      : isCancelled
+                        ? "bg-rose-50"
+                        : isPending
+                          ? "bg-sky-50"
+                          : "bg-amber-50"
                   }`}>
-                    <HiOutlineCheckBadge className={`h-5 w-5 ${isCompleted ? "text-emerald-600" : "text-amber-600"}`} />
-                    <span className={`text-sm font-bold ${isCompleted ? "text-emerald-700" : "text-amber-700"}`}>
-                      {isCompleted ? t("bookingSuccess.completed") : t("common.confirmed")}
+                    {isCancelled ? (
+                      <HiOutlineXCircle className="h-5 w-5 text-rose-600" />
+                    ) : (
+                      <HiOutlineCheckBadge className={`h-5 w-5 ${isCompleted ? "text-emerald-600" : isPending ? "text-sky-600" : "text-amber-600"}`} />
+                    )}
+                    <span className={`text-sm font-bold ${
+                      isCompleted
+                        ? "text-emerald-700"
+                        : isCancelled
+                          ? "text-rose-700"
+                          : isPending
+                            ? "text-sky-700"
+                            : "text-amber-700"
+                    }`}>
+                      {isCompleted
+                        ? t("bookingSuccess.completed")
+                        : isCancelled
+                          ? t("bookingSuccess.cancelled")
+                          : isPending
+                            ? t("bookingSuccess.pending")
+                            : t("common.confirmed")}
                     </span>
                   </div>
                 </div>
@@ -359,6 +450,17 @@ export default function BookingSuccess() {
                 <HiOutlineShare className="h-4 w-4 transition-transform group-hover:scale-110" />
                 {t("bookingSuccess.shareDetails")}
               </button>
+              {canCancel && (
+                <button
+                  type="button"
+                  onClick={() => cancelMutation.mutate()}
+                  disabled={cancelMutation.isPending}
+                  className="group flex-1 inline-flex items-center justify-center gap-2 rounded-xl border border-rose-200 bg-white px-6 py-3.5 text-sm font-bold text-rose-600 shadow-md transition-all hover:bg-rose-50 hover:shadow-lg disabled:opacity-50"
+                >
+                  <HiOutlineXCircle className="h-4 w-4" />
+                  {cancelMutation.isPending ? t("bookingSuccess.cancelling") : t("bookingSuccess.cancelBooking")}
+                </button>
+              )}
             </div>
 
             {/* Back to Home Link */}
