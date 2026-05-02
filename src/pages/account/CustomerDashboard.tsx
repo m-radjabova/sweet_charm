@@ -268,6 +268,7 @@ export default function CustomerDashboard() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<SortOrder>("newest");
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const bookingsQuery = useQuery({
     queryKey: ["my-bookings", user?.id],
@@ -380,6 +381,17 @@ export default function CustomerDashboard() {
   const selectedFilterLabel =
     statusFilter === "all" ? t("customerDashboard.filter.all") : t(`customerDashboard.status.${statusFilter === "pending" ? "awaitingApproval" : statusFilter}`);
 
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+
+    setIsLoggingOut(true);
+    try {
+      await logout();
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#f7f7f5]">
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
@@ -422,10 +434,11 @@ export default function CustomerDashboard() {
               </Link>
               <button
                 type="button"
-                onClick={() => void logout()}
-                className="inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-black text-slate-700 transition hover:bg-slate-50"
+                onClick={() => void handleLogout()}
+                disabled={isLoggingOut}
+                className="inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-black text-slate-700 transition hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-60"
               >
-                {t("home.signOut")}
+                {isLoggingOut ? t("common.signingOut") : t("home.signOut")}
               </button>
             </div>
           </div>

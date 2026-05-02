@@ -117,13 +117,24 @@ export default function Login() {
     });
   };
 
-  const handleStaffError = (error: any) => {
-    const status = error?.response?.status;
+  const handleStaffError = (error: unknown) => {
+    const responseError = error as {
+      response?: {
+        status?: number;
+        data?: {
+          message?: unknown;
+          detail?: unknown;
+          error?: unknown;
+        };
+      };
+      message?: unknown;
+    };
+    const status = responseError.response?.status;
     const backendMessage =
-      error?.response?.data?.message ||
-      error?.response?.data?.detail ||
-      error?.response?.data?.error ||
-      error?.message ||
+      responseError.response?.data?.message ||
+      responseError.response?.data?.detail ||
+      responseError.response?.data?.error ||
+      responseError.message ||
       "";
     const message = String(backendMessage).toLowerCase();
 
@@ -168,6 +179,22 @@ export default function Login() {
   const isCustomerValid = customerName.trim().length >= 3 && normalizeUzbekPhone(phoneValue).length === 9;
   const isStaffValid = staffEmail.includes("@") && staffPassword.length >= 6;
 
+  const handleModeToggle = () => {
+    setMode((current) => {
+      const nextMode = current === "customer" ? "staff" : "customer";
+
+      if (nextMode === "customer") {
+        setPhoneValue("+998 ");
+        customerForm.reset({ full_name: "", phone_number: "+998 " });
+      } else {
+        setShowPassword(false);
+        staffForm.reset({ email: "", password: "" });
+      }
+
+      return nextMode;
+    });
+  };
+
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-white px-4 py-8">
       <div className="absolute -left-20 -top-20 h-72 w-72 rounded-full bg-amber-200/20 blur-3xl" />
@@ -180,20 +207,20 @@ export default function Login() {
 
         <div className="mt-6 text-center">
           <p className="text-xs font-bold uppercase tracking-widest text-amber-600">
-            {mode === "customer" ? "Klient kirishi" : "Admin va barber kirishi"}
+            {mode === "customer" ? t("login.signUp") : t("login.welcomeBack")}
           </p>
           <h1 className="mt-3 text-3xl font-black text-slate-900">
-            {mode === "customer" ? "Ro'yxatdan o'tish" : t("brand.name")}
+            {mode === "customer" ? t("login.signUp") : t("brand.name")}
           </h1>
           <p className="mt-2 text-sm text-slate-500">
             {mode === "customer"
-              ? "Bron qilish uchun ism va telefon raqamingizni kiriting."
-              : "Admin yoki barber kabinetiga email va parol orqali kiring."}
+              ? t("login.customerDescription")
+              : t("login.staffDescription")}
           </p>
         </div>
 
         {mode === "customer" ? (
-          <form className="mt-8 space-y-5" onSubmit={customerForm.handleSubmit(onCustomerSubmit)}>
+          <form key="customer-login-form" className="mt-8 space-y-5" onSubmit={customerForm.handleSubmit(onCustomerSubmit)}>
             <div>
               <label className="text-sm font-semibold text-slate-700">{t("common.fullName")}</label>
               <div className="relative mt-1">
@@ -243,7 +270,7 @@ export default function Login() {
             </button>
           </form>
         ) : (
-          <form className="mt-8 space-y-5" onSubmit={staffForm.handleSubmit(onStaffSubmit)}>
+          <form key="staff-login-form" className="mt-8 space-y-5" onSubmit={staffForm.handleSubmit(onStaffSubmit)}>
             <div>
               <label className="text-sm font-semibold text-slate-700">{t("common.email")}</label>
               <div className="relative mt-1">
@@ -297,15 +324,12 @@ export default function Login() {
         )}
 
         <div className="mt-7 border-t border-slate-100 pt-5 text-center">
-          <p className="text-sm text-slate-500">
-            {mode === "customer" ? "Admin yoki sartaroshmisiz?" : "Klient sifatida kirmoqchimisiz?"}
-          </p>
           <button
             type="button"
-            onClick={() => setMode((current) => (current === "customer" ? "staff" : "customer"))}
+            onClick={handleModeToggle}
             className="mt-2 font-semibold text-slate-900 underline decoration-amber-400 underline-offset-4 transition hover:text-amber-600"
           >
-            {mode === "customer" ? "Admin / Barber bo'lib kirish" : "Klient bo'lib ro'yxatdan o'tish"}
+            {mode === "customer" ? t("common.adminBarberLogin") : t("common.customerAccess")}
           </button>
         </div>
       </div>

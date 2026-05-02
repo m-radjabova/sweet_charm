@@ -10,13 +10,16 @@ import {
   HiMiniTrash,
   HiMiniUserCircle,
   HiOutlineEnvelope,
+  HiOutlineEye,
+  HiOutlineEyeSlash,
   HiOutlineCalendar,
   HiOutlineCheckBadge,
   HiOutlineXMark,
-  HiOutlinePhone,
+  HiOutlineLockClosed,
   HiOutlineArrowRight,
+  HiOutlineExclamationTriangle,
 } from "react-icons/hi2";
-import { createBarber, listBarbers, updateBarber } from "../../api/users";
+import { createBarber, deleteBarber, listBarbers, updateBarber } from "../../api/users";
 import { getErrorMessage } from "../../api/auth";
 import { formatDate } from "../../utils/date";
 import type { BarberCreatePayload, UpdateBarberPayload, User } from "../../types/types";
@@ -81,6 +84,60 @@ function SideDrawer({
         </div>
       </div>
     </>
+  );
+}
+
+function DeleteConfirmModal({
+  barber,
+  isDeleting,
+  onCancel,
+  onConfirm,
+}: {
+  barber: User | null;
+  isDeleting: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  if (!barber) {
+    return null;
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 px-4 backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
+        <div className="flex items-start gap-4">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-rose-50 text-rose-600">
+            <HiOutlineExclamationTriangle className="h-6 w-6" />
+          </div>
+          <div>
+            <h2 className="text-xl font-black text-slate-950">Barberni o'chirish</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              Rostan ham <span className="font-bold text-slate-900">{barber.full_name}</span> ni
+              o'chirmoqchimisiz? Bu amal barber profilini va unga bog'langan bronlarni o'chiradi.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-6 flex gap-3">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isDeleting}
+            className="h-11 flex-1 rounded-xl border-2 border-slate-200 bg-white text-sm font-bold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+          >
+            Bekor qilish
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={isDeleting}
+            className="h-11 flex-1 rounded-xl bg-rose-600 text-sm font-bold text-white shadow-lg transition hover:bg-rose-700 disabled:opacity-50"
+          >
+            {isDeleting ? "O'chirilmoqda..." : "Ha, o'chirish"}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -178,7 +235,7 @@ function BarberForm({
         </label>
         <div className="group relative">
           <div className="absolute left-4 top-1/2 -translate-y-1/2">
-            <HiOutlinePhone className="h-5 w-5 text-slate-400 transition-colors group-focus-within:text-slate-700" />
+            <HiOutlineLockClosed className="h-5 w-5 text-slate-400 transition-colors group-focus-within:text-slate-700" />
           </div>
           <input
             type={showPassword ? "text" : "password"}
@@ -191,8 +248,9 @@ function BarberForm({
             type="button"
             onClick={() => setShowPassword(!showPassword)}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors hover:text-slate-600"
+            aria-label={showPassword ? "Hide password" : "Show password"}
           >
-            {showPassword ? <HiOutlineXMark className="h-5 w-5" /> : <HiMiniChevronDown className="h-5 w-5" />}
+            {showPassword ? <HiOutlineEyeSlash className="h-5 w-5" /> : <HiOutlineEye className="h-5 w-5" />}
           </button>
         </div>
         {mode === "edit" && (
@@ -258,6 +316,7 @@ export default function AdminBarbers() {
   const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
   const [editingBarber, setEditingBarber] = useState<User | null>(null);
+  const [deletingBarber, setDeletingBarber] = useState<User | null>(null);
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
 
   const barbersQuery = useQuery({
@@ -289,6 +348,19 @@ export default function AdminBarbers() {
     },
     onError: (error) => {
       toast.error(getErrorMessage(error, "Failed to update barber"));
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteBarber,
+    onSuccess: async () => {
+      toast.success("Barber deleted successfully");
+      setDeletingBarber(null);
+      setMenuOpen(null);
+      await queryClient.invalidateQueries({ queryKey: ["barbers"] });
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error, "Failed to delete barber"));
     },
   });
 
@@ -469,14 +541,10 @@ export default function AdminBarbers() {
                       
                       <button
                         type="button"
-                        onClick={() =>
-                          updateMutation.mutate({
-                            barberId: barber.id,
-                            payload: { is_active: barber.is_active === false ? true : false },
-                          })
-                        }
+                        onClick={() => setDeletingBarber(barber)}
+                        disabled={deleteMutation.isPending && deletingBarber?.id === barber.id}
                         className="group/btn flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition-all hover:border-rose-500 hover:bg-rose-50 hover:text-rose-600"
-                        aria-label={barber.is_active === false ? `Activate ${barber.full_name}` : `Deactivate ${barber.full_name}`}
+                        aria-label={`Delete ${barber.full_name}`}
                       >
                         <HiMiniTrash className="text-lg transition-transform group-hover/btn:scale-110" />
                       </button>
@@ -574,6 +642,17 @@ export default function AdminBarbers() {
           />
         )}
       </SideDrawer>
+
+      <DeleteConfirmModal
+        barber={deletingBarber}
+        isDeleting={deleteMutation.isPending}
+        onCancel={() => setDeletingBarber(null)}
+        onConfirm={() => {
+          if (deletingBarber) {
+            deleteMutation.mutate(deletingBarber.id);
+          }
+        }}
+      />
     </div>
   );
 }

@@ -47,6 +47,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   } = useContextPro();
   const location = useLocation();
   const [mounted, setMounted] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const menuItems = [
     { label: t("sidebar.dashboard"), to: "/admin", icon: HiMiniSquares2X2, description: t("sidebar.dashboardDesc") },
     { label: t("sidebar.barbers"), to: "/admin/barbers", icon: HiMiniScissors, description: t("sidebar.barbersDesc") },
@@ -57,9 +58,16 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
     setMounted(true);
   }, []);
 
-  const handleLogout = () => {
-    logout();
-    if (onNavigate) onNavigate();
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+
+    setIsLoggingOut(true);
+    try {
+      await logout();
+      if (onNavigate) onNavigate();
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   return (
@@ -167,13 +175,14 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         {/* Action Buttons */}
         <div className="space-y-2">
           <button
-            onClick={handleLogout}
-            className="group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-600 transition-all duration-300 hover:bg-rose-50 hover:text-rose-600"
+            onClick={() => void handleLogout()}
+            disabled={isLoggingOut}
+            className="group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-600 transition-all duration-300 hover:bg-rose-50 hover:text-rose-600 disabled:pointer-events-none disabled:opacity-60"
           >
             <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-rose-50 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
             <div className="relative flex items-center gap-3">
               <HiMiniArrowLeftOnRectangle className="text-lg transition-transform duration-300 group-hover:-translate-x-0.5 group-hover:scale-110" />
-              <span>{t("sidebar.signOut")}</span>
+              <span>{isLoggingOut ? t("common.signingOut") : t("sidebar.signOut")}</span>
             </div>
           </button>
           

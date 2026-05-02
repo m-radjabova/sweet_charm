@@ -30,6 +30,7 @@
     "tryAgainLater": "Iltimos, keyinroq qayta urinib ko'ring",
     "specialist": "Fade va line-up ustasi",
     "signingIn": "Kirilmoqda...",
+    "signingOut": "Chiqilmoqda...",
     "me": "Men",
     "currency": "so'm",
     "priceUnavailable": "Narx ko'rsatilmagan",
@@ -38,7 +39,9 @@
     "loading": "Yuklanmoqda...",
     "refreshing": "Yangilanmoqda...",
     "save": "Saqlash",
-    "saving": "Saqlanmoqda..."
+    "saving": "Saqlanmoqda...",
+    "adminBarberLogin": "Admin / Barber bo'lib kirish",
+    "customerAccess": "Klient bo'lib ro'yxatdan o'tish"
   },
   "login": {
     "subtitle": "Xush kelibsiz. Davom etish uchun ma'lumotlaringizni kiriting.",
@@ -54,12 +57,17 @@
     "validation": {
       "email": "To'g'ri email manzil kiriting",
       "password": "Parol kamida 6 ta belgidan iborat bo'lsin"
-    }
+    },
+    "signUp": "Ro'yxatdan o'tish",
+    "welcomeBack": "Xush kelibsiz!",
+    "customerDescription": "Bron qilish uchun ism va telefon raqamingizni kiriting.",
+    "staffDescription": "Admin yoki barber kabinetiga email va parol orqali kiring."
   },
   "home": {
     "brandSubtitle": "Premium sartaroshxona",
     "customerAccess": "Mijoz kabineti",
     "myAccount": "Mening kabinetim",
+    "signIn": "Ro'yxatdan o'tish",
     "signOut": "Chiqish",
     "barberLogin": "Sartarosh kirishi",
     "adminPortal": "Admin panel",

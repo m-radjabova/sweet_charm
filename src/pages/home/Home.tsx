@@ -152,6 +152,7 @@ export default function Home() {
   const [searchLocation, setSearchLocation] = useState<Coordinates | null>(null);
   const [sortBy, setSortBy] = useState<"default" | "distance" | "price_asc" | "price_desc">("default");
   const [detectingLocation, setDetectingLocation] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const {
     state: { user },
@@ -194,8 +195,15 @@ export default function Home() {
   };
 
   const handleLogout = async () => {
-    handleCloseMenu();
-    await logout();
+    if (isLoggingOut) return;
+
+    setIsLoggingOut(true);
+    try {
+      await logout();
+    } finally {
+      handleCloseMenu();
+      setIsLoggingOut(false);
+    }
   };
 
   const handleSortChange = async (nextSort: "default" | "distance" | "price_asc" | "price_desc") => {
@@ -288,10 +296,10 @@ export default function Home() {
                     </div>
                   </MenuItem>
 
-                  <MenuItem onClick={() => void handleLogout()}>
+                  <MenuItem onClick={() => void handleLogout()} disabled={isLoggingOut}>
                     <div className="flex w-full items-center justify-between gap-4 text-red-600">
                       <span className="text-sm font-bold">
-                        {t("home.signOut")}
+                        {isLoggingOut ? t("common.signingOut") : t("home.signOut")}
                       </span>
                       <HiOutlineChevronRight className="h-4 w-4 text-red-400" />
                     </div>
@@ -303,7 +311,7 @@ export default function Home() {
                 to="/login"
                 className="rounded-full bg-slate-950 px-4 py-2 text-sm font-bold text-white shadow-lg transition hover:bg-slate-800 sm:px-5 sm:py-2.5"
               >
-                Ro'yxatdan o'tish
+                {t("home.signIn")}
               </Link>
             )}
           </div>

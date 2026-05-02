@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Drawer } from "@mui/material";
+import { useTranslation } from "react-i18next";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   HiBars3BottomLeft,
@@ -48,12 +49,14 @@ function LogoBlock() {
 }
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
+  const { t } = useTranslation();
   const location = useLocation();
   const {
     logout,
     state: { user },
   } = useContextPro();
   const [mounted, setMounted] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -65,9 +68,16 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
     { label: "Sozlamalar", to: "/barber/settings", icon: HiMiniCog6Tooth, description: "Profil va xizmatlar" },
   ];
 
-  const handleLogout = () => {
-    void logout();
-    onNavigate?.();
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+
+    setIsLoggingOut(true);
+    try {
+      await logout();
+      onNavigate?.();
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   return (
@@ -147,11 +157,12 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
         <button
           type="button"
-          onClick={handleLogout}
-          className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-600 transition hover:bg-rose-50 hover:text-rose-600"
+          onClick={() => void handleLogout()}
+          disabled={isLoggingOut}
+          className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-600 transition hover:bg-rose-50 hover:text-rose-600 disabled:pointer-events-none disabled:opacity-60"
         >
           <HiMiniArrowLeftOnRectangle className="text-lg" />
-          <span>Chiqish</span>
+          <span>{isLoggingOut ? t("common.signingOut") : "Chiqish"}</span>
         </button>
       </div>
     </div>

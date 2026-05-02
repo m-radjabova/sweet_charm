@@ -66,3 +66,7 @@ export async function updateBarber(barberId: string, payload: UpdateBarberPayloa
   const { data } = await apiClient.patch<User>(`/barbers/${barberId}`, payload);
   return data;
 }
+
+export async function deleteBarber(barberId: string) {
+  await apiClient.delete(`/barbers/${barberId}`);
+}
