@@ -1,6 +1,6 @@
-import { type MouseEvent, useMemo, useState } from "react";
+import { type MouseEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Menu, MenuItem } from "@mui/material";
 import {
@@ -146,6 +146,7 @@ function EmptyBarbersState({
 }
 
 export default function Home() {
+  const PAGE_SIZE = 10;
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
@@ -153,28 +154,57 @@ export default function Home() {
   const [sortBy, setSortBy] = useState<"default" | "distance" | "price_asc" | "price_desc">("default");
   const [detectingLocation, setDetectingLocation] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   const {
     state: { user },
     logout,
   } = useContextPro();
 
-  const barbersQuery = useQuery({
+  const barbersQuery = useInfiniteQuery({
     queryKey: ["public-barbers", searchLocation?.lat ?? null, searchLocation?.lng ?? null, sortBy],
-    queryFn: () =>
+    initialPageParam: 0,
+    queryFn: ({ pageParam }) =>
       listPublicBarbers({
         lat: searchLocation?.lat,
         lng: searchLocation?.lng,
         sort_by: sortBy === "default" ? undefined : sortBy,
+        limit: PAGE_SIZE,
+        offset: pageParam,
       }),
+    getNextPageParam: (lastPage, allPages) => {
+      if (lastPage.length < PAGE_SIZE) return undefined;
+      return allPages.length * PAGE_SIZE;
+    },
   });
 
   const barbers = useMemo(() => {
-    return (barbersQuery.data ?? []).map((barber) => ({
+    const merged = barbersQuery.data?.pages.flat() ?? [];
+    return merged.map((barber) => ({
       ...barber,
       specialty: barber.specialty?.trim() || t("home.professionalBarber"),
     }));
   }, [barbersQuery.data, t]);
+
+  const { hasNextPage, isFetchingNextPage, fetchNextPage } = barbersQuery;
+
+  useEffect(() => {
+    const target = loadMoreRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const isVisible = entries[0]?.isIntersecting;
+        if (isVisible && hasNextPage && !isFetchingNextPage) {
+          void fetchNextPage();
+        }
+      },
+      { rootMargin: "240px 0px" },
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   const isLoading = barbersQuery.isLoading;
   const isLoggedIn = Boolean(user?.role);
@@ -210,7 +240,14 @@ export default function Home() {
     if (nextSort === "distance") {
       try {
         setDetectingLocation(true);
-        const coords = await getBrowserLocation();
+        const coords = await getBrowserLocation({
+          unsupported: t("home.locationUnsupported"),
+          insecureContext: t("home.locationInsecureContext"),
+          permissionDenied: t("home.locationPermissionDenied"),
+          unavailable: t("home.locationUnavailable"),
+          timeout: t("home.locationTimeout"),
+          unknown: t("home.locationError"),
+        });
         setSearchLocation(coords);
         setSortBy("distance");
       } catch (error) {
@@ -308,7 +345,7 @@ export default function Home() {
               </>
             ) : (
               <Link
-                to="/login"
+                to="/user/access"
                 className="rounded-full bg-slate-950 px-4 py-2 text-sm font-bold text-white shadow-lg transition hover:bg-slate-800 sm:px-5 sm:py-2.5"
               >
                 {t("home.signIn")}
@@ -478,98 +515,106 @@ export default function Home() {
               onReset={handleResetFilters}
             />
           ) : (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {barbers.map((barber) => (
-                <article
-                  key={barber.id}
-                  className="group relative h-[420px] overflow-hidden rounded-2xl bg-black shadow-lg transition-shadow hover:shadow-xl sm:h-[460px] sm:rounded-[32px] sm:shadow-[0_25px_80px_rgba(0,0,0,0.4)]"
-                >
-                  {/* Image - full cover */}
-                  <img
-                    src={barber.avatar ?? undefined}
-                    alt={barber.full_name}
-                    className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-110"
-                  />
+            <div>
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {barbers.map((barber) => (
+                  <article
+                    key={barber.id}
+                    className="group relative h-[420px] overflow-hidden rounded-2xl bg-black shadow-lg transition-shadow hover:shadow-xl sm:h-[460px] sm:rounded-[32px] sm:shadow-[0_25px_80px_rgba(0,0,0,0.4)]"
+                  >
+                    {/* Image - full cover */}
+                    <img
+                      src={barber.avatar ?? undefined}
+                      alt={barber.full_name}
+                      className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-110"
+                    />
 
-                  {/* Gradient overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+                    {/* Gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
 
-                  {/* Top icon */}
-                  <div className="absolute left-4 top-4 flex h-9 w-9 items-center justify-center rounded-full border border-white/30 bg-white/10 backdrop-blur-lg sm:left-5 sm:top-5 sm:h-11 sm:w-11">
-                    <HiOutlineScissors className="h-4 w-4 text-white sm:h-5 sm:w-5" />
-                  </div>
-
-                  {/* Rating badge */}
-                  <div className="absolute right-4 top-4 rounded-full bg-black/60 px-2 py-0.5 text-xs font-bold text-white backdrop-blur-md sm:right-5 sm:top-5 sm:px-3 sm:py-1 sm:text-sm">
-                    ⭐ {barber.average_rating?.toFixed(1) || "5.0"}
-                  </div>
-
-                  {/* Bottom card - slides up on hover */}
-                  <div className="absolute inset-x-3 bottom-3 translate-y-[60px] transition-all duration-500 ease-out group-hover:translate-y-0 sm:inset-x-4 sm:bottom-4 sm:translate-y-[70px]">
-                    <div className="rounded-xl border border-white/20 bg-white/10 p-3 text-white backdrop-blur-xl sm:rounded-2xl sm:p-4">
-                      {/* Name */}
-                      <h2 className="text-lg font-black leading-tight sm:text-2xl">
-                        {barber.full_name}
-                      </h2>
-
-                      {/* Specialty */}
-                      <p className="mt-0.5 text-xs text-white/70 sm:mt-1 sm:text-sm">
-                        {barber.specialty}
-                      </p>
-
-                      {/* Info grid */}
-                      <div className="mt-3 grid grid-cols-3 gap-1.5 text-[10px] sm:mt-4 sm:gap-2 sm:text-xs">
-                        <div className="rounded-lg bg-white/10 p-1.5 text-center backdrop-blur sm:rounded-xl sm:p-2">
-                          <p className="text-white/50">{t("home.scheduleLabel")}</p>
-                          <p className="font-bold leading-tight">
-                            {formatWorkingHours(
-                              barber.work_start_time,
-                              barber.work_end_time,
-                            )}
-                          </p>
-                        </div>
-
-                        <div className="rounded-lg bg-white/10 p-1.5 text-center backdrop-blur sm:rounded-xl sm:p-2">
-                          <p className="text-white/50">{t("home.locationLabel")}</p>
-                          <p className="line-clamp-1 font-bold leading-tight">
-                            {barber.location_text || t("home.emptyDash")}
-                          </p>
-                        </div>
-
-                        <div className="rounded-lg bg-white/10 p-1.5 text-center backdrop-blur sm:rounded-xl sm:p-2">
-                          <p className="text-white/50">{t("home.priceLabel")}</p>
-                          <p className="truncate font-bold text-amber-300 sm:whitespace-normal">
-                            {formatMoney(barber.price_from)}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Tags */}
-                      <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px] sm:mt-3 sm:gap-2 sm:text-xs">
-                        {barber.distance_km != null ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-400/20 px-2 py-0.5 font-bold text-emerald-200 sm:px-2.5 sm:py-1">
-                            <HiMiniMapPin className="h-3 w-3" />
-                            {formatDistance(barber.distance_km)}
-                          </span>
-                        ) : null}
-                        {barber.services?.some((service) => service.discount_price != null) ? (
-                          <span className="rounded-full bg-rose-400/20 px-2 py-0.5 font-bold text-rose-100 sm:px-2.5 sm:py-1">
-                            {t("home.promotionAvailable")}
-                          </span>
-                        ) : null}
-                      </div>
-
-                      {/* Book button */}
-                      <Link
-                        to={`/book/${barber.id}`}
-                        className="mt-3 flex h-9 items-center justify-center rounded-lg bg-white/20 text-xs font-bold text-white backdrop-blur-md transition hover:bg-amber-400 hover:text-black sm:mt-4 sm:h-11 sm:rounded-xl sm:text-sm"
-                      >
-                        {t("home.bookNow")}
-                      </Link>
+                    {/* Top icon */}
+                    <div className="absolute left-4 top-4 flex h-9 w-9 items-center justify-center rounded-full border border-white/30 bg-white/10 backdrop-blur-lg sm:left-5 sm:top-5 sm:h-11 sm:w-11">
+                      <HiOutlineScissors className="h-4 w-4 text-white sm:h-5 sm:w-5" />
                     </div>
-                  </div>
-                </article>
-              ))}
+
+                    {/* Rating badge */}
+                    <div className="absolute right-4 top-4 rounded-full bg-black/60 px-2 py-0.5 text-xs font-bold text-white backdrop-blur-md sm:right-5 sm:top-5 sm:px-3 sm:py-1 sm:text-sm">
+                      ⭐ {barber.average_rating?.toFixed(1) || "5.0"}
+                    </div>
+
+                    {/* Bottom card - slides up on hover */}
+                    <div className="absolute inset-x-3 bottom-3 translate-y-[60px] transition-all duration-500 ease-out group-hover:translate-y-0 sm:inset-x-4 sm:bottom-4 sm:translate-y-[70px]">
+                      <div className="rounded-xl border border-white/20 bg-white/10 p-3 text-white backdrop-blur-xl sm:rounded-2xl sm:p-4">
+                        {/* Name */}
+                        <h2 className="text-lg font-black leading-tight sm:text-2xl">
+                          {barber.full_name}
+                        </h2>
+
+                        {/* Specialty */}
+                        <p className="mt-0.5 text-xs text-white/70 sm:mt-1 sm:text-sm">
+                          {barber.specialty}
+                        </p>
+
+                        {/* Info grid */}
+                        <div className="mt-3 grid grid-cols-3 gap-1.5 text-[10px] sm:mt-4 sm:gap-2 sm:text-xs">
+                          <div className="rounded-lg bg-white/10 p-1.5 text-center backdrop-blur sm:rounded-xl sm:p-2">
+                            <p className="text-white/50">{t("home.scheduleLabel")}</p>
+                            <p className="font-bold leading-tight">
+                              {formatWorkingHours(
+                                barber.work_start_time,
+                                barber.work_end_time,
+                              )}
+                            </p>
+                          </div>
+
+                          <div className="rounded-lg bg-white/10 p-1.5 text-center backdrop-blur sm:rounded-xl sm:p-2">
+                            <p className="text-white/50">{t("home.locationLabel")}</p>
+                            <p className="line-clamp-1 font-bold leading-tight">
+                              {barber.location_text || t("home.emptyDash")}
+                            </p>
+                          </div>
+
+                          <div className="rounded-lg bg-white/10 p-1.5 text-center backdrop-blur sm:rounded-xl sm:p-2">
+                            <p className="text-white/50">{t("home.priceLabel")}</p>
+                            <p className="truncate font-bold text-amber-300 sm:whitespace-normal">
+                              {formatMoney(barber.price_from)}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Tags */}
+                        <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px] sm:mt-3 sm:gap-2 sm:text-xs">
+                          {barber.distance_km != null ? (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-400/20 px-2 py-0.5 font-bold text-emerald-200 sm:px-2.5 sm:py-1">
+                              <HiMiniMapPin className="h-3 w-3" />
+                              {formatDistance(barber.distance_km)}
+                            </span>
+                          ) : null}
+                          {barber.services?.some((service) => service.discount_price != null) ? (
+                            <span className="rounded-full bg-rose-400/20 px-2 py-0.5 font-bold text-rose-100 sm:px-2.5 sm:py-1">
+                              {t("home.promotionAvailable")}
+                            </span>
+                          ) : null}
+                        </div>
+
+                        {/* Book button */}
+                        <Link
+                          to={`/book/${barber.id}`}
+                          className="mt-3 flex h-9 items-center justify-center rounded-lg bg-white/20 text-xs font-bold text-white backdrop-blur-md transition hover:bg-amber-400 hover:text-black sm:mt-4 sm:h-11 sm:rounded-xl sm:text-sm"
+                        >
+                          {t("home.bookNow")}
+                        </Link>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+
+              <div ref={loadMoreRef} className="mt-8 flex h-10 items-center justify-center">
+                {barbersQuery.isFetchingNextPage ? (
+                  <span className="text-sm font-medium text-slate-500">{t("common.loading")}</span>
+                ) : null}
+              </div>
             </div>
           )}
         </section>

@@ -19,14 +19,15 @@ import {
 } from "react-icons/hi2";
 import { toast } from "react-toastify";
 import { getErrorMessage } from "../../api/auth";
+import { getBarberApplicationConfig, getMyBarberApplication, submitMyBarberApplication } from "../../api/barberApplications";
 import { cancelMyBooking, createCustomerBookingsSocket, listMyBookings } from "../../api/bookings";
 import { getMyTelegramLink, refreshMyTelegramLink } from "../../api/telegram";
 import useContextPro from "../../hooks/useContextPro";
-import type { Booking, BookingStatus, TelegramLinkInfo } from "../../types/types";
-import { maskStoredPhone } from "../../utils/phone";
+import type { BarberApplication, Booking, BookingStatus, TelegramLinkInfo } from "../../types/types";
+import { formatUzbekPhone, maskStoredPhone, toApiPhone } from "../../utils/phone";
 import { clearStoredConfirmedBooking, formatDisplayDate, formatDisplayTime } from "../home/bookingUtils";
 
-type DashboardTab = "bookings" | "telegram";
+type DashboardTab = "bookings" | "telegram" | "application";
 type StatusFilter = "all" | BookingStatus;
 type SortOrder = "newest" | "oldest";
 
@@ -119,7 +120,10 @@ function BookingCard({
   onCancel: (bookingId: string) => void;
   t: TFunction;
 }) {
-  const statusConfig = getStatusConfig(booking.status);
+  const statusConfig = getStatusConfig(booking.status) ?? getStatusConfig("pending");
+  if (!statusConfig) {
+    return null;
+  }
   const StatusIcon = statusConfig.icon;
   const canCancel = booking.status === "pending" || booking.status === "confirmed";
 
@@ -257,6 +261,132 @@ function TelegramPanel({
   );
 }
 
+function BarberApplicationPanel({
+  application,
+  telegramInfo,
+}: {
+  application: BarberApplication | null;
+  telegramInfo?: TelegramLinkInfo;
+}) {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const [fullName, setFullName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("+998 ");
+  const [locationText, setLocationText] = useState("");
+  const [passportSeries, setPassportSeries] = useState("");
+  const [comment, setComment] = useState("");
+  const [paymentNote, setPaymentNote] = useState("");
+  const [receipt, setReceipt] = useState<File | null>(null);
+
+  const configQuery = useQuery({
+    queryKey: ["barber-application-config"],
+    queryFn: getBarberApplicationConfig,
+  });
+
+  useEffect(() => {
+    if (!application) return;
+    setFullName(application.full_name || "");
+    setPhoneNumber(formatUzbekPhone(application.phone_number));
+    setLocationText(application.location_text || "");
+    setPassportSeries(application.passport_series || "");
+    setComment(application.comment || "");
+    setPaymentNote(application.payment_note || "");
+  }, [application]);
+
+  const submitMutation = useMutation({
+    mutationFn: submitMyBarberApplication,
+    onSuccess: async () => {
+      toast.success(t("barberApplication.toast.submitted"));
+      setReceipt(null);
+      await queryClient.invalidateQueries({ queryKey: ["my-barber-application"] });
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error, t("barberApplication.toast.submitError")));
+    },
+  });
+
+  const isTelegramConnected = Boolean(telegramInfo?.connected);
+  const isFormValid = fullName.trim().length >= 3 &&
+    phoneNumber.trim().length >= 7 &&
+    locationText.trim().length >= 3 &&
+    passportSeries.trim().length >= 5 &&
+    comment.trim().length >= 3 &&
+    paymentNote.trim().length >= 3 &&
+    Boolean(receipt);
+
+  return (
+    <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+      <h2 className="text-xl font-black text-slate-950">{t("barberApplication.title")}</h2>
+      <p className="mt-1 text-sm text-slate-500">{t("barberApplication.subtitle")}</p>
+
+      <div className="mt-4 rounded-xl bg-amber-50 p-4 text-sm text-amber-800 ring-1 ring-amber-200">
+        <p className="font-bold">{t("barberApplication.paymentTitle")}</p>
+        <p className="mt-1">
+          {t("barberApplication.paymentText", {
+            amount: configQuery.data?.payment_amount ?? 0,
+            card: configQuery.data?.payment_card_number ?? "-",
+          })}
+        </p>
+      </div>
+
+      {!isTelegramConnected && (
+        <div className="mt-4 rounded-xl bg-sky-50 p-4 text-sm text-sky-800 ring-1 ring-sky-200">
+          {t("barberApplication.telegramRequired")}
+        </div>
+      )}
+
+      {application && (
+        <div className="mt-4 rounded-xl bg-slate-50 p-4 text-sm ring-1 ring-slate-200">
+          <p className="font-bold text-slate-800">
+            {t("barberApplication.currentStatus")}: {t(`barberApplication.status.${application.status}`)}
+          </p>
+          {application.admin_note ? (
+            <p className="mt-2 text-slate-600">{t("barberApplication.adminNote")}: {application.admin_note}</p>
+          ) : null}
+        </div>
+      )}
+
+      <form
+        className="mt-6 space-y-4"
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (!receipt) return;
+          submitMutation.mutate({
+            full_name: fullName.trim(),
+            phone_number: toApiPhone(phoneNumber),
+            location_text: locationText.trim(),
+            passport_series: passportSeries.trim(),
+            comment: comment.trim(),
+            payment_note: paymentNote.trim(),
+            receipt,
+          });
+        }}
+      >
+        <input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder={t("barberApplication.fields.fullName")} className="h-11 w-full rounded-lg border border-slate-200 px-3 text-sm" />
+        <input value={phoneNumber} onChange={(e) => setPhoneNumber(formatUzbekPhone(e.target.value))} placeholder={t("barberApplication.fields.phone")} className="h-11 w-full rounded-lg border border-slate-200 px-3 text-sm" />
+        <input value={locationText} onChange={(e) => setLocationText(e.target.value)} placeholder={t("barberApplication.fields.location")} className="h-11 w-full rounded-lg border border-slate-200 px-3 text-sm" />
+        <input value={passportSeries} onChange={(e) => setPassportSeries(e.target.value.toUpperCase())} placeholder={t("barberApplication.fields.passport")} className="h-11 w-full rounded-lg border border-slate-200 px-3 text-sm uppercase" />
+        <textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder={t("barberApplication.fields.comment")} className="min-h-24 w-full rounded-lg border border-slate-200 p-3 text-sm" />
+        <textarea value={paymentNote} onChange={(e) => setPaymentNote(e.target.value)} placeholder={t("barberApplication.fields.paymentNote")} className="min-h-24 w-full rounded-lg border border-slate-200 p-3 text-sm" />
+        <input
+          type="file"
+          accept=".jpg,.jpeg,.png,.webp,.pdf"
+          onChange={(e) => setReceipt(e.target.files?.[0] ?? null)}
+          className="w-full rounded-lg border border-slate-200 p-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-slate-900 file:px-3 file:py-2 file:text-white"
+        />
+
+        <button
+          type="submit"
+          disabled={!isFormValid || submitMutation.isPending || !isTelegramConnected}
+          className="inline-flex h-11 items-center justify-center rounded-lg bg-slate-950 px-5 text-sm font-black text-white disabled:opacity-50"
+        >
+          {submitMutation.isPending ? t("common.saving") : t("barberApplication.submit")}
+        </button>
+      </form>
+    </section>
+  );
+}
+
 export default function CustomerDashboard() {
   const { t } = useTranslation();
   const {
@@ -286,6 +416,11 @@ export default function CustomerDashboard() {
     refetchInterval: (query) => (query.state.data?.connected ? false : 5000),
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,
+  });
+  const myApplicationQuery = useQuery({
+    queryKey: ["my-barber-application", user?.id],
+    queryFn: getMyBarberApplication,
+    enabled: Boolean(user?.id),
   });
 
   const refreshTelegramMutation = useMutation({
@@ -451,6 +586,9 @@ export default function CustomerDashboard() {
           <TabButton active={activeTab === "telegram"} onClick={() => setActiveTab("telegram")} icon={<HiOutlinePaperAirplane className="h-4 w-4" />}>
             {t("customerDashboard.tabs.telegram")}
           </TabButton>
+          <TabButton active={activeTab === "application"} onClick={() => setActiveTab("application")} icon={<HiOutlineCalendarDays className="h-4 w-4" />}>
+            {t("customerDashboard.tabs.application")}
+          </TabButton>
         </div>
 
         {activeTab === "bookings" ? (
@@ -568,7 +706,7 @@ export default function CustomerDashboard() {
               </div>
             </section>
           </>
-        ) : (
+        ) : activeTab === "telegram" ? (
           <TelegramPanel
             info={telegramQuery.data}
             loading={telegramQuery.isLoading}
@@ -576,6 +714,8 @@ export default function CustomerDashboard() {
             onRefresh={() => refreshTelegramMutation.mutate()}
             t={t}
           />
+        ) : (
+          <BarberApplicationPanel application={myApplicationQuery.data ?? null} telegramInfo={telegramQuery.data} />
         )}
       </div>
     </div>

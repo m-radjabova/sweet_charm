@@ -67,7 +67,7 @@
     "brandSubtitle": "Premium sartaroshxona",
     "customerAccess": "Mijoz kabineti",
     "myAccount": "Mening kabinetim",
-    "signIn": "Ro'yxatdan o'tish",
+    "signIn": "Kirish",
     "signOut": "Chiqish",
     "barberLogin": "Sartarosh kirishi",
     "adminPortal": "Admin panel",
@@ -100,6 +100,11 @@
     "clearFiltersAria": "Filtrlarni tozalash",
     "professionalBarber": "Professional barber",
     "locationError": "Joylashuvni aniqlab bo'lmadi",
+    "locationUnsupported": "Brauzer geolokatsiyani qo'llab-quvvatlamaydi",
+    "locationInsecureContext": "Joylashuv faqat HTTPS yoki localhost orqali ishlaydi. Telefoningizda sayt http://IP:port bilan ochilgan bo'lsa, HTTPS orqali oching.",
+    "locationPermissionDenied": "Lokatsiyaga ruxsat berilmadi. Telefon sozlamalaridan brauzer uchun Location ruxsatini yoqing.",
+    "locationUnavailable": "Joylashuv ma'lumoti hozircha topilmadi. GPS/location yoqilganini tekshiring.",
+    "locationTimeout": "Joylashuvni aniqlash vaqti tugadi. Location yoqilganini tekshirib qayta urinib ko'ring.",
     "sortLabel": "Saralash",
     "detectingLocation": "Joylashuv aniqlanmoqda...",
     "nearest": "Eng yaqin",
@@ -213,10 +218,20 @@
     "badge": "Mijoz kirishi",
     "title": "Bir marta ro'yxatdan o'ting va navbatlaringizni kuzatib boring",
     "description": "Ism va telefon raqamingiz saqlanadi. Keyingi safar qayta-qayta kiritmasdan to'g'ridan-to'g'ri navbat olasiz.",
+    "loginTitle": "Kirish",
+    "registerTitle": "Ro'yxatdan o'tish",
+    "loginSubtitle": "Agar avval ro'yxatdan o'tgan bo'lsangiz, faqat telefon raqamingizni kiriting.",
+    "registerSubtitle": "Yangi foydalanuvchi uchun ism va telefon raqam kiriting.",
     "formTitle": "Kabinetga kirish",
     "formSubtitle": "Agar shu telefon bilan oldin kirgan bo'lsangiz, profilingiz avtomatik topiladi.",
     "info": "Biz shu telefon raqami orqali profilingizni eslab qolamiz va barcha navbatlaringizni bitta kabinetda ko'rsatamiz.",
     "submit": "Davom etish",
+    "loginSubmit": "Kirish",
+    "registerSubmit": "Ro'yxatdan o'tish",
+    "noAccount": "Ro'yxatdan o'tmagan bo'lsangiz,",
+    "haveAccount": "Ro'yxatdan o'tgan bo'lsangiz,",
+    "switchToRegister": "ro'yxatdan o'ting",
+    "switchToLogin": "kirish",
     "toast": {
       "success": "Kabinet muvaffaqiyatli ochildi",
       "error": "Kabinetga kirib bo'lmadi"
@@ -262,7 +277,8 @@
     "telegramBenefit": "Barber broningizni tasdiqlasa, yakunlasa yoki bekor qilsa, Telegram orqali xabar olasiz.",
     "tabs": {
       "bookings": "Bronlar",
-      "telegram": "Telegram"
+      "telegram": "Telegram",
+      "application": "Barber arizasi"
     },
     "sort": {
       "newest": "Yangi",
@@ -288,6 +304,33 @@
       "confirmed": "Tasdiqlangan",
       "pending": "Tasdiq kutilmoqda",
       "awaitingApproval": "Barber tasdig'ini kutmoqda"
+    }
+  },
+  "barberApplication": {
+    "title": "Barber bo'lish uchun ariza",
+    "subtitle": "Barcha maydonlarni to'liq to'ldiring va to'lov chekini yuklang.",
+    "paymentTitle": "To'lov ma'lumoti",
+    "paymentText": "{{amount}} so'mni quyidagi kartaga to'lang: {{card}}",
+    "telegramRequired": "Admin tasdiqlagandan keyin login/email va parol Telegram bot orqali yuboriladi. Avval Telegram bo'limida botga ulanib oling.",
+    "currentStatus": "Joriy holat",
+    "adminNote": "Admin izohi",
+    "submit": "Arizani yuborish",
+    "fields": {
+      "fullName": "To'liq ism familiya",
+      "phone": "Telefon raqam",
+      "location": "Lokatsiya (manzil)",
+      "passport": "Pasport seriyasi",
+      "comment": "Izoh",
+      "paymentNote": "To'lov haqida izoh"
+    },
+    "status": {
+      "pending": "Ko'rib chiqilmoqda",
+      "approved": "Tasdiqlangan",
+      "rejected": "Rad etilgan"
+    },
+    "toast": {
+      "submitted": "Ariza yuborildi",
+      "submitError": "Arizani yuborib bo'lmadi"
     }
   },
   "bookingSuccess": {
@@ -338,6 +381,8 @@
     "dashboardDesc": "Umumiy ko'rinish va statistika",
     "barbers": "Sartaroshlar",
     "barbersDesc": "Jamoani boshqarish",
+    "applications": "Arizalar",
+    "applicationsDesc": "Barber arizalari",
     "bookings": "Band qilishlar",
     "bookingsDesc": "Navbatlarni ko'rish",
     "settings": "Sozlamalar",
@@ -347,6 +392,34 @@
     "signOut": "Chiqish",
     "openMenu": "Admin menyusini ochish",
     "closeMenu": "Admin menyusini yopish"
+  },
+  "adminApplications": {
+    "title": "Barber arizalari",
+    "subtitle": "Arizalarni ko'rib chiqing, tasdiqlang yoki rad eting.",
+    "empty": "Arizalar topilmadi",
+    "passport": "Pasport",
+    "userEmail": "Foydalanuvchi emaili",
+    "comment": "Izoh",
+    "paymentNote": "To'lov izohi",
+    "openReceipt": "Chekni ochish",
+    "approve": "Tasdiqlash",
+    "reject": "Rad etish",
+    "adminNote": "Admin izohi",
+    "adminNoteOptional": "Qo'shimcha izoh (ixtiyoriy)",
+    "approveModalTitle": "Arizani tasdiqlash",
+    "rejectModalTitle": "Arizani rad etish",
+    "rejectReason": "Rad etish sababi",
+    "filters": {
+      "all": "Barchasi",
+      "pending": "Kutilmoqda",
+      "approved": "Tasdiqlangan",
+      "rejected": "Rad etilgan"
+    },
+    "toast": {
+      "approved": "Ariza tasdiqlandi",
+      "rejected": "Ariza rad etildi",
+      "error": "Amal bajarilmadi"
+    }
   },
   "settings": {
     "adminSettings": "Admin sozlamalari",
@@ -450,7 +523,18 @@
     "telegramLinkError": "Telegram havolasini yangilab bo'lmadi",
     "promotionSent": "{{delivered}} ta mijozga yuborildi, {{failed}} tasiga yetib bormadi",
     "promotionError": "Xabarni yuborib bo'lmadi",
+    "telegram": {
+      "statusTitle": "Bot holati",
+      "connected": "Ulangan",
+      "disconnected": "Ulanmagan",
+      "recipients": "Qabul qiluvchilar",
+      "realtime": "Realtime bron",
+      "realtimeWorking": "Ishlayapti",
+      "refreshLink": "Link yangilash",
+      "settings": "Sozlamalar"
+    },
     "toast": {
+      "newBooking": "Yangi bron tushdi",
       "confirmed": "Bron tasdiqlandi",
       "cancelled": "Bron bekor qilindi va vaqt ochildi",
       "completed": "Navbat bajarilgan deb belgilandi",
@@ -473,6 +557,12 @@
     "statsPending": "Kutilayotgan",
     "statsConfirmed": "Tasdiqlangan",
     "statsCompleted": "Yakunlangan",
+    "statsBlocked": "Band vaqtlar",
+    "blocked": "Band qilingan",
+    "blockTimeTitle": "Vaqtni band qilish",
+    "blockTimeSubtitle": "Ishingiz chiqsa, shu sanaga vaqt slotini band qilib qo'ying.",
+    "blockTimeButton": "Vaqtni band qilish",
+    "unblockTime": "Vaqtni bo'shatish",
     "emptyTitle": "Qabullar topilmadi",
     "serviceCompleted": "Xizmat yakunlangan",
     "serviceCancelled": "Bron bekor qilingan",
@@ -487,7 +577,27 @@
       "confirmed": "Bron tasdiqlandi",
       "cancelled": "Bron bekor qilindi va vaqt ochildi",
       "completed": "Xizmat muvaffaqiyatli yakunlandi",
+      "blocked": "Vaqt muvaffaqiyatli band qilindi",
+      "blockError": "Vaqtni band qilib bo'lmadi",
       "error": "Xatolik yuz berdi"
+    }
+  },
+  "barberSidebar": {
+    "subtitle": "Sartarosh paneli",
+    "menuTitle": "Asosiy menyu",
+    "items": {
+      "dashboard": {
+        "label": "Dashboard",
+        "desc": "Bugungi holat"
+      },
+      "schedule": {
+        "label": "Bronlar",
+        "desc": "Jadval va mijozlar"
+      },
+      "settings": {
+        "label": "Sozlamalar",
+        "desc": "Profil va xizmatlar"
+      }
     }
   },
   "notFound": {

@@ -55,6 +55,49 @@ export interface TelegramPromotionResult {
   failed_recipients: number;
 }
 
+export type BarberApplicationStatus = "pending" | "approved" | "rejected";
+
+export interface BarberApplicationConfig {
+  payment_card_number: string;
+  payment_amount: number;
+  telegram_required: boolean;
+}
+
+export interface BarberApplication {
+  id: string;
+  user_id: string;
+  user_email?: string | null;
+  user_role?: string | null;
+  telegram_connected: boolean;
+  full_name: string;
+  phone_number: string;
+  location_text: string;
+  location_lat?: number | null;
+  location_lng?: number | null;
+  passport_series: string;
+  comment: string;
+  payment_card_number: string;
+  payment_amount: number;
+  payment_note: string;
+  receipt_file_url: string;
+  status: BarberApplicationStatus;
+  admin_note?: string | null;
+  reviewed_by_user_id?: string | null;
+  reviewed_at?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BarberApplicationApprovePayload {
+  email?: string;
+  password: string;
+  admin_note?: string;
+}
+
+export interface BarberApplicationRejectPayload {
+  admin_note: string;
+}
+
 export interface LoginPayload {
   email: string;
   password: string;
@@ -62,6 +105,13 @@ export interface LoginPayload {
 
 export interface CustomerAuthPayload {
   full_name: string;
+  phone_number: string;
+  location_text?: string | null;
+  location_lat?: number | null;
+  location_lng?: number | null;
+}
+
+export interface CustomerLoginPayload {
   phone_number: string;
   location_text?: string | null;
   location_lat?: number | null;
@@ -109,7 +159,12 @@ export interface UpdateCurrentUserPayload {
   services?: BarberServiceItem[];
 }
 
-export type BookingStatus = "pending" | "confirmed" | "completed" | "cancelled";
+export type BookingStatus = "pending" | "confirmed" | "completed" | "cancelled" | "blocked";
+
+export interface BarberBlockPayload {
+  appointment_date: string;
+  appointment_time: string;
+}
 
 export interface PublicBarber {
   id: string;
@@ -183,6 +238,7 @@ export interface BarberDashboardStats {
   completed: number;
   pending: number;
   cancelled: number;
+  blocked: number;
   completion_ratio: number;
 }
 

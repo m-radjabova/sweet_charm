@@ -68,7 +68,7 @@
     "brandSubtitle": "Премиальный барбершоп",
     "customerAccess": "Кабинет клиента",
     "myAccount": "Мой кабинет",
-    "signIn": "Войти",
+    "signIn": "Вход",
     "signOut": "Выйти",
     "barberLogin": "Вход для барбера",
     "adminPortal": "Панель администратора",
@@ -101,6 +101,11 @@
     "clearFiltersAria": "Сбросить фильтры",
     "professionalBarber": "Профессиональный барбер",
     "locationError": "Не удалось определить местоположение",
+    "locationUnsupported": "Браузер не поддерживает геолокацию",
+    "locationInsecureContext": "Геолокация работает только через HTTPS или localhost. Если на телефоне сайт открыт как http://IP:port, откройте его через HTTPS.",
+    "locationPermissionDenied": "Доступ к геолокации запрещён. Разрешите Location для браузера в настройках телефона.",
+    "locationUnavailable": "Данные о местоположении сейчас недоступны. Проверьте, включён ли GPS/location.",
+    "locationTimeout": "Истекло время определения местоположения. Проверьте Location и попробуйте снова.",
     "sortLabel": "Сортировка",
     "detectingLocation": "Определяем местоположение...",
     "nearest": "Ближе всего",
@@ -214,10 +219,20 @@
     "badge": "Вход клиента",
     "title": "Зарегистрируйтесь один раз и следите за своими записями",
     "description": "Ваше имя и номер телефона сохраняются. В следующий раз можно будет записываться без повторного ввода данных.",
+    "loginTitle": "Вход",
+    "registerTitle": "Регистрация",
+    "loginSubtitle": "Если вы уже зарегистрированы, введите только номер телефона.",
+    "registerSubtitle": "Для нового пользователя введите имя и номер телефона.",
     "formTitle": "Вход в кабинет",
     "formSubtitle": "Если вы уже входили с этим номером, профиль найдётся автоматически.",
     "info": "Мы запоминаем ваш профиль по номеру телефона и показываем все записи в одном кабинете.",
     "submit": "Продолжить",
+    "loginSubmit": "Войти",
+    "registerSubmit": "Зарегистрироваться",
+    "noAccount": "Если вы ещё не зарегистрированы,",
+    "haveAccount": "Если вы уже зарегистрированы,",
+    "switchToRegister": "зарегистрируйтесь",
+    "switchToLogin": "войдите",
     "toast": {
       "success": "Кабинет успешно открыт",
       "error": "Не удалось войти в кабинет"
@@ -263,7 +278,8 @@
     "telegramBenefit": "Когда барбер подтвердит, завершит или отменит вашу бронь, вы получите уведомление в Telegram.",
     "tabs": {
       "bookings": "Брони",
-      "telegram": "Telegram"
+      "telegram": "Telegram",
+      "application": "Заявка в барберы"
     },
     "sort": {
       "newest": "Новые",
@@ -289,6 +305,33 @@
       "confirmed": "Подтверждено",
       "pending": "Ожидает подтверждения",
       "awaitingApproval": "Ожидает подтверждения барбера"
+    }
+  },
+  "barberApplication": {
+    "title": "Заявка, чтобы стать барбером",
+    "subtitle": "Заполните все поля полностью и загрузите чек оплаты.",
+    "paymentTitle": "Информация по оплате",
+    "paymentText": "Оплатите {{amount}} сум на карту: {{card}}",
+    "telegramRequired": "После одобрения админом логин/email и пароль отправляются в Telegram. Сначала подключите бота в разделе Telegram.",
+    "currentStatus": "Текущий статус",
+    "adminNote": "Комментарий админа",
+    "submit": "Отправить заявку",
+    "fields": {
+      "fullName": "Полное имя и фамилия",
+      "phone": "Номер телефона",
+      "location": "Локация (адрес)",
+      "passport": "Серия паспорта",
+      "comment": "Комментарий",
+      "paymentNote": "Комментарий об оплате"
+    },
+    "status": {
+      "pending": "На рассмотрении",
+      "approved": "Одобрено",
+      "rejected": "Отклонено"
+    },
+    "toast": {
+      "submitted": "Заявка отправлена",
+      "submitError": "Не удалось отправить заявку"
     }
   },
   "bookingSuccess": {
@@ -339,6 +382,8 @@
     "dashboardDesc": "Обзор и статистика",
     "barbers": "Барберы",
     "barbersDesc": "Управление командой",
+    "applications": "Заявки",
+    "applicationsDesc": "Заявки в барберы",
     "bookings": "Записи",
     "bookingsDesc": "Просмотр визитов",
     "settings": "Настройки",
@@ -348,6 +393,34 @@
     "signOut": "Выйти",
     "openMenu": "Открыть меню администратора",
     "closeMenu": "Закрыть меню администратора"
+  },
+  "adminApplications": {
+    "title": "Заявки в барберы",
+    "subtitle": "Проверяйте заявки, одобряйте или отклоняйте.",
+    "empty": "Заявки не найдены",
+    "passport": "Паспорт",
+    "userEmail": "Email пользователя",
+    "comment": "Комментарий",
+    "paymentNote": "Комментарий оплаты",
+    "openReceipt": "Открыть чек",
+    "approve": "Одобрить",
+    "reject": "Отклонить",
+    "adminNote": "Комментарий админа",
+    "adminNoteOptional": "Доп. комментарий (необязательно)",
+    "approveModalTitle": "Одобрение заявки",
+    "rejectModalTitle": "Отклонение заявки",
+    "rejectReason": "Причина отклонения",
+    "filters": {
+      "all": "Все",
+      "pending": "Ожидают",
+      "approved": "Одобрены",
+      "rejected": "Отклонены"
+    },
+    "toast": {
+      "approved": "Заявка одобрена",
+      "rejected": "Заявка отклонена",
+      "error": "Операция не выполнена"
+    }
   },
   "settings": {
     "adminSettings": "Настройки админа",
@@ -450,7 +523,18 @@
     "telegramLinkError": "Не удалось обновить Telegram-ссылку",
     "promotionSent": "Отправлено {{delivered}}, не доставлено {{failed}}",
     "promotionError": "Не удалось отправить сообщение",
+    "telegram": {
+      "statusTitle": "Статус бота",
+      "connected": "Подключён",
+      "disconnected": "Не подключён",
+      "recipients": "Получатели",
+      "realtime": "Бронь в реальном времени",
+      "realtimeWorking": "Работает",
+      "refreshLink": "Обновить ссылку",
+      "settings": "Настройки"
+    },
     "toast": {
+      "newBooking": "Поступила новая бронь",
       "confirmed": "Бронь подтверждена",
       "cancelled": "Бронь отменена, время снова доступно",
       "completed": "Запись отмечена как выполненная",
@@ -473,6 +557,12 @@
     "statsPending": "Ожидаются",
     "statsConfirmed": "Подтверждены",
     "statsCompleted": "Завершены",
+    "statsBlocked": "Заблокировано",
+    "blocked": "Заблокировано",
+    "blockTimeTitle": "Заблокировать время",
+    "blockTimeSubtitle": "Если у вас появилось дело, заблокируйте слот на выбранную дату.",
+    "blockTimeButton": "Заблокировать слот",
+    "unblockTime": "Открыть слот",
     "emptyTitle": "Записи не найдены",
     "serviceCompleted": "Услуга завершена",
     "serviceCancelled": "Бронь отменена",
@@ -487,7 +577,27 @@
       "confirmed": "Бронь подтверждена",
       "cancelled": "Бронь отменена, время снова доступно",
       "completed": "Услуга успешно завершена",
+      "blocked": "Слот успешно заблокирован",
+      "blockError": "Не удалось заблокировать слот",
       "error": "Произошла ошибка"
+    }
+  },
+  "barberSidebar": {
+    "subtitle": "Панель барбера",
+    "menuTitle": "Главное меню",
+    "items": {
+      "dashboard": {
+        "label": "Дашборд",
+        "desc": "Сводка за сегодня"
+      },
+      "schedule": {
+        "label": "Записи",
+        "desc": "Расписание и клиенты"
+      },
+      "settings": {
+        "label": "Настройки",
+        "desc": "Профиль и услуги"
+      }
     }
   },
   "notFound": {

@@ -24,6 +24,7 @@ function getInitials(name: string) {
 }
 
 function LogoBlock() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   return (
@@ -41,7 +42,7 @@ function LogoBlock() {
         </div>
         <div>
           <h2 className="text-lg font-black tracking-tight text-slate-950">Sharp Cuts</h2>
-          <p className="text-xs font-semibold text-slate-400">Sartarosh paneli</p>
+          <p className="text-xs font-semibold text-slate-400">{t("barberSidebar.subtitle")}</p>
         </div>
       </div>
     </button>
@@ -63,9 +64,9 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   }, []);
 
   const menuItems = [
-    { label: "Dashboard", to: "/barber", icon: HiMiniSquares2X2, description: "Bugungi holat" },
-    { label: "Bronlar", to: "/barber/schedule", icon: HiMiniCalendarDays, description: "Jadval va mijozlar" },
-    { label: "Sozlamalar", to: "/barber/settings", icon: HiMiniCog6Tooth, description: "Profil va xizmatlar" },
+    { label: t("barberSidebar.items.dashboard.label"), to: "/barber", icon: HiMiniSquares2X2, description: t("barberSidebar.items.dashboard.desc") },
+    { label: t("barberSidebar.items.schedule.label"), to: "/barber/schedule", icon: HiMiniCalendarDays, description: t("barberSidebar.items.schedule.desc") },
+    { label: t("barberSidebar.items.settings.label"), to: "/barber/settings", icon: HiMiniCog6Tooth, description: t("barberSidebar.items.settings.desc") },
   ];
 
   const handleLogout = async () => {
@@ -88,7 +89,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
       <div className="flex-1 overflow-y-auto px-3 py-6">
         <div className="mb-6 px-3">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Asosiy menyu</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{t("barberSidebar.menuTitle")}</p>
         </div>
 
         <nav className="space-y-1.5">
@@ -147,7 +148,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             </div>
           )}
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-black text-slate-950">{user?.full_name ?? "Barber"}</p>
+            <p className="truncate text-sm font-black text-slate-950">{user?.full_name ?? t("roles.barber")}</p>
             <p className="truncate text-xs text-slate-500">{user?.email ?? "barber@sharpcuts.com"}</p>
           </div>
           <button className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600">
@@ -162,7 +163,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-600 transition hover:bg-rose-50 hover:text-rose-600 disabled:pointer-events-none disabled:opacity-60"
         >
           <HiMiniArrowLeftOnRectangle className="text-lg" />
-          <span>{isLoggingOut ? t("common.signingOut") : "Chiqish"}</span>
+          <span>{isLoggingOut ? t("common.signingOut") : t("sidebar.signOut")}</span>
         </button>
       </div>
     </div>

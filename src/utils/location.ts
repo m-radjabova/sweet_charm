@@ -3,6 +3,25 @@ export type Coordinates = {
   lng: number;
 };
 
+type BrowserLocationMessages = {
+  unsupported: string;
+  insecureContext: string;
+  permissionDenied: string;
+  unavailable: string;
+  timeout: string;
+  unknown: string;
+};
+
+const defaultLocationMessages: BrowserLocationMessages = {
+  unsupported: "Brauzer geolokatsiyani qo'llab-quvvatlamaydi",
+  insecureContext:
+    "Joylashuv faqat HTTPS yoki localhost orqali ishlaydi. Telefoningizda sayt http://IP:port bilan ochilgan bo'lsa, HTTPS orqali oching.",
+  permissionDenied: "Lokatsiyaga ruxsat berilmadi",
+  unavailable: "Joylashuv ma'lumoti hozircha topilmadi",
+  timeout: "Joylashuvni aniqlash vaqti tugadi",
+  unknown: "Joylashuvni aniqlab bo'lmadi",
+};
+
 export function formatDistance(distanceKm?: number | null) {
   if (distanceKm == null) return "Masofa yo'q";
   if (distanceKm < 1) {
@@ -11,10 +30,19 @@ export function formatDistance(distanceKm?: number | null) {
   return `${distanceKm.toFixed(1)} km`;
 }
 
-export async function getBrowserLocation(): Promise<Coordinates> {
+export async function getBrowserLocation(
+  messages: Partial<BrowserLocationMessages> = {},
+): Promise<Coordinates> {
+  const locationMessages = { ...defaultLocationMessages, ...messages };
+
   return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) {
-      reject(new Error("Brauzer geolokatsiyani qo'llab-quvvatlamaydi"));
+    if (typeof window === "undefined" || typeof navigator === "undefined" || !navigator.geolocation) {
+      reject(new Error(locationMessages.unsupported));
+      return;
+    }
+
+    if (!window.isSecureContext) {
+      reject(new Error(locationMessages.insecureContext));
       return;
     }
 
@@ -24,10 +52,27 @@ export async function getBrowserLocation(): Promise<Coordinates> {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
         }),
-      () => reject(new Error("Lokatsiyaga ruxsat berilmadi")),
+      (error) => {
+        if (error.code === error.PERMISSION_DENIED) {
+          reject(new Error(locationMessages.permissionDenied));
+          return;
+        }
+
+        if (error.code === error.POSITION_UNAVAILABLE) {
+          reject(new Error(locationMessages.unavailable));
+          return;
+        }
+
+        if (error.code === error.TIMEOUT) {
+          reject(new Error(locationMessages.timeout));
+          return;
+        }
+
+        reject(new Error(locationMessages.unknown));
+      },
       {
         enableHighAccuracy: true,
-        timeout: 15000,
+        timeout: 20000,
         maximumAge: 60000,
       },
     );

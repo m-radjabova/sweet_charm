@@ -1,5 +1,5 @@
 import apiClient from "../apiClient/apiClient";
-import type { CustomerAuthPayload, LoginPayload, LoginResponse, User } from "../types/types";
+import type { CustomerAuthPayload, CustomerLoginPayload, LoginPayload, LoginResponse, User } from "../types/types";
 export { clearStoredAuth, getStoredAccessToken, getStoredRefreshToken, persistTokens } from "./authStorage";
 
 export async function loginUser(payload: LoginPayload) {
@@ -9,6 +9,16 @@ export async function loginUser(payload: LoginPayload) {
 
 export async function loginCustomer(payload: CustomerAuthPayload) {
   const { data } = await apiClient.post<LoginResponse>("/auth/customer", payload);
+  return data;
+}
+
+export async function loginCustomerByPhone(payload: CustomerLoginPayload) {
+  const { data } = await apiClient.post<LoginResponse>("/auth/customer/login", payload);
+  return data;
+}
+
+export async function registerCustomer(payload: CustomerAuthPayload) {
+  const { data } = await apiClient.post<LoginResponse>("/auth/customer/register", payload);
   return data;
 }
 

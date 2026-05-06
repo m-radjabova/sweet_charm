@@ -62,7 +62,7 @@ export default function BarberDashboard() {
           void queryClient.invalidateQueries({ queryKey: ["barber-dashboard"] });
           void queryClient.invalidateQueries({ queryKey: ["barber-bookings"] });
           if (payload.type === "booking.created") {
-            toast.info("Yangi bron tushdi", { position: "top-right", autoClose: 3000 });
+            toast.info(t("barberDashboard.toast.newBooking"), { position: "top-right", autoClose: 3000 });
           }
         }
       } catch {
@@ -142,9 +142,10 @@ export default function BarberDashboard() {
   const isLoading = dashboardQuery.isLoading;
 
   return (
-    <div className="min-h-screen bg-[#f7f7f5]">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_right,_#fde68a_0%,_#f8fafc_35%,_#f8fafc_100%)]">
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <div className="mb-6 rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm sm:p-6">
+        <div className="mb-6 overflow-hidden rounded-3xl border border-slate-200/70 bg-white/90 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur sm:p-6">
+          <div className="pointer-events-none absolute" />
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex min-w-0 items-center gap-4">
               <div className="relative">
@@ -164,7 +165,7 @@ export default function BarberDashboard() {
                 </div>
               </div>
 
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm font-bold text-amber-600">
                   {t("barberDashboard.greeting")}
                 </p>
@@ -179,7 +180,7 @@ export default function BarberDashboard() {
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
-              <div className="inline-flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-bold text-slate-600">
+              <div className="inline-flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 shadow-sm">
                 <HiMiniCalendarDays className="h-4 w-4 text-amber-500" />
                 {formatDisplayDate(today)}
               </div>
@@ -194,7 +195,7 @@ export default function BarberDashboard() {
           </div>
         </div>
 
-        <div className="mb-6 grid gap-4 sm:grid-cols-3">
+        <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard
             title={t("barberDashboard.statsToday")}
             value={dashboard?.stats.total ?? 0}
@@ -229,7 +230,7 @@ export default function BarberDashboard() {
           />
         </div>
 
-        <div className="mb-6 rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm sm:p-6">
+        <div className="mb-6 rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_20px_50px_rgba(15,23,42,0.06)] sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-950 text-white shadow-sm">
@@ -247,7 +248,7 @@ export default function BarberDashboard() {
             </div>
             <div className="text-2xl font-black text-slate-900">{progress}%</div>
           </div>
-          <div className="mt-4 h-3 rounded-full bg-slate-100 overflow-hidden">
+          <div className="mt-4 h-3 overflow-hidden rounded-full bg-slate-100">
             <div
               className="h-full rounded-full bg-gradient-to-r from-slate-900 via-amber-500 to-orange-500 transition-all duration-500"
               style={{ width: `${progress}%` }}
@@ -255,9 +256,9 @@ export default function BarberDashboard() {
           </div>
         </div>
 
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(360px,0.85fr)]">
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(350px,0.8fr)]">
           <div className="space-y-6">
-            <section className="relative overflow-hidden rounded-2xl bg-slate-950 p-6 shadow-sm">
+            <section className="relative overflow-hidden rounded-3xl bg-slate-950 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.28)]">
               <div className="absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l from-amber-500/20 to-transparent" />
               <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                 <div className="min-w-0 flex-1">
@@ -276,7 +277,7 @@ export default function BarberDashboard() {
                           <HiMiniPhone className="h-4 w-4" />
                           <span className="text-sm">{nextBooking.client_phone}</span>
                         </div>
-                        <div className="rounded-full bg-amber-500 px-3 py-1 text-sm font-black text-white">
+                        <div className="rounded-full bg-amber-500 px-3 py-1 text-sm font-black text-white shadow-lg shadow-amber-500/30">
                           {formatDisplayTime(nextBooking.appointment_time)}
                         </div>
                       </div>
@@ -316,7 +317,7 @@ export default function BarberDashboard() {
               </div>
             </section>
 
-            <section className="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm">
+            <section className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_20px_50px_rgba(15,23,42,0.06)]">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div>
                   <h2 className="text-xl font-black text-slate-900">{t("barberDashboard.todayAppointments")}</h2>
@@ -371,7 +372,7 @@ export default function BarberDashboard() {
                     return (
                       <div
                         key={booking.id}
-                        className="animate-in rounded-xl border border-slate-100 bg-slate-50 p-4 duration-300"
+                        className="animate-in rounded-2xl border border-slate-100 bg-gradient-to-br from-white to-slate-50 p-4 duration-300"
                         style={{ animationDelay: `${idx * 50}ms` }}
                       >
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -447,11 +448,11 @@ export default function BarberDashboard() {
           </div>
 
           <div className="space-y-6">
-            <section className="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm">
+            <section className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_20px_50px_rgba(15,23,42,0.06)]">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div>
                   <p className="text-xs font-black uppercase tracking-wide text-sky-600">Telegram</p>
-                  <h3 className="mt-1 text-lg font-black text-slate-900">Bot holati</h3>
+                  <h3 className="mt-1 text-lg font-black text-slate-900">{t("barberDashboard.telegram.statusTitle")}</h3>
                 </div>
                 <span
                   className={`rounded-full px-3 py-1 text-xs font-black ${
@@ -460,20 +461,22 @@ export default function BarberDashboard() {
                       : "bg-amber-50 text-amber-700"
                   }`}
                 >
-                  {telegramQuery.data?.connected ? "Ulangan" : "Ulanmagan"}
+                  {telegramQuery.data?.connected
+                    ? t("barberDashboard.telegram.connected")
+                    : t("barberDashboard.telegram.disconnected")}
                 </span>
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
-                <div className="rounded-xl bg-slate-50 p-4">
-                  <p className="text-xs font-bold uppercase text-slate-400">Qabul qiluvchilar</p>
+                <div className="rounded-2xl bg-slate-50 p-4">
+                  <p className="text-xs font-bold uppercase text-slate-400">{t("barberDashboard.telegram.recipients")}</p>
                   <p className="mt-2 text-2xl font-black text-slate-950">
                     {telegramQuery.data?.subscribers_count ?? 0}
                   </p>
                 </div>
-                <div className="rounded-xl bg-slate-50 p-4">
-                  <p className="text-xs font-bold uppercase text-slate-400">Realtime bron</p>
-                  <p className="mt-2 text-sm font-black text-emerald-600">Ishlayapti</p>
+                <div className="rounded-2xl bg-slate-50 p-4">
+                  <p className="text-xs font-bold uppercase text-slate-400">{t("barberDashboard.telegram.realtime")}</p>
+                  <p className="mt-2 text-sm font-black text-emerald-600">{t("barberDashboard.telegram.realtimeWorking")}</p>
                 </div>
               </div>
 
@@ -485,13 +488,13 @@ export default function BarberDashboard() {
                   className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
                 >
                   <HiMiniBolt className="h-4 w-4 text-sky-500" />
-                  {refreshTelegramMutation.isPending ? t("common.refreshing") : "Link yangilash"}
+                  {refreshTelegramMutation.isPending ? t("common.refreshing") : t("barberDashboard.telegram.refreshLink")}
                 </button>
                 <Link
                   to="/barber/settings"
                   className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 text-sm font-bold text-white transition hover:bg-slate-800"
                 >
-                  Sozlamalar
+                  {t("barberDashboard.telegram.settings")}
                   <HiMiniArrowTopRightOnSquare className="h-4 w-4" />
                 </Link>
               </div>

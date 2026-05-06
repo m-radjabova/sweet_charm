@@ -51,6 +51,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const menuItems = [
     { label: t("sidebar.dashboard"), to: "/admin", icon: HiMiniSquares2X2, description: t("sidebar.dashboardDesc") },
     { label: t("sidebar.barbers"), to: "/admin/barbers", icon: HiMiniScissors, description: t("sidebar.barbersDesc") },
+    { label: t("sidebar.applications"), to: "/admin/applications", icon: HiMiniScissors, description: t("sidebar.applicationsDesc") },
     { label: t("sidebar.settings"), to: "/admin/settings", icon: HiMiniCog6Tooth, description: t("sidebar.settingsDesc") },
   ];
 

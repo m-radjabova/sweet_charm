@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -14,11 +14,12 @@ import {
   HiMiniCheckBadge,
   HiMiniUser,
   HiMiniInformationCircle,
-  HiMiniXCircle
+  HiMiniXCircle,
+  HiMiniPlusCircle,
 } from "react-icons/hi2";
 import { toast } from "react-toastify";
 import { getErrorMessage } from "../../api/auth";
-import { getBarberDashboard, updateBookingStatus } from "../../api/bookings";
+import { blockMyTime, getBarberAvailability, getBarberDashboard, updateBookingStatus } from "../../api/bookings";
 import useContextPro from "../../hooks/useContextPro";
 import type { Booking } from "../../types/types";
 import type { BookingStatus } from "../../types/types";
@@ -33,7 +34,7 @@ function shiftDate(date: string, offset: number) {
   return `${year}-${month}-${day}`;
 }
 
-const tabs = ["all", "pending", "confirmed", "completed", "cancelled"] as const;
+const tabs = ["all", "pending", "confirmed", "completed", "cancelled", "blocked"] as const;
 
 
 export default function BarberSchedule() {
@@ -42,10 +43,17 @@ export default function BarberSchedule() {
   const { state } = useContextPro();
   const [selectedDate, setSelectedDate] = useState(getTodayIsoDate());
   const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>("all");
+  const [blockTime, setBlockTime] = useState("");
 
   const dashboardQuery = useQuery({
     queryKey: ["barber-dashboard", selectedDate],
     queryFn: () => getBarberDashboard(selectedDate),
+  });
+  const availabilityQuery = useQuery({
+    queryKey: ["barber-availability", state.user?.id, selectedDate],
+    queryFn: () => getBarberAvailability(state.user?.id ?? "", selectedDate),
+    enabled: Boolean(state.user?.id),
+    placeholderData: (previousData) => previousData,
   });
 
   const statusMutation = useMutation({
@@ -77,7 +85,31 @@ export default function BarberSchedule() {
     },
   });
 
+  const blockMutation = useMutation({
+    mutationFn: blockMyTime,
+    onSuccess: async () => {
+      toast.success(t("barberSchedule.toast.blocked"), {
+        position: "top-right",
+        autoClose: 3000,
+        style: { background: "#0f172a", color: "white", borderRadius: "16px" },
+      });
+      setBlockTime("");
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["barber-dashboard"] }),
+        queryClient.invalidateQueries({ queryKey: ["barber-availability"] }),
+      ]);
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error, t("barberSchedule.toast.blockError")), {
+        position: "top-right",
+        autoClose: 4000,
+        style: { background: "#ef4444", color: "white", borderRadius: "16px" },
+      });
+    },
+  });
+
   const appointments = dashboardQuery.data?.appointments ?? [];
+  const slots = availabilityQuery.data?.slots ?? [];
 
   const filteredAppointments = useMemo(() => {
     if (activeTab === "all") return appointments;
@@ -89,12 +121,14 @@ export default function BarberSchedule() {
     const pending = appointments.filter((booking) => booking.status === "pending").length;
     const confirmed = appointments.filter((booking) => booking.status === "confirmed").length;
     const cancelled = appointments.filter((booking) => booking.status === "cancelled").length;
+    const blocked = appointments.filter((booking) => booking.status === "blocked").length;
     return {
       total: appointments.length,
       completed,
       confirmed,
       pending,
       cancelled,
+      blocked,
     };
   }, [appointments]);
 
@@ -103,10 +137,19 @@ export default function BarberSchedule() {
     if (tab === "pending") return stats.pending;
     if (tab === "confirmed") return stats.confirmed;
     if (tab === "completed") return stats.completed;
-    return stats.cancelled;
+    if (tab === "cancelled") return stats.cancelled;
+    return stats.blocked;
   };
 
   const isToday = selectedDate === getTodayIsoDate();
+
+  useEffect(() => {
+    if (!blockTime) return;
+    const selectedSlot = slots.find((slot) => slot.time === blockTime);
+    if (!selectedSlot || selectedSlot.status !== "available") {
+      setBlockTime("");
+    }
+  }, [blockTime, slots]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-amber-50/30">
@@ -183,6 +226,55 @@ export default function BarberSchedule() {
               <HiMiniChevronRight className="h-5 w-5" />
             </button>
           </div>
+          <div className="mt-5 border-t border-slate-100 pt-4">
+            <p className="text-sm font-semibold text-slate-700">{t("barberSchedule.blockTimeTitle")}</p>
+            <p className="mt-1 text-xs text-slate-500">{t("barberSchedule.blockTimeSubtitle")}</p>
+            <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
+              {slots.map((slot) => {
+                const isSelected = blockTime === slot.time;
+                const isBooked = slot.status === "booked";
+                const isPast = slot.status === "past";
+                const isDisabled = isBooked || isPast;
+
+                return (
+                  <button
+                    key={slot.time}
+                    type="button"
+                    disabled={isDisabled}
+                    onClick={() => setBlockTime(slot.time)}
+                    className={`rounded-xl border px-2 py-2 text-center text-xs font-bold transition ${
+                      isSelected
+                        ? "border-slate-900 bg-slate-900 text-white"
+                        : isDisabled
+                          ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+                          : "border-slate-200 bg-white text-slate-700 hover:border-slate-400"
+                    }`}
+                  >
+                    <div>{formatDisplayTime(slot.time)}</div>
+                    <div className="mt-1 text-[10px] font-semibold">
+                      {isPast ? t("selectTime.past") : isBooked ? t("common.booked") : t("common.available")}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+              <button
+                type="button"
+                onClick={() =>
+                  blockMutation.mutate({
+                    appointment_date: selectedDate,
+                    appointment_time: blockTime,
+                  })
+                }
+                disabled={!blockTime || blockMutation.isPending}
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 text-sm font-bold text-white transition hover:bg-slate-800 disabled:opacity-50"
+              >
+                <HiMiniPlusCircle className="h-5 w-5" />
+                {blockMutation.isPending ? t("common.saving") : t("barberSchedule.blockTimeButton")}
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Stats Grid */}
@@ -219,6 +311,14 @@ export default function BarberSchedule() {
             bgColor="bg-emerald-50"
             textColor="text-emerald-600"
           />
+          <StatCard
+            title={t("barberSchedule.statsBlocked")}
+            value={stats.blocked}
+            icon={<HiMiniXCircle className="h-5 w-5" />}
+            color="from-slate-600 to-slate-700"
+            bgColor="bg-slate-100"
+            textColor="text-slate-600"
+          />
         </div>
 
         {/* Tabs */}
@@ -238,6 +338,7 @@ export default function BarberSchedule() {
               {tab === "confirmed" && t("barberSchedule.confirmed")}
               {tab === "completed" && t("barberSchedule.completed")}
               {tab === "cancelled" && t("barberSchedule.cancelled")}
+              {tab === "blocked" && t("barberSchedule.blocked")}
               {activeTab === tab && (
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full" />
               )}
@@ -284,7 +385,9 @@ export default function BarberSchedule() {
                         ? t("barberSchedule.confirmed")
                         : activeTab === "completed"
                           ? t("barberSchedule.completed")
-                          : t("barberSchedule.cancelled"),
+                          : activeTab === "cancelled"
+                            ? t("barberSchedule.cancelled")
+                            : t("barberSchedule.blocked"),
                   })}
             </p>
           </div>
@@ -358,6 +461,7 @@ function ScheduleCard({
   const isPending = booking.status === "pending";
   const isConfirmed = booking.status === "confirmed";
   const isCancelled = booking.status === "cancelled";
+  const isBlocked = booking.status === "blocked";
 
   return (
     <div
@@ -373,6 +477,8 @@ function ScheduleCard({
                 ? "bg-emerald-50 text-emerald-700"
                 : isPending
                   ? "bg-sky-50 text-sky-700"
+                  : isBlocked
+                    ? "bg-slate-100 text-slate-700"
                   : isCancelled
                     ? "bg-rose-50 text-rose-700"
                     : "bg-amber-50 text-amber-700"
@@ -384,6 +490,8 @@ function ScheduleCard({
                   ? "bg-emerald-500"
                   : isPending
                     ? "bg-sky-500"
+                    : isBlocked
+                      ? "bg-slate-500"
                     : isCancelled
                       ? "bg-rose-500"
                       : "bg-amber-500"
@@ -393,6 +501,7 @@ function ScheduleCard({
             {isPending && t("barberSchedule.pendingApproval")}
             {isConfirmed && t("barberSchedule.confirmed")}
             {isCancelled && t("barberSchedule.cancelled")}
+            {isBlocked && t("barberSchedule.blocked")}
           </span>
         </div>
 
@@ -459,15 +568,27 @@ function ScheduleCard({
                 {loading ? t("barberSchedule.completing") : t("barberSchedule.completeService")}
               </button>
             )}
-            <button
-              type="button"
-              onClick={() => onChangeStatus("cancelled")}
-              disabled={loading}
-              className="flex h-12 items-center justify-center gap-2 rounded-xl border border-rose-200 bg-white text-sm font-bold text-rose-600 shadow-sm transition-all hover:bg-rose-50 disabled:opacity-50"
-            >
-              <HiMiniXCircle className="h-5 w-5" />
-              {t("barberSchedule.rejectBooking")}
-            </button>
+            {isBlocked ? (
+              <button
+                type="button"
+                onClick={() => onChangeStatus("cancelled")}
+                disabled={loading}
+                className="flex h-12 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-700 shadow-sm transition-all hover:bg-slate-50 disabled:opacity-50"
+              >
+                <HiMiniXCircle className="h-5 w-5" />
+                {t("barberSchedule.unblockTime")}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => onChangeStatus("cancelled")}
+                disabled={loading}
+                className="flex h-12 items-center justify-center gap-2 rounded-xl border border-rose-200 bg-white text-sm font-bold text-rose-600 shadow-sm transition-all hover:bg-rose-50 disabled:opacity-50"
+              >
+                <HiMiniXCircle className="h-5 w-5" />
+                {t("barberSchedule.rejectBooking")}
+              </button>
+            )}
           </div>
         )}
       </div>

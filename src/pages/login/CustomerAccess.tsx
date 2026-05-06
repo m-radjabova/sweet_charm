@@ -15,8 +15,9 @@ import {
   clearStoredAuth,
   getErrorMessage,
   getMe,
-  loginCustomer,
   persistTokens,
+  loginCustomerByPhone,
+  registerCustomer,
 } from "../../api/auth";
 import useContextPro from "../../hooks/useContextPro";
 import { getPostLoginRoute } from "../../utils/roles";
@@ -48,13 +49,11 @@ export default function CustomerAccess() {
     login,
   } = useContextPro();
 
+  const [mode, setMode] = useState<"login" | "register">("login");
   const [phoneValue, setPhoneValue] = useState("+998 ");
 
   const schema = z.object({
-    full_name: z
-      .string()
-      .trim()
-      .min(3, t("customerAccess.validation.fullName")),
+    full_name: z.string().trim(),
     phone_number: z
       .string()
       .trim()
@@ -87,7 +86,21 @@ export default function CustomerAccess() {
   }, [navigate, redirectTo, user]);
 
   const authMutation = useMutation({
-    mutationFn: loginCustomer,
+    mutationFn: (values: FormData) => {
+      const phonePayload = {
+        phone_number: toApiPhone(values.phone_number),
+        location_text: null,
+        location_lat: null,
+        location_lng: null,
+      };
+      if (mode === "login") {
+        return loginCustomerByPhone(phonePayload);
+      }
+      return registerCustomer({
+        full_name: values.full_name.trim(),
+        ...phonePayload,
+      });
+    },
     onSuccess: async (tokens) => {
       try {
         persistTokens(tokens);
@@ -112,21 +125,17 @@ export default function CustomerAccess() {
   });
 
   const onSubmit = async (values: FormData) => {
+    if (mode === "register" && values.full_name.trim().length < 3) {
+      return;
+    }
     clearStoredAuth();
-    await authMutation.mutateAsync({
-      full_name: values.full_name.trim(),
-      phone_number: toApiPhone(values.phone_number),
-      location_text: null,
-      location_lat: null,
-      location_lng: null,
-    });
+    await authMutation.mutateAsync(values);
   };
 
   const fullNameValue = watch("full_name");
 
-  const isValid =
-    fullNameValue.trim().length >= 3 &&
-    normalizeUzbekPhone(phoneValue).length === 9;
+  const isValid = normalizeUzbekPhone(phoneValue).length === 9 &&
+    (mode === "login" || fullNameValue.trim().length >= 3);
 
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-white px-4">
@@ -148,18 +157,18 @@ export default function CustomerAccess() {
           </p>
 
           <h2 className="mt-3 text-3xl font-black text-slate-900">
-            {t("customerAccess.formTitle")}
+            {mode === "login" ? t("customerAccess.loginTitle") : t("customerAccess.registerTitle")}
           </h2>
 
           <p className="mt-2 text-sm text-slate-500">
-            {t("customerAccess.formSubtitle")}
+            {mode === "login" ? t("customerAccess.loginSubtitle") : t("customerAccess.registerSubtitle")}
           </p>
         </div>
 
         {/* Form */}
         <form className="mt-8 space-y-5" onSubmit={handleSubmit(onSubmit)}>
           {/* Name */}
-          <div>
+          {mode === "register" && <div>
             <label className="text-sm font-semibold text-slate-700">
               {t("common.fullName")}
             </label>
@@ -179,7 +188,7 @@ export default function CustomerAccess() {
                 {errors.full_name.message}
               </p>
             )}
-          </div>
+          </div>}
 
           {/* Phone */}
           <div>
@@ -221,13 +230,52 @@ export default function CustomerAccess() {
           >
             {authMutation.isPending || isSubmitting
               ? t("common.signingIn")
-              : t("customerAccess.submit")}
+              : mode === "login"
+                ? t("customerAccess.loginSubmit")
+                : t("customerAccess.registerSubmit")}
           </button>
         </form>
+        <div className="mt-4 text-center">
+          {mode === "login" ? (
+            <p className="text-sm text-slate-500">
+              {t("customerAccess.noAccount")}{" "}
+              <button
+                type="button"
+                onClick={() => setMode("register")}
+                className="font-semibold text-slate-800 underline decoration-amber-400 underline-offset-2 transition-colors hover:text-amber-600"
+              >
+                {t("customerAccess.switchToRegister")}
+              </button>
+            </p>
+          ) : (
+            <p className="text-sm text-slate-500">
+              {t("customerAccess.haveAccount")}{" "}
+              <button
+                type="button"
+                onClick={() => setMode("login")}
+                className="font-semibold text-slate-800 underline decoration-amber-400 underline-offset-2 transition-colors hover:text-amber-600"
+              >
+                {t("customerAccess.switchToLogin")}
+              </button>
+            </p>
+          )}
+        </div>
         <div className="mt-8 text-center">
+          <p className="text-sm text-slate-500">
+            <button
+              type="button"
+              onClick={() => navigate("/login?mode=staff")}
+              className="font-semibold text-slate-800 underline decoration-amber-400 underline-offset-2 transition-colors hover:text-amber-600"
+            >
+              {t("common.adminBarberLogin")}
+            </button>
+          </p>
+        </div>
+        <div className="mt-4 text-center">
           <p className="text-sm text-slate-500">
             {t("login.needBooking")}{" "}
             <button
+              type="button"
               onClick={() => navigate("/")}
               className="font-semibold text-slate-800 underline decoration-amber-400 underline-offset-2 transition-colors hover:text-amber-600"
             >
