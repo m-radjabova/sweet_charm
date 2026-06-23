@@ -1,0 +1,325 @@
+import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import {
+  HiMiniArrowLeft,
+  HiMiniBell,
+  HiMiniCalendarDays,
+  HiMiniCheck,
+  HiMiniMagnifyingGlass,
+  HiMiniSquares2X2,
+  HiMiniTruck,
+  HiMiniXMark,
+} from "react-icons/hi2";
+import { getActiveCoupons } from "../../../api/coupons";
+import type { User } from "../../../types/types";
+import { formatDate, formatMoney } from "../utils";
+
+interface Props {
+  profile: User | null | undefined;
+  memberTier: string;
+  isAdmin: boolean;
+}
+
+const READ_COUPON_NOTIFICATIONS_KEY = "sweet_charm_read_coupon_notifications";
+
+export default function ProfileTopbar({ isAdmin }: Props) {
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [readCouponIds, setReadCouponIds] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const notificationsRef = useRef<HTMLDivElement>(null);
+  const couponsQuery = useQuery({
+    queryKey: ["active-coupons"],
+    queryFn: getActiveCoupons,
+  });
+  const coupons = couponsQuery.data ?? [];
+  const unreadCoupons = coupons.filter((coupon) => !readCouponIds.includes(coupon.id));
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (!notificationsRef.current?.contains(event.target as Node)) {
+        setIsNotificationsOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    try {
+      const rawValue = localStorage.getItem(READ_COUPON_NOTIFICATIONS_KEY);
+      if (!rawValue) return;
+      const parsed = JSON.parse(rawValue) as string[];
+      if (Array.isArray(parsed)) {
+        setReadCouponIds(parsed);
+      }
+    } catch {
+      localStorage.removeItem(READ_COUPON_NOTIFICATIONS_KEY);
+    }
+  }, []);
+
+  function persistReadCouponIds(nextIds: string[]) {
+    setReadCouponIds(nextIds);
+    localStorage.setItem(READ_COUPON_NOTIFICATIONS_KEY, JSON.stringify(nextIds));
+  }
+
+  function markAsRead(couponId: string) {
+    if (readCouponIds.includes(couponId)) return;
+    persistReadCouponIds([...readCouponIds, couponId]);
+  }
+
+  function clearNotifications() {
+    persistReadCouponIds(Array.from(new Set([...readCouponIds, ...unreadCoupons.map((coupon) => coupon.id)])));
+  }
+
+  return (
+    <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      {/* Search Section */}
+      <div className="relative flex-1">
+        <div className="group relative flex min-h-[52px] items-center rounded-2xl bg-white/95 px-4 shadow-[0_2px_12px_rgba(175,117,60,0.08)] ring-1 ring-[#F5E6D8]/60 transition-all duration-300 focus-within:shadow-[0_4px_20px_rgba(242,93,136,0.12)] focus-within:ring-[#F25D88]/30 hover:shadow-[0_4px_16px_rgba(175,117,60,0.1)]">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#FFF0F5] to-[#FFE8EF] transition-all duration-300 group-focus-within:from-[#F25D88] group-focus-within:to-[#FF6B9D]">
+            <HiMiniMagnifyingGlass className="h-4 w-4 text-[#C9A67E] transition-all duration-300 group-focus-within:text-white" />
+          </div>
+          <input
+            type="text"
+            placeholder="Search desserts..."
+            className="ml-3 w-full border-0 bg-transparent text-sm font-medium text-[#71460B] outline-none placeholder:text-[#C9A67E]/70"
+          />
+
+          {/* Quick filters */}
+          <div className="mr-1 flex items-center gap-1.5">
+            {["Cakes", "Macarons", "Ice cream"].map((item) => (
+              <button
+                key={item}
+                type="button"
+                onClick={() => setSelectedCategory(selectedCategory === item ? "" : item)}
+                className={`hidden whitespace-nowrap rounded-lg px-3 py-1.5 text-[11px] font-bold tracking-wide transition-all duration-200 hover:scale-105 active:scale-95 sm:block ${
+                  selectedCategory === item
+                    ? "bg-gradient-to-r from-[#F25D88] to-[#FF6B9D] text-white shadow-[0_2px_8px_rgba(242,93,136,0.3)]"
+                    : "bg-[#FFF8F1] text-[#9B7045] hover:bg-[#FFF0E6] hover:text-[#71460B]"
+                }`}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Search suggestions dropdown placeholder */}
+        <div className="pointer-events-none absolute -bottom-1 left-0 right-0 h-2 rounded-b-2xl bg-gradient-to-r from-[#F5E6D8]/30 to-[#F5E6D8]/10 blur-sm" />
+      </div>
+
+      {/* Actions */}
+      <div className="flex items-center gap-2">
+        <Link
+          to="/"
+          className="hidden h-11 items-center gap-2.5 rounded-xl bg-gradient-to-r from-white/95 to-white/90 px-4 text-sm font-semibold text-[#7F5B30] shadow-[0_2px_8px_rgba(175,117,60,0.08)] ring-1 ring-[#F5E6D8]/50 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(175,117,60,0.12)] active:scale-[0.97] sm:inline-flex"
+        >
+          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#FFF8F1] transition-colors group-hover:bg-[#F25D88]/10">
+            <HiMiniArrowLeft className="h-3.5 w-3.5" />
+          </span>
+          Home
+        </Link>
+
+        {isAdmin ? (
+          <Link
+            to="/dashboard"
+            className="hidden h-11 items-center gap-2.5 rounded-xl bg-gradient-to-r from-[#FFF0F5] to-[#FFE8EF] px-4 text-sm font-semibold text-[#F25D88] shadow-[0_2px_8px_rgba(242,93,136,0.08)] ring-1 ring-[#F25D88]/15 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(242,93,136,0.15)] active:scale-[0.97] sm:inline-flex"
+          >
+            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-white/60">
+              <HiMiniSquares2X2 className="h-3.5 w-3.5" />
+            </span>
+            Admin
+          </Link>
+        ) : null}
+
+        {/* Notifications */}
+        <div className="relative" ref={notificationsRef}>
+          <button
+            type="button"
+            onClick={() => setIsNotificationsOpen((current) => !current)}
+            className={`relative flex h-11 w-11 items-center justify-center rounded-xl shadow-[0_2px_8px_rgba(175,117,60,0.08)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(175,117,60,0.12)] active:scale-[0.97] group ${
+              isNotificationsOpen
+                ? "bg-gradient-to-r from-[#FFF0F5] to-[#FFE8EF] ring-2 ring-[#F25D88]/30"
+                : "bg-white/95 ring-1 ring-[#F5E6D8]/50"
+            }`}
+          >
+            <HiMiniBell
+              className={`h-4 w-4 transition-all duration-300 group-hover:scale-110 ${
+                unreadCoupons.length > 0 && !isNotificationsOpen
+                  ? "animate-[ring_2s_ease-in-out_infinite] text-[#F25D88]"
+                  : "text-[#C28564]"
+              }`}
+            />
+            {unreadCoupons.length > 0 && (
+              <span className="absolute -right-1 -top-1 flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full bg-gradient-to-br from-[#F25D88] to-[#FF6B9D] px-1 text-[8px] font-bold leading-none text-white shadow-[0_2px_6px_rgba(242,93,136,0.4)]">
+                {unreadCoupons.length > 9 ? "9+" : unreadCoupons.length}
+              </span>
+            )}
+          </button>
+
+          {isNotificationsOpen && (
+            <div className="absolute right-0 top-14 z-50 w-[360px] origin-top-right animate-[slideDown_0.2s_ease-out] rounded-[24px] border border-[#F5E6D8]/80 bg-white/95 p-5 shadow-[0_24px_64px_rgba(92,56,5,0.15)] backdrop-blur-xl">
+              {/* Header */}
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#C5946D]">Notifications</p>
+                  <h4 className="mt-1.5 text-base font-bold text-[#5C3805]">
+                    {unreadCoupons.length > 0 ? `${unreadCoupons.length} unread offers` : "All caught up!"}
+                  </h4>
+                </div>
+                <div className="flex items-center gap-2">
+                  {unreadCoupons.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={clearNotifications}
+                      className="inline-flex h-8 items-center justify-center rounded-full bg-gradient-to-r from-[#FFF0F4] to-[#FFE8EF] px-3.5 text-[11px] font-bold text-[#F25D88] transition-all duration-200 hover:scale-105 hover:shadow-[0_2px_8px_rgba(242,93,136,0.15)] active:scale-95"
+                    >
+                      <HiMiniCheck className="mr-1 h-3 w-3" />
+                      Clear all
+                    </button>
+                  )}
+                  <span
+                    className={`inline-flex h-8 min-w-[32px] items-center justify-center rounded-full px-2.5 text-[11px] font-bold ${
+                      unreadCoupons.length > 0
+                        ? "bg-gradient-to-r from-[#FFE8EF] to-[#FFF0F4] text-[#F25D88]"
+                        : "bg-[#E8F5E9] text-[#43A047]"
+                    }`}
+                  >
+                    {unreadCoupons.length}
+                  </span>
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className="my-4 h-px bg-gradient-to-r from-[#F5E6D8]/60 via-[#F5E6D8]/30 to-transparent" />
+
+              {/* Coupon list */}
+              <div className="space-y-3 max-h-[320px] overflow-y-auto scrollbar-thin">
+                {couponsQuery.isLoading ? (
+                  <div className="flex flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-[#FFF8F1] to-[#FFF5EB] px-6 py-10">
+                    <div className="flex gap-1.5">
+                      {[0, 150, 300].map((delay) => (
+                        <div
+                          key={delay}
+                          className="h-2.5 w-2.5 animate-bounce rounded-full bg-gradient-to-br from-[#F25D88] to-[#FF6B9D]"
+                          style={{ animationDelay: `${delay}ms` }}
+                        />
+                      ))}
+                    </div>
+                    <p className="mt-4 text-sm font-medium text-[#B1845D]">Loading offers...</p>
+                  </div>
+                ) : unreadCoupons.length > 0 ? (
+                  unreadCoupons.slice(0, 5).map((coupon, index) => (
+                    <div
+                      key={coupon.id}
+                      className="group relative overflow-hidden rounded-[20px] bg-gradient-to-br from-[#FFF8F1] to-[#FFF5EB] p-4 transition-all duration-200 hover:shadow-[0_4px_16px_rgba(175,117,60,0.1)]"
+                      style={{ animationDelay: `${index * 50}ms` }}
+                    >
+                      {/* Decorative corner */}
+                      <div className="absolute -right-4 -top-4 h-16 w-16 rounded-full bg-gradient-to-br from-[#F25D88]/5 to-[#FF6B9D]/5 blur-xl" />
+
+                      <div className="relative flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="rounded-md bg-gradient-to-r from-[#F25D88]/10 to-[#FF6B9D]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#F25D88]">
+                              New
+                            </span>
+                            <p className="text-sm font-bold text-[#5C3805] truncate">{coupon.code}</p>
+                          </div>
+                          <p className="mt-1.5 text-xs text-[#B1845D]">
+                            {coupon.type === "percentage"
+                              ? `${Number(coupon.value)}% OFF`
+                              : coupon.type === "fixed"
+                                ? `${formatMoney(coupon.value)} OFF`
+                                : "FREE SHIPPING"}
+                          </p>
+                        </div>
+                        {coupon.type === "free_shipping" ? (
+                          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#EDE7F6] to-[#F3E5F5]">
+                            <HiMiniTruck className="h-4 w-4 text-[#7E57C2]" />
+                          </div>
+                        ) : (
+                          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#FFF0F5] to-[#FFE8EF]">
+                            <HiMiniCalendarDays className="h-4 w-4 text-[#F25D88]" />
+                          </div>
+                        )}
+                      </div>
+                      <p className="relative mt-2 text-[11px] text-[#9B7045]/80">
+                        Min order {formatMoney(coupon.minimum_order)} · Valid until {formatDate(coupon.end_date)}
+                      </p>
+                      <div className="relative mt-3 flex items-center justify-between gap-3">
+                        <button
+                          type="button"
+                          onClick={() => markAsRead(coupon.id)}
+                          className="inline-flex h-8 items-center gap-1.5 rounded-full bg-white/80 px-3.5 text-[11px] font-bold text-[#F25D88] shadow-sm ring-1 ring-[#F25D88]/15 transition-all duration-200 hover:bg-white hover:shadow-[0_2px_8px_rgba(242,93,136,0.15)] active:scale-95"
+                        >
+                          <HiMiniCheck className="h-3.5 w-3.5" />
+                          Mark as read
+                        </button>
+                        <span className="flex items-center gap-1 text-[10px] font-semibold text-[#A58161]">
+                          <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#F25D88]" />
+                          Unread
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-[#FFF8F1] to-[#FFF5EB] px-6 py-10">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-[#E8F5E9] to-[#C8E6C9]">
+                      <HiMiniCheck className="h-6 w-6 text-[#43A047]" />
+                    </div>
+                    <p className="mt-4 text-sm font-bold text-[#5C3805]">All notifications are read</p>
+                    <p className="mt-1 text-xs text-[#9B7045]">You're up to date with all offers!</p>
+                    <button
+                      type="button"
+                      onClick={() => setIsNotificationsOpen(false)}
+                      className="mt-4 inline-flex h-9 items-center justify-center gap-1.5 rounded-full bg-white/80 px-4 text-[11px] font-bold text-[#8B6237] shadow-sm ring-1 ring-[#F5E6D8]/50 transition-all duration-200 hover:bg-white hover:shadow-md active:scale-95"
+                    >
+                      <HiMiniXMark className="h-3.5 w-3.5" />
+                      Close
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              {unreadCoupons.length > 0 && (
+                <>
+                  <div className="my-4 h-px bg-gradient-to-r from-transparent via-[#F5E6D8]/60 to-transparent" />
+                  <p className="text-center text-[10px] font-medium text-[#C9A67E]">
+                    Showing {Math.min(unreadCoupons.length, 5)} of {unreadCoupons.length} offers
+                  </p>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Animation keyframes */}
+      <style>{`
+        @keyframes ring {
+          0%, 100% { transform: rotate(0deg); }
+          10% { transform: rotate(15deg); }
+          20% { transform: rotate(-15deg); }
+          30% { transform: rotate(10deg); }
+          40% { transform: rotate(-10deg); }
+          50% { transform: rotate(5deg); }
+          60%, 100% { transform: rotate(0deg); }
+        }
+        @keyframes slideDown {
+          from {
+            opacity: 0;
+            transform: translateY(-8px) scale(0.96);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+      `}</style>
+    </div>
+  );
+}

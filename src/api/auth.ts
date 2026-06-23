@@ -1,29 +1,81 @@
 import apiClient from "../apiClient/apiClient";
-import type { CustomerAuthPayload, CustomerLoginPayload, LoginPayload, LoginResponse, User } from "../types/types";
-export { clearStoredAuth, getStoredAccessToken, getStoredRefreshToken, persistTokens } from "./authStorage";
+import type { LoginResponse, User } from "../types/types";
+import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, clearStoredAuth } from "./authStorage";
 
-export async function loginUser(payload: LoginPayload) {
-  const { data } = await apiClient.post<LoginResponse>("/auth/login", payload);
-  return data;
+export { clearStoredAuth };
+
+const AUTH_USER_KEY = "sweet_charm_user";
+
+const AUTH_ROUTES = {
+  login: "/auth/login",
+  register: "/auth/register",
+} as const;
+
+export interface LoginPayload {
+  email: string;
+  password: string;
 }
 
-export async function loginCustomer(payload: CustomerAuthPayload) {
-  const { data } = await apiClient.post<LoginResponse>("/auth/customer", payload);
-  return data;
+export interface RegisterPayload extends LoginPayload {
+  full_name: string;
+  phone: string;
 }
 
-export async function loginCustomerByPhone(payload: CustomerLoginPayload) {
-  const { data } = await apiClient.post<LoginResponse>("/auth/customer/login", payload);
-  return data;
+export function getStoredAccessToken() {
+  return localStorage.getItem(ACCESS_TOKEN_KEY);
 }
 
-export async function registerCustomer(payload: CustomerAuthPayload) {
-  const { data } = await apiClient.post<LoginResponse>("/auth/customer/register", payload);
-  return data;
+export function getStoredRefreshToken() {
+  return localStorage.getItem(REFRESH_TOKEN_KEY);
+}
+
+export function persistTokens(tokens: LoginResponse) {
+  localStorage.setItem(ACCESS_TOKEN_KEY, tokens.access_token);
+
+  if (tokens.refresh_token) {
+    localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refresh_token);
+  }
+}
+
+export function getStoredUser() {
+  const rawValue = localStorage.getItem(AUTH_USER_KEY);
+  if (!rawValue) return null;
+
+  try {
+    return normalizeUser(JSON.parse(rawValue) as User);
+  } catch {
+    localStorage.removeItem(AUTH_USER_KEY);
+    return null;
+  }
+}
+
+export function persistStoredUser(user: User) {
+  localStorage.setItem(AUTH_USER_KEY, JSON.stringify(normalizeUser(user)));
+}
+
+export function clearStoredUser() {
+  localStorage.removeItem(AUTH_USER_KEY);
+}
+
+export function normalizeUser(user: User): User {
+  return {
+    ...user,
+    role: user.role ?? "user",
+  };
 }
 
 export async function getMe() {
   const { data } = await apiClient.get<User>("/users/me");
+  return normalizeUser(data);
+}
+
+export async function loginUser(payload: LoginPayload) {
+  const { data } = await apiClient.post<LoginResponse>(AUTH_ROUTES.login, payload);
+  return data;
+}
+
+export async function registerUser(payload: RegisterPayload) {
+  const { data } = await apiClient.post<LoginResponse>(AUTH_ROUTES.register, payload);
   return data;
 }
 
@@ -31,36 +83,29 @@ export async function logoutUser() {
   await apiClient.post("/auth/logout");
 }
 
-export function normalizeUser(user: User): User {
-  return {
-    ...user,
-    role: user.role ?? "user",
-    avatar: user.avatar ?? null,
-    specialty: user.specialty ?? null,
-    bio: user.bio ?? null,
-    location_text: user.location_text ?? null,
-    location_lat: user.location_lat ?? null,
-    location_lng: user.location_lng ?? null,
-    work_start_time: user.work_start_time ?? null,
-    work_end_time: user.work_end_time ?? null,
-    services: user.services ?? [],
-    telegram_connected: user.telegram_connected ?? false,
-    telegram_notifications_enabled: user.telegram_notifications_enabled ?? false,
-    telegram_marketing_enabled: user.telegram_marketing_enabled ?? false,
-    telegram_connected_at: user.telegram_connected_at ?? null,
-  };
+function formatErrorValue(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (typeof value === "object" && value !== null) {
+    try {
+      return JSON.stringify(value, null, 2);
+    } catch {
+      return String(value);
+    }
+  }
+  return String(value ?? "");
 }
 
-export function getErrorMessage(error: unknown, fallback = "Xatolik yuz berdi") {
+export function getErrorMessage(error: unknown, fallback = "Something went wrong") {
   const maybeError = error as {
-    response?: { data?: { detail?: string; message?: string } };
-    message?: string;
+    response?: { data?: { message?: unknown; detail?: unknown; error?: unknown } };
+    message?: unknown;
   };
 
   return (
-    maybeError?.response?.data?.detail ||
-    maybeError?.response?.data?.message ||
-    maybeError?.message ||
+    formatErrorValue(maybeError.response?.data?.message) ||
+    formatErrorValue(maybeError.response?.data?.detail) ||
+    formatErrorValue(maybeError.response?.data?.error) ||
+    formatErrorValue(maybeError.message) ||
     fallback
   );
 }

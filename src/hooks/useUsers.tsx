@@ -9,11 +9,13 @@ import {
   type CreateUserPayload,
   type UpdateUserPayload,
 } from "../api/users";
+import { useDebounce } from "./useDebounce";
 import type { UserRole } from "../types/types";
 
 export default function useUsers(role?: UserRole) {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm);
 
   const usersQuery = useQuery({
     queryKey: ["users", role ?? "all"],
@@ -45,7 +47,7 @@ export default function useUsers(role?: UserRole) {
 
   const users = useMemo(() => {
     const list = usersQuery.data ?? [];
-    const term = searchTerm.trim().toLowerCase();
+    const term = debouncedSearch.trim().toLowerCase();
 
     if (!term) return list;
 
@@ -54,7 +56,7 @@ export default function useUsers(role?: UserRole) {
         .filter(Boolean)
         .some((value) => value?.toLowerCase().includes(term)),
     );
-  }, [searchTerm, usersQuery.data]);
+  }, [debouncedSearch, usersQuery.data]);
 
   return {
     users,

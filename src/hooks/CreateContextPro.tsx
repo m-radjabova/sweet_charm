@@ -2,7 +2,17 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, type Dispatch, typ
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { MyContext } from "../context/MyContext";
-import { clearStoredAuth, getMe, getStoredAccessToken, logoutUser, normalizeUser, persistTokens } from "../api/auth";
+import {
+  clearStoredAuth,
+  clearStoredUser,
+  getMe,
+  getStoredAccessToken,
+  getStoredUser,
+  logoutUser,
+  normalizeUser,
+  persistStoredUser,
+  persistTokens,
+} from "../api/auth";
 import type { LoginResponse, User } from "../types/types";
 
 export interface TypeState {
@@ -44,16 +54,20 @@ function CreateContextPro({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const authRequestIdRef = useRef(0);
+  const initialUser = getStoredUser();
+  const hasToken = Boolean(getStoredAccessToken());
   const [state, dispatch] = useReducer(reducer, {
-    user: null,
-    isLoading: true,
+    user: initialUser,
+    isLoading: hasToken && !initialUser,
   });
 
-  const refreshUser = useCallback(async () => {
+  const refreshUser = useCallback(async (options?: { background?: boolean }) => {
     const requestId = ++authRequestIdRef.current;
+    const shouldRefreshInBackground = options?.background ?? false;
 
     if (!getStoredAccessToken()) {
       queryClient.clear();
+      clearStoredUser();
       if (requestId === authRequestIdRef.current) {
         dispatch({ type: "SET_USER", payload: null });
         dispatch({ type: "SET_LOADING", payload: false });
@@ -61,16 +75,21 @@ function CreateContextPro({ children }: { children: ReactNode }) {
       return;
     }
 
-    dispatch({ type: "SET_LOADING", payload: true });
+    if (!shouldRefreshInBackground) {
+      dispatch({ type: "SET_LOADING", payload: true });
+    }
 
     try {
       const me = await getMe();
       if (requestId === authRequestIdRef.current) {
-        dispatch({ type: "SET_USER", payload: normalizeUser(me) });
+        const normalizedUser = normalizeUser(me);
+        persistStoredUser(normalizedUser);
+        dispatch({ type: "SET_USER", payload: normalizedUser });
       }
     } catch {
       if (requestId === authRequestIdRef.current) {
         clearStoredAuth();
+        clearStoredUser();
         queryClient.clear();
         dispatch({ type: "SET_USER", payload: null });
       }
@@ -82,12 +101,13 @@ function CreateContextPro({ children }: { children: ReactNode }) {
   }, [queryClient]);
 
   useEffect(() => {
-    refreshUser();
+    refreshUser({ background: Boolean(initialUser) });
   }, [refreshUser]);
 
   const login = useCallback((tokens: LoginResponse, user: User) => {
     authRequestIdRef.current += 1;
     persistTokens(tokens);
+    persistStoredUser(user);
     queryClient.clear();
     dispatch({ type: "SET_USER", payload: normalizeUser(user) });
     dispatch({ type: "SET_LOADING", payload: false });
@@ -103,6 +123,7 @@ function CreateContextPro({ children }: { children: ReactNode }) {
       // Local logout should still complete even if backend logout fails.
     } finally {
       clearStoredAuth();
+      clearStoredUser();
       queryClient.clear();
       dispatch({ type: "LOGOUT" });
       navigate(redirectTo, { replace: true });

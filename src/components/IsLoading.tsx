@@ -1,197 +1,224 @@
 function IsLoading() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-white">
-      <div className="flex w-full max-w-md flex-col items-center gap-8 px-6">
-        <div className="relative w-full">
-          {/* Progress track */}
-          <div className="relative h-4 overflow-hidden rounded-full bg-slate-200 shadow-inner">
-            <div className="h-full origin-left animate-[fillBar_2.2s_ease-in-out_infinite] rounded-full bg-slate-950" />
-          </div>
+    <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: '#fff8f1' }}>
+      <div className="flex w-full max-w-sm flex-col items-center gap-10 px-6">
 
-          {/* Cut marks */}
-          <div className="absolute left-0 top-1/2 h-[2px] w-full -translate-y-1/2 overflow-hidden">
-            <div className="h-full animate-[dashMove_2.2s_linear_infinite] bg-[repeating-linear-gradient(90deg,transparent_0_10px,rgba(255,255,255,0.7)_10px_14px)]" />
-          </div>
+        {/* Cupcake SVG loader */}
+        <div className="relative animate-bounce-slow">
+          <svg
+            width="120"
+            height="120"
+            viewBox="0 0 200 200"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="drop-shadow-[0_12px_20px_rgba(151,91,28,0.12)]"
+          >
+            {/* Cupcake base (wrapper) */}
+            <path
+              d="M45 118 C45 118 38 150 42 158 C46 166 70 170 100 170 C130 170 154 166 158 158 C162 150 155 118 155 118 Z"
+              fill="#f75d86"
+              className="animate-pulse-slow"
+            />
 
-          {/* Scissors */}
-          <div className="absolute -top-[54px] left-0 animate-[scissorProgress_2.2s_ease-in-out_infinite]">
-            <svg
-              width="86"
-              height="64"
-              viewBox="0 0 190 130"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="drop-shadow-[0_8px_10px_rgba(15,23,42,0.18)]"
-            >
-              <defs>
-                <linearGradient id="steel" x1="20" y1="10" x2="160" y2="120">
-                  <stop stopColor="#f8fafc" />
-                  <stop offset="0.2" stopColor="#94a3b8" />
-                  <stop offset="0.45" stopColor="#e5e7eb" />
-                  <stop offset="0.75" stopColor="#64748b" />
-                  <stop offset="1" stopColor="#111827" />
-                </linearGradient>
+            {/* Wrapper lines */}
+            <path
+              d="M55 125 L58 155"
+              stroke="#d94874"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            />
+            <path
+              d="M77 120 L78 162"
+              stroke="#d94874"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            />
+            <path
+              d="M100 118 L100 168"
+              stroke="#d94874"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            />
+            <path
+              d="M123 120 L122 162"
+              stroke="#d94874"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            />
+            <path
+              d="M145 125 L142 155"
+              stroke="#d94874"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            />
 
-                <linearGradient id="darkSteel" x1="0" y1="0" x2="1" y2="1">
-                  <stop stopColor="#475569" />
-                  <stop offset="1" stopColor="#020617" />
-                </linearGradient>
+            {/* Cake top (frosting/cream) */}
+            <path
+              d="M30 118 C30 90 42 72 55 62 C58 58 62 55 68 55 C72 55 76 57 80 60 C84 56 89 52 96 52 C103 52 108 56 112 60 C118 55 124 52 130 55 C138 58 146 64 155 80 C165 96 170 112 170 118 C170 122 168 125 165 125 L35 125 C32 125 30 122 30 118 Z"
+              fill="#ffd9b3"
+            />
 
-                <radialGradient id="screw" cx="50%" cy="45%" r="60%">
-                  <stop stopColor="#f8fafc" />
-                  <stop offset="0.45" stopColor="#94a3b8" />
-                  <stop offset="1" stopColor="#111827" />
-                </radialGradient>
-              </defs>
+            {/* Frosting swirl top */}
+            <path
+              d="M55 95 C58 80 68 70 80 66 C84 64 88 64 92 66 C96 62 102 58 108 60 C114 58 120 62 124 66 C130 64 136 66 140 72 C148 82 152 94 150 105 C148 110 142 112 135 110 C130 108 126 104 122 102 C118 100 112 100 108 102 C104 100 98 98 94 100 C88 98 82 100 78 104 C72 108 65 112 58 110 C52 108 50 102 55 95 Z"
+              fill="#f75d86"
+              className="animate-pulse-slow"
+            />
 
-              <ellipse
-                cx="32"
-                cy="34"
-                rx="23"
-                ry="20"
-                transform="rotate(-15 32 34)"
-                stroke="url(#darkSteel)"
-                strokeWidth="9"
-              />
-              <ellipse
-                cx="31"
-                cy="94"
-                rx="24"
-                ry="21"
-                transform="rotate(15 31 94)"
-                stroke="url(#darkSteel)"
-                strokeWidth="9"
-              />
+            {/* Small decoration dots */}
+            <circle cx="70" cy="90" r="4" fill="#ff9bc0" className="animate-ping-slow" />
+            <circle cx="105" cy="80" r="3.5" fill="#ff9bc0" className="animate-ping-slow" style={{ animationDelay: '0.3s' }} />
+            <circle cx="132" cy="92" r="3" fill="#ff9bc0" className="animate-ping-slow" style={{ animationDelay: '0.6s' }} />
 
-              <path
-                d="M12 103 C-2 112 3 126 18 121"
-                stroke="url(#darkSteel)"
-                strokeWidth="7"
-                strokeLinecap="round"
-              />
+            {/* Cherry on top */}
+            <circle cx="100" cy="46" r="12" fill="#f3507d" className="animate-float" />
+            <ellipse cx="100" cy="42" rx="5" ry="3" fill="rgba(255,255,255,0.3)" />
+            {/* Cherry stem */}
+            <path
+              d="M100 34 C100 26 106 18 114 14"
+              stroke="#8b6130"
+              strokeWidth="3"
+              strokeLinecap="round"
+              className="animate-sway"
+            />
+            {/* Cherry leaf */}
+            <path
+              d="M110 16 C116 12 122 14 120 20 C118 24 112 24 110 20 Z"
+              fill="#7cb342"
+            />
 
-              <path
-                d="M51 42 C68 47 79 55 91 64"
-                stroke="url(#darkSteel)"
-                strokeWidth="10"
-                strokeLinecap="round"
-              />
-              <path
-                d="M51 86 C68 80 79 72 91 64"
-                stroke="url(#darkSteel)"
-                strokeWidth="10"
-                strokeLinecap="round"
-              />
+            {/* Eyes on cupcake */}
+            <ellipse cx="82" cy="78" rx="4" ry="5" fill="#704407" />
+            <ellipse cx="118" cy="78" rx="4" ry="5" fill="#704407" />
+            <circle cx="83" cy="76" r="1.5" fill="white" />
+            <circle cx="119" cy="76" r="1.5" fill="white" />
 
-              <g className="origin-[94px_64px] animate-[topCut_0.34s_ease-in-out_infinite_alternate]">
-                <path
-                  d="M96 59 C119 43 145 28 181 15 C156 45 128 61 97 67 Z"
-                  fill="url(#steel)"
-                />
-                <path
-                  d="M108 57 C131 45 150 34 172 24"
-                  stroke="white"
-                  strokeOpacity="0.75"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </g>
+            {/* Blush */}
+            <ellipse cx="72" cy="86" rx="6" ry="3" fill="#ff9bc0" opacity="0.6" />
+            <ellipse cx="128" cy="86" rx="6" ry="3" fill="#ff9bc0" opacity="0.6" />
 
-              <g className="origin-[94px_64px] animate-[bottomCut_0.34s_ease-in-out_infinite_alternate]">
-                <path
-                  d="M96 69 C121 82 147 96 181 115 C153 82 126 68 97 61 Z"
-                  fill="url(#steel)"
-                />
-                <path
-                  d="M108 72 C133 84 153 96 173 108"
-                  stroke="white"
-                  strokeOpacity="0.6"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </g>
-
-              <circle cx="94" cy="64" r="11" fill="url(#screw)" />
-              <circle cx="94" cy="64" r="5" fill="#334155" />
-              <path
-                d="M88 64 H100"
-                stroke="#e5e7eb"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
-          </div>
+            {/* Sparkles */}
+            <g className="animate-sparkle" opacity="0.7">
+              <path d="M38 60 L44 60 M41 57 L41 63" stroke="#f75d86" strokeWidth="2.5" strokeLinecap="round" />
+            </g>
+            <g className="animate-sparkle" style={{ animationDelay: '0.5s' }} opacity="0.7">
+              <path d="M155 52 L161 52 M158 49 L158 55" stroke="#f75d86" strokeWidth="2.5" strokeLinecap="round" />
+            </g>
+            <g className="animate-sparkle" style={{ animationDelay: '1s' }} opacity="0.7">
+              <path d="M170 85 L178 85 M174 81 L174 89" stroke="#f75d86" strokeWidth="2.5" strokeLinecap="round" />
+            </g>
+          </svg>
         </div>
 
-        <p className="text-sm font-black tracking-[0.38em] text-slate-950">
-          LOADING
-        </p>
+        {/* Loading text */}
+        <div className="flex flex-col items-center gap-3">
+          <h2
+            className="text-3xl font-bold tracking-wide"
+            style={{ color: '#704407', fontFamily: '"Milkshake", "Comic Sans MS", cursive' }}
+          >
+            Sweet Charm
+          </h2>
+          <div className="flex items-center gap-1.5">
+            <span
+              className="inline-block h-2.5 w-2.5 animate-bounce rounded-full"
+              style={{ backgroundColor: '#f75d86', animationDelay: '0s' }}
+            />
+            <span
+              className="inline-block h-2.5 w-2.5 animate-bounce rounded-full"
+              style={{ backgroundColor: '#f75d86', animationDelay: '0.15s' }}
+            />
+            <span
+              className="inline-block h-2.5 w-2.5 animate-bounce rounded-full"
+              style={{ backgroundColor: '#f75d86', animationDelay: '0.3s' }}
+            />
+          </div>
+          <p
+            className="text-sm font-semibold tracking-[0.25em]"
+            style={{ color: '#8b6130' }}
+          >
+            LOADING
+          </p>
+        </div>
+
+        {/* Progress bar */}
+        <div className="relative w-full max-w-[220px]">
+          <div
+            className="relative h-2.5 overflow-hidden rounded-full shadow-inner"
+            style={{ backgroundColor: '#f0dfcf' }}
+          >
+            <div
+              className="h-full w-full origin-left animate-loading-bar rounded-full"
+              style={{ backgroundColor: '#f75d86' }}
+            />
+          </div>
+        </div>
       </div>
 
       <style>{`
-        @keyframes fillBar {
-          0% {
-            transform: scaleX(0);
-          }
-          70% {
-            transform: scaleX(1);
-          }
-          100% {
-            transform: scaleX(1);
-          }
+        @keyframes bounce-slow {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-12px); }
         }
 
-        @keyframes scissorProgress {
-          0% {
-            transform: translateX(0) rotate(-4deg);
-          }
-          70% {
-            transform: translateX(calc(100vw - 120px)) rotate(2deg);
-          }
-          100% {
-            transform: translateX(0) rotate(-4deg);
-          }
+        @keyframes pulse-slow {
+          0%, 100% { opacity: 0.9; }
+          50% { opacity: 1; }
         }
 
-        @media (min-width: 640px) {
-          @keyframes scissorProgress {
-            0% {
-              transform: translateX(0) rotate(-4deg);
-            }
-            70% {
-              transform: translateX(360px) rotate(2deg);
-            }
-            100% {
-              transform: translateX(0) rotate(-4deg);
-            }
-          }
+        @keyframes ping-slow {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.5; transform: scale(1.4); }
         }
 
-        @keyframes topCut {
-          from {
-            transform: rotate(-9deg);
-          }
-          to {
-            transform: rotate(8deg);
-          }
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-4px); }
         }
 
-        @keyframes bottomCut {
-          from {
-            transform: rotate(9deg);
-          }
-          to {
-            transform: rotate(-8deg);
-          }
+        @keyframes sway {
+          0%, 100% { transform: rotate(-3deg); }
+          50% { transform: rotate(3deg); }
         }
 
-        @keyframes dashMove {
-          from {
-            transform: translateX(-40px);
-          }
-          to {
-            transform: translateX(40px);
-          }
+        @keyframes sparkle {
+          0%, 100% { opacity: 0.4; transform: scale(0.8); }
+          50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        @keyframes loading-bar {
+          0% { transform: scaleX(0); }
+          40% { transform: scaleX(0.4); }
+          70% { transform: scaleX(0.85); }
+          100% { transform: scaleX(1); }
+        }
+
+        .animate-bounce-slow {
+          animation: bounce-slow 2s ease-in-out infinite;
+        }
+
+        .animate-pulse-slow {
+          animation: pulse-slow 2s ease-in-out infinite;
+        }
+
+        .animate-ping-slow {
+          animation: ping-slow 1.8s ease-in-out infinite;
+        }
+
+        .animate-float {
+          animation: float 1.6s ease-in-out infinite;
+        }
+
+        .animate-sway {
+          animation: sway 1.4s ease-in-out infinite;
+        }
+
+        .animate-sparkle {
+          animation: sparkle 1.2s ease-in-out infinite;
+        }
+
+        .animate-loading-bar {
+          animation: loading-bar 1.8s ease-in-out infinite;
+          transform-origin: left;
         }
       `}</style>
     </div>

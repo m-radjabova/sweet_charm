@@ -1,111 +1,94 @@
-import { useEffect } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import AuthLayout from "./layout/AuthLayout";
 import AdminLayout from "./layout/AdminLayout";
 import MainLayout from "./layout/MainLayout";
-import BarberLayout from "./layout/BarberLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import IsLoading from "./components/IsLoading";
-// import NotFound from "./components/NotFound";
-import useLoading from "./hooks/useLoading";
-import HelloAdmin from "./pages/admin/HelloAdmin";
-import AdminBarbers from "./pages/admin/AdminBarbers";
-import AdminApplications from "./pages/admin/AdminApplications";
-import BookingDetails from "./pages/home/BookingDetails";
-import BookingSuccess from "./pages/home/BookingSuccess";
-import Home from "./pages/home/Home";
-import SelectTime from "./pages/home/SelectTime";
-import CustomerAccess from "./pages/login/CustomerAccess";
-import AccountSettings from "./pages/settings/AccountSettings";
-
+import NotFound from "./pages/notFound/NotFound";
 import Login from "./pages/login/Login";
-import useContextPro from "./hooks/useContextPro";
-
-import { getDefaultRouteForRole, hasAnyRole } from "./utils/roles";
-import BarberDashboard from "./pages/barber/BarberDashboard";
-import BarberSchedule from "./pages/barber/BarberSchedule";
-import CustomerDashboard from "./pages/account/CustomerDashboard";
-
-function AdminIndexRoute() {
-  const {
-    state: { user },
-  } = useContextPro();
-
-  if (hasAnyRole(user, ["admin"])) {
-    return <HelloAdmin />;
-  }
-
-  return <Navigate to={getDefaultRouteForRole(user)} replace />;
-}
+import Home from "./pages/home/Home";
+import ProfilePage from "./pages/account/ProfilePage";
+import DessertDetailPage from "./pages/dessert/DessertDetailPage";
+import DessertsPage from "./pages/dessert/DessertsPage";
+import CartPage from "./pages/cart/CartPage";
+import CheckoutPage from "./pages/cart/CheckoutPage";
+import ScrollToTop from "./components/ScrollToTop";
+const AdminDashboardPage = lazy(() => import("./pages/admin/dashboard/AdminDashboardPage"));
+const AdminDessertsPage = lazy(() => import("./pages/admin/desserts/AdminDessertsPage"));
+const AdminCategoriesPage = lazy(() => import("./pages/admin/categories/AdminCategoriesPage"));
+const AdminOrdersPage = lazy(() => import("./pages/admin/orders/AdminOrdersPage"));
+const AdminReviewsPage = lazy(() => import("./pages/admin/reviews/AdminReviewsPage"));
+const AdminCustomersPage = lazy(() => import("./pages/admin/customers/AdminCustomersPage"));
+const AdminCouponsPage = lazy(() => import("./pages/admin/coupons/AdminCouponsPage"));
+const AdminSettingsPage = lazy(() => import("./pages/admin/settings/AdminSettingsPage"));
 
 
 function App() {
-  const { loading } = useLoading();
-
   useEffect(() => {
     AOS.init({ duration: 700, once: true });
   }, []);
 
-  if (loading) {
-    return <IsLoading />;
-  }
-
   return (
-    <Routes>
-      <Route element={<MainLayout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/book/:barberId" element={<SelectTime />} />
-        <Route path="/book/:barberId/details" element={<BookingDetails />} />
-        <Route path="/book/success/:bookingCode" element={<BookingSuccess />} />
-      </Route>
+    <>
+    <ScrollToTop />
 
-      <Route element={<AuthLayout />}>
-        <Route path="/login" element={<Login />} />
-        <Route path="/sign-up" element={<Navigate to="/login" replace />} />
-        <Route path="/user/access" element={<CustomerAccess />} />
-      </Route>
+    <Suspense fallback={<IsLoading />}>
+      <Routes>
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/desserts" element={<DessertsPage />} />
+          <Route path="/desserts/:slug" element={<DessertDetailPage />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+        </Route>
 
-      <Route
-        path="/account"
-        element={
-          <ProtectedRoute role={["user"]}>
-            <CustomerDashboard />
-          </ProtectedRoute>
-        }
-      />
+        <Route element={<AuthLayout />}>
+          <Route path="/login" element={<Login />} />
+          <Route path="/sign-up" element={<Login />} />
+           </Route>
 
-      <Route
-        path="/admin"
-        element={
-          <ProtectedRoute role={["admin"]}>
-            <AdminLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<AdminIndexRoute />} />
-        <Route path="barbers" element={<AdminBarbers />} />
-        <Route path="applications" element={<AdminApplications />} />
-        <Route path="bookings" element={<Navigate to="/admin" replace />} />
-        <Route path="settings" element={<AccountSettings />} />
-      </Route>
+        <Route
+          path="/account/profile"
+          element={
+            <ProtectedRoute role={["user", "admin"]}>
+              <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
 
-      <Route
-        path="/barber"
-        element={
-          <ProtectedRoute role={["barber"]}>
-            <BarberLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<BarberDashboard />} />
-        <Route path="schedule" element={<BarberSchedule />} />
-        <Route path="settings" element={<AccountSettings />} />
-      </Route>
+        <Route
+          element={
+            <ProtectedRoute role={["admin"]}>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="/dashboard" element={<AdminDashboardPage />} />
+          <Route path="/dashboard/desserts" element={<AdminDessertsPage />} />
+          <Route path="/dashboard/categories" element={<AdminCategoriesPage />} />
+          <Route path="/dashboard/orders" element={<AdminOrdersPage />} />
+          <Route path="/dashboard/reviews" element={<AdminReviewsPage />} />
+          <Route path="/dashboard/customers" element={<AdminCustomersPage />} />
+          <Route path="/dashboard/coupons" element={<AdminCouponsPage />} />
+          <Route path="/dashboard/settings" element={<AdminSettingsPage />} />
+        </Route>
 
-      <Route path="*" element={<Home />} />
-    </Routes>
+        <Route path="/admin" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/admin/desserts" element={<Navigate to="/dashboard/desserts" replace />} />
+        <Route path="/admin/categories" element={<Navigate to="/dashboard/categories" replace />} />
+        <Route path="/admin/orders" element={<Navigate to="/dashboard/orders" replace />} />
+        <Route path="/admin/reviews" element={<Navigate to="/dashboard/reviews" replace />} />
+        <Route path="/admin/customers" element={<Navigate to="/dashboard/customers" replace />} />
+        <Route path="/admin/coupons" element={<Navigate to="/dashboard/coupons" replace />} />
+        <Route path="/admin/settings" element={<Navigate to="/dashboard/settings" replace />} />
+
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Suspense>
+    </>
   );
 }
 

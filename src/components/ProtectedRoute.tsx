@@ -19,7 +19,7 @@ function ProtectedRoute({ role, children }: Props) {
   }
 
   if (!user || !user.role) {
-    return <Navigate to={allowedRoles.length === 1 && allowedRoles[0] === "user" ? "/user/access" : "/login"} replace />;
+    return <Navigate to="/login" replace />;
   }
 
   if (!hasAnyRole(user, allowedRoles)) {
