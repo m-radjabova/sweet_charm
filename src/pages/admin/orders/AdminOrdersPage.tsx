@@ -13,6 +13,7 @@ import { getAdminOrders, updateAdminOrder, type AdminOrder } from "../../../api/
 import { getErrorMessage } from "../../../api/auth";
 import { useDebounce } from "../../../hooks/useDebounce";
 import { formatMoney } from "../../account/utils";
+import AdminConfirmModal from "../components/AdminConfirmModal";
 import AdminPageHeader from "../components/AdminPageHeader";
 import AdminSurface from "../components/AdminSurface";
 
@@ -85,12 +86,26 @@ function getPaymentTone(paymentStatus: AdminOrder["payment_status"], paymentMeth
   return "bg-[#FFF1F3] text-[#F25D88]";
 }
 
+function buildStatusChangeMessage(
+  from: AdminOrder["status"],
+  to: AdminOrder["status"],
+  customerName: string,
+) {
+  return `Change ${customerName}'s order from ${getOrderStatusLabel(from)} to ${getOrderStatusLabel(to)}?`;
+}
+
 export default function AdminOrdersPage() {
   const queryClient = useQueryClient();
   const [selectedStatus, setSelectedStatus] = useState<AdminOrder["status"] | "all" | "processing">("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [statusChangeTarget, setStatusChangeTarget] = useState<{
+    orderId: string;
+    from: AdminOrder["status"];
+    to: AdminOrder["status"];
+    customerName: string;
+  } | null>(null);
   const debouncedSearch = useDebounce(searchTerm, 400);
   const ordersQuery = useQuery({
     queryKey: ["admin-orders", page, debouncedSearch, selectedStatus],
@@ -109,6 +124,7 @@ export default function AdminOrdersPage() {
       updateAdminOrder(orderId, { status }),
     onSuccess: async () => {
       toast.success("Order updated");
+      setStatusChangeTarget(null);
       await queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
       await queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
     },
@@ -294,9 +310,11 @@ export default function AdminOrdersPage() {
                       <select
                         value={order.status}
                         onChange={(event) =>
-                          updateMutation.mutate({
+                          setStatusChangeTarget({
                             orderId: order.id,
-                            status: event.target.value as AdminOrder["status"],
+                            from: order.status,
+                            to: event.target.value as AdminOrder["status"],
+                            customerName: order.customer_name,
                           })
                         }
                         className={`rounded-full border-0 px-3 py-2 text-xs font-bold outline-none ${getStatusTone(order.status)}`}
@@ -380,9 +398,11 @@ export default function AdminOrdersPage() {
                   <select
                     value={order.status}
                     onChange={(event) =>
-                      updateMutation.mutate({
+                      setStatusChangeTarget({
                         orderId: order.id,
-                        status: event.target.value as AdminOrder["status"],
+                        from: order.status,
+                        to: event.target.value as AdminOrder["status"],
+                        customerName: order.customer_name,
                       })
                     }
                     className={`h-11 w-full rounded-2xl border-0 px-4 text-sm font-bold outline-none ${getStatusTone(order.status)}`}
@@ -492,6 +512,28 @@ export default function AdminOrdersPage() {
           ) : null}
         </div>
       </AdminSurface>
+
+      <AdminConfirmModal
+        open={statusChangeTarget !== null}
+        title="Change Order Status"
+        message={
+          statusChangeTarget
+            ? buildStatusChangeMessage(statusChangeTarget.from, statusChangeTarget.to, statusChangeTarget.customerName)
+            : ""
+        }
+        confirmLabel="Change Status"
+        loadingLabel="Saving..."
+        tone="warning"
+        onCancel={() => setStatusChangeTarget(null)}
+        onConfirm={() => {
+          if (!statusChangeTarget) return;
+          updateMutation.mutate({
+            orderId: statusChangeTarget.orderId,
+            status: statusChangeTarget.to,
+          });
+        }}
+        isLoading={updateMutation.isPending}
+      />
     </div>
   );
 }

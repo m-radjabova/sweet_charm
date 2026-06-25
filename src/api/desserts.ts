@@ -21,12 +21,25 @@ function normalizeFeaturedDesserts(payload: unknown): FeaturedDessert[] {
   return [];
 }
 
+export async function getBestSellers(limit = 6) {
+  const { data } = await apiClient.get("/desserts/best-sellers", {
+    params: { limit },
+  });
+
+  return normalizeFeaturedDesserts(data);
+}
+
 export async function getFeaturedDesserts(limit = 8) {
   const { data } = await apiClient.get("/desserts/featured", {
     params: { limit },
   });
 
   return normalizeFeaturedDesserts(data);
+}
+
+export async function getChefChoice() {
+  const { data } = await apiClient.get<FeaturedDessert | null>("/desserts/chef-choice");
+  return data ?? null;
 }
 
 export async function getAllDesserts(params?: {

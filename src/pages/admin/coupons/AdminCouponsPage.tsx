@@ -15,11 +15,15 @@ import {
   HiMiniTag,
   HiMiniTicket,
   HiMiniTruck,
+  HiMiniTrash,
   HiMiniXMark,
 } from "react-icons/hi2";
 import {
   createAdminCoupon,
+  deleteAdminCoupon,
   getAdminCoupons,
+  updateAdminCoupon,
+  type AdminCoupon,
   type AdminCouponPayload,
   type CouponStatus,
   type CouponType,
@@ -27,6 +31,7 @@ import {
 import { getErrorMessage } from "../../../api/auth";
 import { useDebounce } from "../../../hooks/useDebounce";
 import { formatDate, formatMoney } from "../../account/utils";
+import AdminConfirmModal from "../components/AdminConfirmModal";
 import AdminPageHeader from "../components/AdminPageHeader";
 import AdminSurface from "../components/AdminSurface";
 
@@ -160,6 +165,7 @@ function StatCard({
 function CouponModal({
   open,
   form,
+  mode,
   onChange,
   onClose,
   onSubmit,
@@ -167,6 +173,7 @@ function CouponModal({
 }: {
   open: boolean;
   form: CouponFormState;
+  mode: "create" | "edit";
   onChange: (next: Partial<CouponFormState>) => void;
   onClose: () => void;
   onSubmit: () => void;
@@ -176,6 +183,7 @@ function CouponModal({
 
   const isFreeShipping = form.type === "free_shipping";
   const TypeIcon = typeConfig[form.type]?.icon ?? HiMiniTag;
+  const isEditing = mode === "edit";
 
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center bg-[#2B1606]/40 px-4 backdrop-blur-sm animate-in fade-in duration-200">
@@ -191,9 +199,13 @@ function CouponModal({
             </div>
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-[#C79A71]">Admin / Coupons</p>
-              <h3 className="mt-2 text-[1.9rem] font-black leading-tight text-[#341B08]">Create New Coupon</h3>
+              <h3 className="mt-2 text-[1.9rem] font-black leading-tight text-[#341B08]">
+                {isEditing ? "Edit Coupon" : "Create New Coupon"}
+              </h3>
               <p className="mt-2 text-sm leading-6 text-[#9A6E42] max-w-lg">
-                Add a discount code with backend validation. Customers will only see valid, usable offers.
+                {isEditing
+                  ? "Update coupon details, schedule, and availability without mixing them with reward coupons."
+                  : "Add a discount code with backend validation. Customers will only see valid, usable offers."}
               </p>
             </div>
           </div>
@@ -427,8 +439,8 @@ function CouponModal({
               </>
             ) : (
               <>
-                <HiMiniPlus className="h-4 w-4" />
-                Create Coupon
+                {isEditing ? <HiMiniPencilSquare className="h-4 w-4" /> : <HiMiniPlus className="h-4 w-4" />}
+                {isEditing ? "Save Changes" : "Create Coupon"}
               </>
             )}
           </button>
@@ -445,6 +457,9 @@ export default function AdminCouponsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | CouponStatus>("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingCouponId, setEditingCouponId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<AdminCoupon | null>(null);
+  const [statusTarget, setStatusTarget] = useState<AdminCoupon | null>(null);
   const [form, setForm] = useState<CouponFormState>(() => ({
     ...emptyForm,
     ...buildDefaultDates(),
@@ -467,11 +482,40 @@ export default function AdminCouponsPage() {
     onSuccess: async () => {
       toast.success("✨ Coupon created successfully");
       setForm({ ...emptyForm, ...buildDefaultDates() });
+      setEditingCouponId(null);
       setIsModalOpen(false);
       await queryClient.invalidateQueries({ queryKey: ["admin-coupons"] });
     },
     onError: (error) => {
       toast.error(getErrorMessage(error, "Failed to create coupon"));
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ couponId, payload }: { couponId: string; payload: Partial<AdminCouponPayload> }) =>
+      updateAdminCoupon(couponId, payload),
+    onSuccess: async () => {
+      toast.success("Coupon updated successfully");
+      setForm({ ...emptyForm, ...buildDefaultDates() });
+      setEditingCouponId(null);
+      setStatusTarget(null);
+      setIsModalOpen(false);
+      await queryClient.invalidateQueries({ queryKey: ["admin-coupons"] });
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error, "Failed to update coupon"));
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteAdminCoupon,
+    onSuccess: async () => {
+      toast.success("Coupon deleted successfully");
+      setDeleteTarget(null);
+      await queryClient.invalidateQueries({ queryKey: ["admin-coupons"] });
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error, "Failed to delete coupon"));
     },
   });
 
@@ -489,19 +533,50 @@ export default function AdminCouponsPage() {
 
   function resetAndOpenModal() {
     setForm({ ...emptyForm, ...buildDefaultDates() });
+    setEditingCouponId(null);
     setIsModalOpen(true);
   }
 
-  function handleCreateCoupon() {
-    const payload: AdminCouponPayload = {
-      ...form,
-      code: form.code.trim().toUpperCase(),
-      value: form.type === "free_shipping" ? 0 : Number(form.value || 0),
-      minimum_order: Number(form.minimum_order || 0),
-      usage_limit: form.usage_limit ? Number(form.usage_limit) : null,
+  function buildPayload(nextForm: CouponFormState): AdminCouponPayload {
+    return {
+      ...nextForm,
+      code: nextForm.code.trim().toUpperCase(),
+      value: nextForm.type === "free_shipping" ? 0 : Number(nextForm.value || 0),
+      minimum_order: Number(nextForm.minimum_order || 0),
+      usage_limit: nextForm.usage_limit ? Number(nextForm.usage_limit) : null,
     };
+  }
 
+  function openEditModal(coupon: AdminCoupon) {
+    setEditingCouponId(coupon.id);
+    setForm({
+      code: coupon.code,
+      type: coupon.type,
+      value: coupon.type === "free_shipping" ? "" : String(Number(coupon.value)),
+      minimum_order: String(Number(coupon.minimum_order)),
+      usage_limit: coupon.usage_limit ? String(coupon.usage_limit) : "",
+      start_date: coupon.start_date,
+      end_date: coupon.end_date,
+      status: coupon.status,
+    });
+    setIsModalOpen(true);
+  }
+
+  function handleSubmitCoupon() {
+    const payload = buildPayload(form);
+    if (editingCouponId) {
+      updateMutation.mutate({ couponId: editingCouponId, payload });
+      return;
+    }
     createMutation.mutate(payload);
+  }
+
+  function handleToggleStatus(coupon: AdminCoupon) {
+    setStatusTarget(coupon);
+  }
+
+  function handleDeleteCoupon(coupon: AdminCoupon) {
+    setDeleteTarget(coupon);
   }
 
   return (
@@ -714,17 +789,24 @@ export default function AdminCouponsPage() {
                         <div className="flex items-center gap-2">
                           <button
                             type="button"
-                            onClick={() => toast.info("Edit coupon coming soon")}
+                            onClick={() => openEditModal(coupon)}
                             className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#FFF2F6] text-[#F25D88] transition-all hover:bg-gradient-to-r hover:from-[#FF7E9F] hover:to-[#F25D88] hover:text-white hover:shadow-[0_8px_20px_rgba(242,93,136,0.25)] hover:scale-105 active:scale-95"
                           >
                             <HiMiniPencilSquare className="h-4 w-4" />
                           </button>
                           <button
                             type="button"
-                            onClick={() => toast.info("Status toggle coming soon")}
+                            onClick={() => handleToggleStatus(coupon)}
                             className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#F5F0FF] text-[#8C63E8] transition-all hover:bg-gradient-to-r hover:from-[#8C63E8] hover:to-[#6A42C2] hover:text-white hover:shadow-[0_8px_20px_rgba(140,99,232,0.25)] hover:scale-105 active:scale-95"
                           >
                             <HiMiniArrowPath className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteCoupon(coupon)}
+                            className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#FFF4F1] text-[#D36A5C] transition-all hover:bg-gradient-to-r hover:from-[#F38B7A] hover:to-[#E76A6A] hover:text-white hover:shadow-[0_8px_20px_rgba(231,106,106,0.25)] hover:scale-105 active:scale-95"
+                          >
+                            <HiMiniTrash className="h-4 w-4" />
                           </button>
                         </div>
                       </td>
@@ -854,7 +936,7 @@ export default function AdminCouponsPage() {
                     <div className="mt-4 flex gap-2">
                       <button
                         type="button"
-                        onClick={() => toast.info("Edit coupon coming soon")}
+                        onClick={() => openEditModal(coupon)}
                         className="flex h-10 flex-1 items-center justify-center gap-2 rounded-2xl bg-[#FFF2F6] text-sm font-bold text-[#F25D88] transition-all hover:bg-gradient-to-r hover:from-[#FF7E9F] hover:to-[#F25D88] hover:text-white hover:shadow-[0_8px_20px_rgba(242,93,136,0.20)] active:scale-95"
                       >
                         <HiMiniPencilSquare className="h-4 w-4" />
@@ -862,11 +944,19 @@ export default function AdminCouponsPage() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => toast.info("Status toggle coming soon")}
+                        onClick={() => handleToggleStatus(coupon)}
                         className="flex h-10 flex-1 items-center justify-center gap-2 rounded-2xl bg-[#F5F0FF] text-sm font-bold text-[#8C63E8] transition-all hover:bg-gradient-to-r hover:from-[#8C63E8] hover:to-[#6A42C2] hover:text-white hover:shadow-[0_8px_20px_rgba(140,99,232,0.20)] active:scale-95"
                       >
                         <HiMiniArrowPath className="h-4 w-4" />
                         Toggle
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteCoupon(coupon)}
+                        className="flex h-10 flex-1 items-center justify-center gap-2 rounded-2xl bg-[#FFF4F1] text-sm font-bold text-[#D36A5C] transition-all hover:bg-gradient-to-r hover:from-[#F38B7A] hover:to-[#E76A6A] hover:text-white hover:shadow-[0_8px_20px_rgba(231,106,106,0.20)] active:scale-95"
+                      >
+                        <HiMiniTrash className="h-4 w-4" />
+                        Delete
                       </button>
                     </div>
                   </div>
@@ -975,10 +1065,51 @@ export default function AdminCouponsPage() {
       <CouponModal
         open={isModalOpen}
         form={form}
+        mode={editingCouponId ? "edit" : "create"}
         onChange={(next) => setForm((current) => ({ ...current, ...next }))}
-        onClose={() => setIsModalOpen(false)}
-        onSubmit={handleCreateCoupon}
-        isPending={createMutation.isPending}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingCouponId(null);
+        }}
+        onSubmit={handleSubmitCoupon}
+        isPending={createMutation.isPending || updateMutation.isPending}
+      />
+
+      <AdminConfirmModal
+        open={deleteTarget !== null}
+        title="Delete Coupon"
+        message={`Are you sure you want to delete "${deleteTarget?.code}"? This action cannot be undone.`}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) deleteMutation.mutate(deleteTarget.id);
+        }}
+        isLoading={deleteMutation.isPending}
+        loadingLabel="Deleting..."
+      />
+
+      <AdminConfirmModal
+        open={statusTarget !== null}
+        title={statusTarget?.status === "active" ? "Deactivate Coupon" : "Activate Coupon"}
+        message={
+          statusTarget
+            ? statusTarget.status === "active"
+              ? `Are you sure you want to deactivate "${statusTarget.code}"? Customers will no longer be able to use it.`
+              : `Are you sure you want to activate "${statusTarget.code}"? Customers will be able to use it again.`
+            : ""
+        }
+        confirmLabel={statusTarget?.status === "active" ? "Deactivate" : "Activate"}
+        loadingLabel="Saving..."
+        tone="warning"
+        onCancel={() => setStatusTarget(null)}
+        onConfirm={() => {
+          if (!statusTarget) return;
+          const nextStatus: CouponStatus = statusTarget.status === "active" ? "inactive" : "active";
+          updateMutation.mutate({
+            couponId: statusTarget.id,
+            payload: { status: nextStatus },
+          });
+        }}
+        isLoading={updateMutation.isPending && statusTarget !== null}
       />
     </div>
   );

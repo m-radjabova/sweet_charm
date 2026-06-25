@@ -12,6 +12,7 @@ import {
   HiMiniXMark,
 } from "react-icons/hi2";
 import { getActiveCoupons } from "../../../api/coupons";
+import { useRealtime } from "../../../realtime/useRealtime";
 import type { User } from "../../../types/types";
 import { formatDate, formatMoney } from "../utils";
 
@@ -28,12 +29,19 @@ export default function ProfileTopbar({ isAdmin }: Props) {
   const [readCouponIds, setReadCouponIds] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("");
   const notificationsRef = useRef<HTMLDivElement>(null);
+  const {
+    notifications,
+    unreadCount: unreadRealtimeCount,
+    markAllNotificationsAsRead,
+    markNotificationAsRead,
+  } = useRealtime();
   const couponsQuery = useQuery({
     queryKey: ["active-coupons"],
     queryFn: getActiveCoupons,
   });
   const coupons = couponsQuery.data ?? [];
   const unreadCoupons = coupons.filter((coupon) => !readCouponIds.includes(coupon.id));
+  const totalUnread = unreadCoupons.length + unreadRealtimeCount;
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -71,6 +79,7 @@ export default function ProfileTopbar({ isAdmin }: Props) {
 
   function clearNotifications() {
     persistReadCouponIds(Array.from(new Set([...readCouponIds, ...unreadCoupons.map((coupon) => coupon.id)])));
+    markAllNotificationsAsRead();
   }
 
   return (
@@ -147,14 +156,14 @@ export default function ProfileTopbar({ isAdmin }: Props) {
           >
             <HiMiniBell
               className={`h-4 w-4 transition-all duration-300 group-hover:scale-110 ${
-                unreadCoupons.length > 0 && !isNotificationsOpen
+                totalUnread > 0 && !isNotificationsOpen
                   ? "animate-[ring_2s_ease-in-out_infinite] text-[#F25D88]"
                   : "text-[#C28564]"
               }`}
             />
-            {unreadCoupons.length > 0 && (
+            {totalUnread > 0 && (
               <span className="absolute -right-1 -top-1 flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full bg-gradient-to-br from-[#F25D88] to-[#FF6B9D] px-1 text-[8px] font-bold leading-none text-white shadow-[0_2px_6px_rgba(242,93,136,0.4)]">
-                {unreadCoupons.length > 9 ? "9+" : unreadCoupons.length}
+                {totalUnread > 9 ? "9+" : totalUnread}
               </span>
             )}
           </button>
@@ -166,11 +175,11 @@ export default function ProfileTopbar({ isAdmin }: Props) {
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#C5946D]">Notifications</p>
                   <h4 className="mt-1.5 text-base font-bold text-[#5C3805]">
-                    {unreadCoupons.length > 0 ? `${unreadCoupons.length} unread offers` : "All caught up!"}
+                    {totalUnread > 0 ? `${totalUnread} unread updates` : "All caught up!"}
                   </h4>
                 </div>
                 <div className="flex items-center gap-2">
-                  {unreadCoupons.length > 0 && (
+                  {totalUnread > 0 && (
                     <button
                       type="button"
                       onClick={clearNotifications}
@@ -182,12 +191,12 @@ export default function ProfileTopbar({ isAdmin }: Props) {
                   )}
                   <span
                     className={`inline-flex h-8 min-w-[32px] items-center justify-center rounded-full px-2.5 text-[11px] font-bold ${
-                      unreadCoupons.length > 0
+                      totalUnread > 0
                         ? "bg-gradient-to-r from-[#FFE8EF] to-[#FFF0F4] text-[#F25D88]"
                         : "bg-[#E8F5E9] text-[#43A047]"
                     }`}
                   >
-                    {unreadCoupons.length}
+                    {totalUnread}
                   </span>
                 </div>
               </div>
@@ -210,6 +219,37 @@ export default function ProfileTopbar({ isAdmin }: Props) {
                     </div>
                     <p className="mt-4 text-sm font-medium text-[#B1845D]">Loading offers...</p>
                   </div>
+                ) : notifications.length > 0 ? (
+                  notifications.slice(0, 5).map((notification, index) => (
+                    <button
+                      key={notification.id}
+                      type="button"
+                      onClick={() => markNotificationAsRead(notification.id)}
+                      className={`group relative w-full overflow-hidden rounded-[20px] p-4 text-left transition-all duration-200 hover:shadow-[0_4px_16px_rgba(175,117,60,0.1)] ${
+                        notification.unread
+                          ? "bg-gradient-to-br from-[#FFF8F1] to-[#FFF5EB]"
+                          : "bg-gradient-to-br from-white to-[#FFF9F3]"
+                      }`}
+                      style={{ animationDelay: `${index * 50}ms` }}
+                    >
+                      <div className="absolute -right-4 -top-4 h-16 w-16 rounded-full bg-gradient-to-br from-[#F25D88]/5 to-[#FF6B9D]/5 blur-xl" />
+
+                      <div className="relative flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="rounded-md bg-gradient-to-r from-[#F25D88]/10 to-[#FF6B9D]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#F25D88]">
+                              {notification.kind.replaceAll("_", " ")}
+                            </span>
+                            {notification.unread ? (
+                              <span className="h-2 w-2 rounded-full bg-[#F25D88]" />
+                            ) : null}
+                          </div>
+                          <p className="mt-2 text-sm font-bold text-[#5C3805]">{notification.title}</p>
+                          <p className="mt-1 text-xs leading-5 text-[#9B7045]">{notification.message}</p>
+                        </div>
+                      </div>
+                    </button>
+                  ))
                 ) : unreadCoupons.length > 0 ? (
                   unreadCoupons.slice(0, 5).map((coupon, index) => (
                     <div
@@ -285,11 +325,11 @@ export default function ProfileTopbar({ isAdmin }: Props) {
               </div>
 
               {/* Footer */}
-              {unreadCoupons.length > 0 && (
+              {totalUnread > 0 && (
                 <>
                   <div className="my-4 h-px bg-gradient-to-r from-transparent via-[#F5E6D8]/60 to-transparent" />
                   <p className="text-center text-[10px] font-medium text-[#C9A67E]">
-                    Showing {Math.min(unreadCoupons.length, 5)} of {unreadCoupons.length} offers
+                    Showing {Math.min(totalUnread, 5)} of {totalUnread} updates
                   </p>
                 </>
               )}

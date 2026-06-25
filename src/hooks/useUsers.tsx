@@ -15,7 +15,7 @@ import type { UserRole } from "../types/types";
 export default function useUsers(role?: UserRole) {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
-  const debouncedSearch = useDebounce(searchTerm);
+  const debouncedSearch = useDebounce(searchTerm, 400);
 
   const usersQuery = useQuery({
     queryKey: ["users", role ?? "all"],

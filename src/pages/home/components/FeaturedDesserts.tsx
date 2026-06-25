@@ -117,6 +117,11 @@ function DessertCard({
             {dessert.category_name}
           </span>
         )}
+        {dessert.is_chef_choice && (
+          <span className="absolute left-4 top-16 rounded-full bg-[#FFF0F4] px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-[#F25D88] shadow-[0_8px_18px_rgba(242,93,136,0.16)] backdrop-blur-sm">
+            Chef's Choice
+          </span>
+        )}
 
         {/* Favorite button - floating petal shape */}
         <button
@@ -471,7 +476,7 @@ function FeaturedDesserts() {
             to="/desserts"
             className="group relative inline-flex h-[76px] min-w-[272px] items-center justify-center rounded-[24px] bg-gradient-to-r from-[#F75D86] to-[#F86B87] px-[34px] text-[19px] font-bold shadow-[0_13px_22px_rgba(248,107,135,0.22)] transition-all duration-300 hover:-translate-y-[3px] hover:shadow-[0_17px_30px_rgba(248,107,135,0.28)] active:scale-[0.97] max-[900px]:h-[68px] max-[900px]:min-w-[min(250px,78vw)] max-[900px]:rounded-[20px] max-[900px]:px-7 max-[900px]:text-[18px]"
           >
-            <span className="relative z-10 flex items-center gap-3">
+            <span className="relative z-10 flex items-center gap-3 text-[var(--color-surface)]">
               View All Desserts
               <HiMiniChevronRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
             </span>

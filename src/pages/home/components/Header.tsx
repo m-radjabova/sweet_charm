@@ -87,19 +87,21 @@ function NavLink({
     (item.href.startsWith("/#") && location.hash === item.href.substring(1)) ||
     (item.href === "/" && location.pathname === "/" && !location.hash);
 
-  const className = `relative inline-flex h-[46px] min-w-[100px] shrink-0 items-center justify-center whitespace-nowrap rounded-full px-5 text-[16px] font-semibold transition-all duration-200 max-[900px]:h-11 max-[900px]:min-w-[90px] max-[900px]:px-4 max-[900px]:text-[15px] max-[640px]:h-10 max-[640px]:min-w-[80px] max-[640px]:px-3 max-[640px]:text-[14px] ${
+  const baseClassName = `relative inline-flex h-[46px] min-w-[100px] shrink-0 items-center justify-center whitespace-nowrap rounded-full px-5 text-[16px] font-semibold transition-all duration-200 max-[900px]:h-11 max-[900px]:min-w-[90px] max-[900px]:px-4 max-[900px]:text-[15px] max-[640px]:h-10 max-[640px]:min-w-[80px] max-[640px]:px-3 max-[640px]:text-[14px] ${
     isActive
-      ? "bg-[var(--color-primary)] text-[var(--color-surface)] shadow-[0_8px_20px_rgba(248,107,135,0.25)] hover:bg-[var(--color-primary-strong)] hover:shadow-[0_12px_26px_rgba(248,107,135,0.32)]"
+      ? "bg-[var(--color-primary)] shadow-[0_8px_20px_rgba(248,107,135,0.25)] hover:bg-[var(--color-primary-strong)] hover:shadow-[0_12px_26px_rgba(248,107,135,0.32)]"
       : "bg-[var(--color-surface-strong)] text-[var(--color-brown)] shadow-[0_8px_20px_var(--shadow-brown)] hover:-translate-y-[1px] hover:bg-[var(--color-surface)] hover:shadow-[0_12px_26px_rgba(151,91,28,0.12)]"
   }`;
 
   const content = (
     <>
-      {item.label}
+      <span style={isActive ? { color: "#fff8f1" } : undefined}>
+        {item.label}
+      </span>
       {isActive && (
         <span className="absolute -right-1 -top-1 flex h-3 w-3">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--color-primary-soft)] opacity-75"></span>
-          <span className="relative inline-flex h-3 w-3 rounded-full bg-[var(--color-primary)]"></span>
+          <span className="relative  inline-flex h-3 w-3 rounded-full bg-[var(--color-primary)]"></span>
         </span>
       )}
     </>
@@ -107,14 +109,16 @@ function NavLink({
 
   if (isHashLink) {
     return (
-      <a href={item.href} onClick={onClick} className={className}>
+      <a href={item.href} onClick={onClick} className={baseClassName}
+        style={isActive ? { color: "#fff8f1" } : undefined}>
         {content}
       </a>
     );
   }
 
   return (
-    <Link to={item.href} onClick={onClick} className={className}>
+    <Link to={item.href} onClick={onClick} className={baseClassName}
+      style={isActive ? { color: "#fff8f1" } : undefined}>
       {content}
     </Link>
   );

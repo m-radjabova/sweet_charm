@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Drawer } from "@mui/material";
 import { useTranslation } from "react-i18next";
@@ -14,8 +14,11 @@ import {
   HiOutlineSparkles,
   HiOutlineTag,
   HiOutlineTicket,
+  HiOutlineGift,
+  HiOutlinePhoto,
 } from "react-icons/hi2";
 import useContextPro from "../../hooks/useContextPro";
+import { useRealtime } from "../../realtime/useRealtime";
 
 function LogoBlock() {
   const navigate = useNavigate();
@@ -85,6 +88,24 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const location = useLocation();
   const [mounted, setMounted] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const notificationsRef = useRef<HTMLDivElement>(null);
+  const {
+    connectionStatus,
+    notifications,
+    unreadCount,
+    markAllNotificationsAsRead,
+    markNotificationAsRead,
+  } = useRealtime();
+  const priorityUnreadCount = useMemo(
+    () =>
+      notifications.filter(
+        (notification) =>
+          notification.unread &&
+          ["new_order", "new_review", "low_stock", "out_of_stock"].includes(notification.kind),
+      ).length,
+    [notifications],
+  );
 
   const menuItems = [
     {
@@ -104,6 +125,12 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       to: "/dashboard/categories",
       icon: HiOutlineTag,
       description: "Organize menu",
+    },
+    {
+      label: "Gallery",
+      to: "/dashboard/gallery-images",
+      icon: HiOutlinePhoto,
+      description: "Homepage moments",
     },
     {
       label: "Orders",
@@ -130,15 +157,26 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       description: "Discount campaigns",
     },
     {
-      label: "Settings",
-      to: "/dashboard/settings",
-      icon: HiMiniCog6Tooth,
-      description: "Panel preferences",
+      label: "Rewards",
+      to: "/dashboard/rewards",
+      icon: HiOutlineGift,
+      description: "Sweet points coupons",
     }
   ];
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (!notificationsRef.current?.contains(event.target as Node)) {
+        setIsNotificationsOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleLogout = async () => {
@@ -164,15 +202,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto px-4 py-6 custom-scrollbar">
-        <div className="mb-5 flex items-center gap-2 px-3">
-          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[var(--color-border-soft)] to-transparent" />
-          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--color-text-faint)]">
-            Main Menu
-          </span>
-          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[var(--color-border-soft)] to-transparent" />
-        </div>
-
-        <nav className="space-y-1.5">
+       <nav className="space-y-1.5">
           {menuItems.map((item, index) => {
             const Icon = item.icon;
             const isActive =
@@ -249,13 +279,6 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             );
           })}
         </nav>
-
-        {/* Bottom decorative dots */}
-        <div className="mt-8 flex items-center justify-center gap-2">
-          <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-primary-soft)] opacity-30" />
-          <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-primary)] opacity-40" />
-          <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-primary-soft)] opacity-30" />
-        </div>
       </div>
 
       {/* Footer */}
@@ -289,11 +312,93 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
               </p>
             </div>
 
-            {/* Notification bell */}
-            <button className="relative shrink-0 rounded-xl p-2 text-[var(--color-text-faint)] transition-all hover:bg-[var(--color-primary)]/10 hover:text-[var(--color-primary)]">
-              <HiOutlineBell className="h-4 w-4" />
-              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[var(--color-primary)] ring-2 ring-white" />
-            </button>
+            <div className="relative shrink-0" ref={notificationsRef}>
+              <button
+                type="button"
+                onClick={() => setIsNotificationsOpen((current) => !current)}
+                className={`relative rounded-xl p-2 transition-all hover:bg-[var(--color-primary)]/10 hover:text-[var(--color-primary)] ${
+                  priorityUnreadCount > 0
+                    ? "bg-[var(--color-primary)]/10 text-[var(--color-primary)] shadow-[0_10px_24px_rgba(242,93,136,0.18)]"
+                    : "text-[var(--color-text-faint)]"
+                }`}
+              >
+                <HiOutlineBell className="h-4 w-4" />
+                {priorityUnreadCount > 0 ? (
+                  <>
+                    <span className="absolute inset-0 animate-ping rounded-xl bg-[var(--color-primary)]/15" />
+                    <span className="absolute -right-0.5 -top-0.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-[var(--color-primary)] px-1 text-[9px] font-bold text-white ring-2 ring-white">
+                      {priorityUnreadCount > 9 ? "9+" : priorityUnreadCount}
+                    </span>
+                  </>
+                ) : unreadCount > 0 ? (
+                  <span className="absolute -right-0.5 -top-0.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-[var(--color-primary-soft)] px-1 text-[9px] font-bold text-white ring-2 ring-white">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                ) : connectionStatus === "connected" ? (
+                  <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-emerald-400 ring-2 ring-white" />
+                ) : null}
+              </button>
+
+              {isNotificationsOpen ? (
+                <div className="absolute bottom-12 right-0 z-20 w-80 rounded-3xl border border-[var(--color-border-soft)] bg-white p-4 shadow-[0_24px_48px_rgba(92,56,5,0.16)]">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--color-text-faint)]">
+                        Admin Alerts
+                      </p>
+                      <p className="mt-1 text-sm font-bold text-[var(--color-brown)]">
+                        {unreadCount > 0 ? `${unreadCount} unread` : "All caught up"}
+                      </p>
+                    </div>
+                    {unreadCount > 0 ? (
+                      <button
+                        type="button"
+                        onClick={markAllNotificationsAsRead}
+                        className="rounded-full bg-[var(--color-primary)]/10 px-3 py-1 text-[11px] font-bold text-[var(--color-primary)]"
+                      >
+                        Mark all read
+                      </button>
+                    ) : null}
+                  </div>
+
+                  <div className="mt-4 max-h-72 space-y-2 overflow-y-auto pr-1">
+                    {notifications.length > 0 ? (
+                      notifications.slice(0, 6).map((notification) => (
+                        <button
+                          key={notification.id}
+                          type="button"
+                          onClick={() => markNotificationAsRead(notification.id)}
+                          className={`w-full rounded-2xl border px-3 py-3 text-left transition ${
+                            notification.unread
+                              ? "border-[var(--color-primary)]/20 bg-[var(--color-primary)]/5"
+                              : "border-[var(--color-border-soft)] bg-[var(--color-surface)]"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <p className="text-sm font-bold text-[var(--color-brown)]">{notification.title}</p>
+                            {notification.unread ? (
+                              <span className="h-2.5 w-2.5 rounded-full bg-[var(--color-primary)]" />
+                            ) : null}
+                          </div>
+                          <div className="mt-2">
+                            <span className="inline-flex rounded-full bg-[var(--color-primary)]/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--color-primary)]">
+                              {notification.kind.replaceAll("_", " ")}
+                            </span>
+                          </div>
+                          <p className="mt-1 text-xs leading-5 text-[var(--color-text-muted)]">
+                            {notification.message}
+                          </p>
+                        </button>
+                      ))
+                    ) : (
+                      <div className="rounded-2xl bg-[var(--color-surface)] px-4 py-6 text-center text-sm text-[var(--color-text-muted)]">
+                        Live admin alerts will show up here.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : null}
+            </div>
           </div>
         </div>
 

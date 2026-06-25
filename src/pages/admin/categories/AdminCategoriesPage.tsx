@@ -11,7 +11,6 @@ import {
   HiMiniChevronLeft,
   HiMiniChevronRight,
   HiMiniCube,
-  HiMiniExclamationTriangle,
 } from "react-icons/hi2";
 import { Skeleton } from "@mui/material";
 import { toast } from "react-toastify";
@@ -26,6 +25,7 @@ import {
 } from "../../../api/admin";
 import { getErrorMessage } from "../../../api/auth";
 import { useDebounce } from "../../../hooks/useDebounce";
+import AdminConfirmModal from "../components/AdminConfirmModal";
 import AdminPageHeader from "../components/AdminPageHeader";
 import AdminSurface from "../components/AdminSurface";
 import CategoryEditorDrawer from "./CategoryEditorDrawer";
@@ -69,53 +69,6 @@ function buildPayload(form: AdminCategoryPayload) {
     image: form.image?.trim() || null,
     description: form.description?.trim() || null,
   };
-}
-
-/* ── Confirm Dialog ─────────────────────────────────────── */
-function ConfirmDialog({
-  open,
-  title,
-  message,
-  onConfirm,
-  onCancel,
-  isLoading,
-}: {
-  open: boolean;
-  title: string;
-  message: string;
-  onConfirm: () => void;
-  onCancel: () => void;
-  isLoading?: boolean;
-}) {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="animate-scale-in mx-4 w-full max-w-md rounded-[32px] bg-white p-6 shadow-[0_40px_80px_rgba(0,0,0,0.2)]">
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF0F4]">
-          <HiMiniExclamationTriangle className="h-7 w-7 text-[#F25D88]" />
-        </div>
-        <h3 className="text-center text-lg font-black text-[#341B08]">{title}</h3>
-        <p className="mt-2 text-center text-sm text-[#8D6B4D]">{message}</p>
-        <div className="mt-6 flex gap-3">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="flex-1 rounded-2xl border border-[#F0DECE] bg-white py-3 text-sm font-semibold text-[#8B6237] transition hover:bg-[#FFF9F3]"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            disabled={isLoading}
-            className="flex-1 rounded-2xl bg-gradient-to-r from-[#FF7E9F] to-[#F25D88] py-3 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(242,93,136,0.25)] transition hover:-translate-y-0.5 disabled:opacity-60"
-          >
-            {isLoading ? "Deleting..." : "Delete"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
 }
 
 /* ── Active Filters Tags ─────────────────────────────────── */
@@ -606,7 +559,7 @@ export default function AdminCategoriesPage() {
       </AdminSurface>
 
       {/* ── Delete confirmation modal ──────────────────────── */}
-      <ConfirmDialog
+      <AdminConfirmModal
         open={deleteTarget !== null}
         title="Delete Category"
         message={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}

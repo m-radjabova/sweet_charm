@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
+  HiMiniArrowTrendingDown,
   HiMiniCalendarDays,
   HiMiniChatBubbleLeftRight,
   HiMiniCube,
@@ -12,6 +13,7 @@ import {
 import type {
   AdminBreakdownItem,
   AdminHeatmapRow,
+  AdminLowStockItem,
   AdminMetricPoint,
 } from "../../../api/admin";
 import { getAdminDashboard } from "../../../api/admin";
@@ -480,6 +482,44 @@ function MiniCard({ title, value, icon }: { title: string; value: string; icon: 
   );
 }
 
+function LowStockList({ items }: { items: AdminLowStockItem[] }) {
+  if (!items.length) {
+    return (
+      <div className="rounded-[24px] border border-dashed border-[#E8D9C8] bg-[#FFF9F2] px-5 py-8 text-center">
+        <p className="text-sm font-bold text-[#6C4522]">No low stock alerts right now</p>
+        <p className="mt-2 text-xs leading-5 text-[#A47A49]">All active desserts currently have healthy inventory levels.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {items.map((item) => (
+        <div
+          key={item.id}
+          className="flex items-center justify-between gap-4 rounded-[22px] border border-[#F7E6CC] bg-gradient-to-r from-[#FFF8E7] to-[#FFF2F5] px-4 py-3"
+        >
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="truncate text-sm font-bold text-[#5E3906]">{item.name}</p>
+              <span className="inline-flex rounded-full bg-[#FFE7A8] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#A86900]">
+                Low stock
+              </span>
+            </div>
+            <p className="mt-1 text-xs text-[#A47A49]">
+              {item.category_name ?? "No category"} · #{item.slug}
+            </p>
+          </div>
+          <div className="shrink-0 text-right">
+            <p className="text-lg font-black text-[#F25D88]">{item.stock}</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#B67E4B]">left</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /* ── Main Page ────────────────────────────────────────── */
 export default function AdminDashboardPage() {
   const [range, setRange] = useState<RangeKey>("weekly");
@@ -522,6 +562,30 @@ export default function AdminDashboardPage() {
         <StatCard index={1} label="Total Orders" value={String(data.total_orders)} note={`${data.pending_orders} need attention`} change="+12.4%" icon={<HiMiniShoppingBag className="h-6 w-6" />} iconClass="bg-gradient-to-br from-[#F8BA58] to-[#F29A44]" />
         <StatCard index={2} label="New Customers" value={String(data.active_users)} note="registered customer base" change="+15.7%" icon={<HiMiniUserGroup className="h-6 w-6" />} iconClass="bg-gradient-to-br from-[#FFB4C2] to-[#F56D92]" />
         <StatCard index={3} label="Average Rating" value={data.average_rating.toFixed(1)} note={`${data.approved_reviews} approved reviews`} change="+0.3" icon={<HiMiniStar className="h-6 w-6" />} iconClass="bg-gradient-to-br from-[#C7A4FF] to-[#9C78F5]" />
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
+        <DashboardShell
+          title="Low Stock Alerts"
+          subtitle="Desserts below 5 items need quick restocking attention"
+          action={
+            <span className="inline-flex items-center gap-2 rounded-full bg-[#FFF0F4] px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-[#F25D88]">
+              <HiMiniArrowTrendingDown className="h-4 w-4" />
+              {data.low_stock_count} alert{data.low_stock_count === 1 ? "" : "s"}
+            </span>
+          }
+        >
+          <LowStockList items={data.low_stock_items} />
+        </DashboardShell>
+
+        <DashboardShell title="Admin Attention" subtitle="The live queue that needs action first">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <MiniCard title="Pending Orders" value={String(data.pending_orders)} icon={<HiMiniShoppingBag className="h-5 w-5" />} />
+            <MiniCard title="Pending Reviews" value={String(data.pending_reviews)} icon={<HiMiniChatBubbleLeftRight className="h-5 w-5" />} />
+            <MiniCard title="Low Stock Items" value={String(data.low_stock_count)} icon={<HiMiniArrowTrendingDown className="h-5 w-5" />} />
+            <MiniCard title="Delivered Orders" value={String(data.delivered_orders)} icon={<HiMiniStar className="h-5 w-5" />} />
+          </div>
+        </DashboardShell>
       </div>
 
       {/* Sales + Order Status */}

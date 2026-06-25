@@ -11,27 +11,51 @@ type FaqItem = {
 
 const faqs: FaqItem[] = [
   {
+    question: "How does delivery work?",
+    answer:
+      "We offer fast and reliable delivery within selected areas. Orders are carefully packed to ensure your treats arrive fresh and beautiful. Delivery usually takes 30–60 minutes, and you'll receive a tracking update when your order is on its way!",
+    icon: "heart",
+  },
+  {
+    question: "What payment methods do you accept?",
+    answer:
+      "We accept cash on delivery and card payments (Visa, Mastercard, UzCard, Humo). All card transactions are processed securely. You can choose your preferred payment method at checkout.",
+    icon: "sparkle",
+  },
+  {
+    question: "How do I use a coupon code?",
+    answer:
+      "Simply enter your coupon code at checkout in the 'Coupon' field. The discount will be automatically applied to your order. Make sure your coupon is still valid and meets any minimum order requirements. You can find active coupons in your account dashboard!",
+    icon: "sparkle",
+  },
+  {
+    question: "Can I modify or cancel my order?",
+    answer:
+      "You can cancel your order within 2 hours of placing it through your account dashboard. For modifications, please contact our support team as soon as possible — we'll do our best to help before your order goes into preparation!",
+    icon: "heart",
+  },
+  {
     question: "Where do you source your ingredients?",
     answer:
-      "We carefully select our ingredients from trusted suppliers who prioritize quality and sustainability. We strive to use locally sourced and organic ingredients whenever possible.",
+      "We carefully select our ingredients from trusted suppliers who prioritize quality and sustainability. We strive to use locally sourced and organic ingredients whenever possible. Our chocolate comes from premium Belgian producers, and our dairy is locally sourced!",
     icon: "sparkle",
   },
   {
     question: "Can I place a custom order?",
     answer:
-      "Absolutely! We love crafting custom desserts for your special moments. Contact us with your ideas, and our team will help you bring them to life.",
+      "Absolutely! We love crafting custom desserts for your special moments — birthdays, anniversaries, or just because! Contact us through our form or social media with your ideas, and our pastry team will help bring your dream dessert to life.",
     icon: "heart",
   },
   {
     question: "Do you offer dietary accommodations?",
     answer:
-      "Yes, we offer options for dietary preferences and restrictions. Let us know your requirements, and we will recommend the best dessert choices for you.",
+      "Yes, we offer options for various dietary preferences including gluten-free, vegan, and nut-free options. Let us know your requirements when ordering, and we'll recommend or prepare the best dessert choices for you. Please note that custom dietary orders may require 24-hour advance notice.",
     icon: "sparkle",
   },
   {
-    question: "Do you offer delivery?",
+    question: "What is your delivery area?",
     answer:
-      "Delivery is available in selected areas. Check our delivery policy or contact our customer service to confirm availability in your location.",
+      "We currently deliver throughout Tashkent city and select surrounding areas. Enter your address during checkout to check if delivery is available in your location. We're constantly expanding our delivery zone, so check back regularly!",
     icon: "heart",
   },
 ];

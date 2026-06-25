@@ -70,6 +70,13 @@ export default function DessertMiniCard({
             {dessert.category_name || accentLabel}
           </span>
         </div>
+        {dessert.is_chef_choice ? (
+          <div className="absolute left-4 top-16">
+            <span className="inline-flex rounded-full bg-[#FFF0F4] px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-[#F25D88] shadow-[0_8px_18px_rgba(242,93,136,0.16)] backdrop-blur-sm">
+              Chef's Choice
+            </span>
+          </div>
+        ) : null}
 
         {dessert.old_price ? (
           <div className="absolute bottom-4 right-4 rounded-full bg-[#F86B87] px-3 py-1.5 text-xs font-bold text-white shadow-[0_8px_18px_rgba(248,107,135,0.28)]">

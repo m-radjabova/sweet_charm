@@ -15,6 +15,7 @@ import { toast } from "react-toastify";
 import { deleteAdminReview, getAdminReviews, updateAdminReview } from "../../../api/admin";
 import { getErrorMessage } from "../../../api/auth";
 import { useDebounce } from "../../../hooks/useDebounce";
+import AdminConfirmModal from "../components/AdminConfirmModal";
 import AdminPageHeader from "../components/AdminPageHeader";
 import AdminSurface from "../components/AdminSurface";
 
@@ -90,6 +91,8 @@ export default function AdminReviewsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const [selectedReviewId, setSelectedReviewId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; customerName: string } | null>(null);
+  const [moderationTarget, setModerationTarget] = useState<{ id: string; customerName: string; action: "approve" | "pending" } | null>(null);
   const debouncedSearch = useDebounce(searchTerm, 400);
   const reviewsQuery = useQuery({
     queryKey: ["admin-reviews", page, debouncedSearch, tab],
@@ -108,6 +111,7 @@ export default function AdminReviewsPage() {
       updateAdminReview(reviewId, isApproved),
     onSuccess: async () => {
       toast.success("Review updated");
+      setModerationTarget(null);
       await queryClient.invalidateQueries({ queryKey: ["admin-reviews"] });
       await queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
     },
@@ -118,6 +122,7 @@ export default function AdminReviewsPage() {
     mutationFn: deleteAdminReview,
     onSuccess: async () => {
       toast.success("Review deleted");
+      setDeleteTarget(null);
       await queryClient.invalidateQueries({ queryKey: ["admin-reviews"] });
       await queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
     },
@@ -323,10 +328,10 @@ export default function AdminReviewsPage() {
                           >
                             <HiMiniEye className="h-5 w-5" />
                           </button>
-                          {!review.is_approved ? (
+                              {!review.is_approved ? (
                             <button
                               type="button"
-                              onClick={() => approveMutation.mutate({ reviewId: review.id, isApproved: true })}
+                              onClick={() => setModerationTarget({ id: review.id, customerName: review.customer_name, action: "approve" })}
                               className="text-[#59B56A] transition hover:scale-105"
                               title="Approve review"
                             >
@@ -335,7 +340,7 @@ export default function AdminReviewsPage() {
                           ) : (
                             <button
                               type="button"
-                              onClick={() => approveMutation.mutate({ reviewId: review.id, isApproved: false })}
+                              onClick={() => setModerationTarget({ id: review.id, customerName: review.customer_name, action: "pending" })}
                               className="text-[#F2A53B] transition hover:scale-105"
                               title="Move to pending"
                             >
@@ -344,7 +349,7 @@ export default function AdminReviewsPage() {
                           )}
                           <button
                             type="button"
-                            onClick={() => deleteMutation.mutate(review.id)}
+                            onClick={() => setDeleteTarget({ id: review.id, customerName: review.customer_name })}
                             className="text-[#F25D88] transition hover:scale-105"
                             title="Delete review"
                           >
@@ -393,7 +398,7 @@ export default function AdminReviewsPage() {
                     {!review.is_approved ? (
                       <button
                         type="button"
-                        onClick={() => approveMutation.mutate({ reviewId: review.id, isApproved: true })}
+                        onClick={() => setModerationTarget({ id: review.id, customerName: review.customer_name, action: "approve" })}
                         className="inline-flex h-11 items-center gap-2 rounded-2xl bg-[#EAF8E8] px-4 text-sm font-semibold text-[#59B56A]"
                       >
                         <HiMiniCheck className="h-4 w-4" />
@@ -402,7 +407,7 @@ export default function AdminReviewsPage() {
                     ) : (
                       <button
                         type="button"
-                        onClick={() => approveMutation.mutate({ reviewId: review.id, isApproved: false })}
+                        onClick={() => setModerationTarget({ id: review.id, customerName: review.customer_name, action: "pending" })}
                         className="inline-flex h-11 items-center gap-2 rounded-2xl bg-[#FFF6E7] px-4 text-sm font-semibold text-[#F2A53B]"
                       >
                         <HiMiniClock className="h-4 w-4" />
@@ -411,7 +416,7 @@ export default function AdminReviewsPage() {
                     )}
                     <button
                       type="button"
-                      onClick={() => deleteMutation.mutate(review.id)}
+                      onClick={() => setDeleteTarget({ id: review.id, customerName: review.customer_name })}
                       className="inline-flex h-11 items-center gap-2 rounded-2xl bg-[#FFF1F5] px-4 text-sm font-semibold text-[#F25D88]"
                     >
                       <HiMiniTrash className="h-4 w-4" />
@@ -427,6 +432,42 @@ export default function AdminReviewsPage() {
             </div>
           )}
         </div>
+
+        <AdminConfirmModal
+          open={deleteTarget !== null}
+          title="Delete Review"
+          message={`Are you sure you want to delete ${deleteTarget?.customerName ? `"${deleteTarget.customerName}"` : "this review"}? This action cannot be undone.`}
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={() => {
+            if (deleteTarget) deleteMutation.mutate(deleteTarget.id);
+          }}
+          isLoading={deleteMutation.isPending}
+          loadingLabel="Deleting..."
+        />
+
+        <AdminConfirmModal
+          open={moderationTarget !== null}
+          title={moderationTarget?.action === "approve" ? "Approve Review" : "Move Review To Pending"}
+          message={
+            moderationTarget
+              ? moderationTarget.action === "approve"
+                ? `Approve review from "${moderationTarget.customerName}" and show it publicly?`
+                : `Move review from "${moderationTarget.customerName}" back to pending moderation?`
+              : ""
+          }
+          confirmLabel={moderationTarget?.action === "approve" ? "Approve" : "Move to Pending"}
+          loadingLabel="Saving..."
+          tone="warning"
+          onCancel={() => setModerationTarget(null)}
+          onConfirm={() => {
+            if (!moderationTarget) return;
+            approveMutation.mutate({
+              reviewId: moderationTarget.id,
+              isApproved: moderationTarget.action === "approve",
+            });
+          }}
+          isLoading={approveMutation.isPending}
+        />
 
         <div className="flex flex-col gap-4 border-t border-[#F5E6D8] px-6 py-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

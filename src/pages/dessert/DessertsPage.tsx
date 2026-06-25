@@ -231,6 +231,11 @@ function DessertCard({
             loading="lazy"
             className="h-full w-full object-cover"
           />
+          {dessert.is_chef_choice ? (
+            <span className="absolute bottom-2 left-2 rounded-full bg-[#FFF0F4] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#F25D88] shadow-[0_6px_14px_rgba(242,93,136,0.15)]">
+              Chef's Choice
+            </span>
+          ) : null}
           {discountPercent && (
             <span className="absolute left-2 top-2 rounded-full bg-[#F85D85] px-2.5 py-1 text-[11px] font-bold text-white shadow-[0_6px_14px_rgba(248,93,133,0.25)]">
               {discountPercent}% OFF
@@ -240,9 +245,16 @@ function DessertCard({
 
         <div className="flex min-w-0 flex-1 flex-col justify-center gap-2">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="line-clamp-1 text-[16px] font-bold leading-tight text-[#68400A] sm:text-[18px]">
-              {dessert.name}
-            </h3>
+            <div className="min-w-0">
+              <h3 className="line-clamp-1 text-[16px] font-bold leading-tight text-[#68400A] sm:text-[18px]">
+                {dessert.name}
+              </h3>
+              {dessert.is_chef_choice ? (
+                <span className="mt-1 inline-flex rounded-full bg-[#FFF0F4] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#F25D88]">
+                  Chef's Choice
+                </span>
+              ) : null}
+            </div>
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); handleToggleFavorite(); }}
@@ -334,6 +346,11 @@ function DessertCard({
             {discountPercent}% OFF
           </span>
         )}
+        {dessert.is_chef_choice && (
+          <span className="absolute left-3 top-14 z-10 rounded-full bg-[#FFF0F4] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#F25D88] shadow-[0_8px_16px_rgba(242,93,136,0.14)] sm:left-4 sm:top-16">
+            Chef's Choice
+          </span>
+        )}
 
         <button
           type="button"
@@ -357,6 +374,11 @@ function DessertCard({
         <h3 className="line-clamp-1 text-[16px] font-bold leading-tight text-[#68400A] sm:text-[18px]">
           {dessert.name}
         </h3>
+        {dessert.is_chef_choice ? (
+          <span className="mt-2 inline-flex w-fit rounded-full bg-[#FFF0F4] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#F25D88]">
+            Chef's Choice
+          </span>
+        ) : null}
 
         <div className="mt-2.5 flex items-center gap-0.5 sm:mt-3">
           {Array.from({ length: 5 }).map((_, i) => (

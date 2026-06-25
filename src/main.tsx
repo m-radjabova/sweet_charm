@@ -5,6 +5,8 @@ import { ToastContainer } from "react-toastify";
 import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import CreateContextPro from "./hooks/CreateContextPro.tsx";
+import RealtimeProvider from "./realtime/RealtimeProvider.tsx";
+import GlobalErrorBoundary from "./components/GlobalErrorBoundary.tsx";
 import "./i18n";
 
 const queryClient = new QueryClient({
@@ -26,10 +28,14 @@ createRoot(document.getElementById("root")!).render(
   <>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <CreateContextPro>
-          <App />
-          <ToastContainer />
-        </CreateContextPro>
+        <GlobalErrorBoundary>
+          <CreateContextPro>
+            <RealtimeProvider>
+              <App />
+              <ToastContainer />
+            </RealtimeProvider>
+          </CreateContextPro>
+        </GlobalErrorBoundary>
       </BrowserRouter>
     </QueryClientProvider>
   </>

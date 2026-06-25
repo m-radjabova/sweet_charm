@@ -42,6 +42,8 @@ export default function SettingsPanel({
   onProfileSubmit,
   onPasswordSubmit,
 }: Props) {
+  const isBirthdayMissing = !profileForm.birthday;
+
   return (
     <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
       {/* Personal Information */}
@@ -53,6 +55,15 @@ export default function SettingsPanel({
         />
 
         <form className="space-y-4" onSubmit={onProfileSubmit}>
+          {isBirthdayMissing ? (
+            <div className="rounded-2xl border border-[#FFD8E1] bg-[#FFF5F8] px-4 py-4 text-sm leading-6 text-[#9D6C47] shadow-[0_8px_20px_rgba(242,93,136,0.06)]">
+              <p className="font-bold text-[#F25D88]">Birthday reminder</p>
+              <p className="mt-1">
+                Add your birthday to receive a special SweetCharm greeting.
+              </p>
+            </div>
+          ) : null}
+
           <div className="grid gap-4 md:grid-cols-2">
             <FormInput label="Full Name">
               <input

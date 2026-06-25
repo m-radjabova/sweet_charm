@@ -9,6 +9,7 @@ export interface User {
   role?: UserRole | null;
   is_active?: boolean | null;
   sweet_points?: number | null;
+  current_level?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
   birthday?: string | null;
@@ -33,6 +34,9 @@ export interface FeaturedDessert {
   rating_avg?: number;
   reviews_count?: number;
   category_name?: string | null;
+  stock?: number;
+  status?: "active" | "inactive" | "out_of_stock";
+  is_chef_choice?: boolean;
 }
 
 export interface CartItem {
@@ -70,6 +74,7 @@ export interface GalleryImage {
   title?: string | null;
   image_url: string;
   sort_order: number;
+  is_active?: boolean;
   created_at: string;
   updated_at: string;
 }

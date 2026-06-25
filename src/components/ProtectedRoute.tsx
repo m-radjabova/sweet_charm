@@ -23,7 +23,7 @@ function ProtectedRoute({ role, children }: Props) {
   }
 
   if (!hasAnyRole(user, allowedRoles)) {
-    return <Navigate to={getDefaultRouteForRole(user)} replace />;
+    return <Navigate to="/403" replace state={{ from: getDefaultRouteForRole(user) }} />;
   }
 
   return children;

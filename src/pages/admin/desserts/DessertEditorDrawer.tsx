@@ -970,6 +970,13 @@ export default function DessertEditorDrawer({
                 onChange={(v) => updateField("is_best_seller", v)}
                 accent={palette.berry}
               />
+              <ToggleRow
+                label="Chef's Choice"
+                description="Homepage weekly recommendation picked by the admin"
+                checked={form.is_chef_choice}
+                onChange={(v) => updateField("is_chef_choice", v)}
+                accent={palette.cocoa}
+              />
             </div>
           </div>
         </div>

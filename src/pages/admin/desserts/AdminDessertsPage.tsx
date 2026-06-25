@@ -34,6 +34,7 @@ import {
 import { getErrorMessage } from "../../../api/auth";
 import { useDebounce } from "../../../hooks/useDebounce";
 import { formatMoney } from "../../account/utils";
+import AdminConfirmModal from "../components/AdminConfirmModal";
 import AdminPageHeader from "../components/AdminPageHeader";
 import AdminSurface from "../components/AdminSurface";
 import DessertEditorDrawer from "./DessertEditorDrawer";
@@ -50,6 +51,7 @@ const emptyForm: AdminDessertPayload = {
   status: "active",
   is_featured: false,
   is_best_seller: false,
+  is_chef_choice: false,
   image_url: "",
   image_urls: [],
 };
@@ -81,53 +83,6 @@ function getStatusTone(status: AdminDessert["status"]) {
     default:
       return { bg: "bg-[#F5F5F5]", text: "text-[#757575]", dot: "bg-[#9E9E9E]", label: "Inactive" };
   }
-}
-
-/* ── Mini convenience helpers ───────────────────────────── */
-function ConfirmDialog({
-  open,
-  title,
-  message,
-  onConfirm,
-  onCancel,
-  isLoading,
-}: {
-  open: boolean;
-  title: string;
-  message: string;
-  onConfirm: () => void;
-  onCancel: () => void;
-  isLoading?: boolean;
-}) {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="animate-scale-in mx-4 w-full max-w-md rounded-[32px] bg-white p-6 shadow-[0_40px_80px_rgba(0,0,0,0.2)]">
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF0F4]">
-          <HiMiniExclamationTriangle className="h-7 w-7 text-[#F25D88]" />
-        </div>
-        <h3 className="text-center text-lg font-black text-[#341B08]">{title}</h3>
-        <p className="mt-2 text-center text-sm text-[#8D6B4D]">{message}</p>
-        <div className="mt-6 flex gap-3">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="flex-1 rounded-2xl border border-[#F0DECE] bg-white py-3 text-sm font-semibold text-[#8B6237] transition hover:bg-[#FFF9F3]"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            disabled={isLoading}
-            className="flex-1 rounded-2xl bg-gradient-to-r from-[#FF7E9F] to-[#F25D88] py-3 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(242,93,136,0.25)] transition hover:-translate-y-0.5 disabled:opacity-60"
-          >
-            {isLoading ? "Deleting..." : "Delete"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
 }
 
 /* ── Image preview modal ─────────────────────────────────── */
@@ -241,6 +196,7 @@ export default function AdminDessertsPage() {
       status: dessert.status,
       is_featured: dessert.is_featured,
       is_best_seller: dessert.is_best_seller,
+      is_chef_choice: dessert.is_chef_choice,
       image_url: dessert.image_url ?? "",
       image_urls: dessert.image_urls,
     });
@@ -508,6 +464,7 @@ export default function AdminDessertsPage() {
                 ) : desserts.length ? (
                   desserts.map((dessert, idx) => {
                     const status = getStatusTone(dessert.status);
+                    const isLowStock = dessert.stock > 0 && dessert.stock < 5;
                     return (
                       <tr
                         key={dessert.id}
@@ -536,6 +493,11 @@ export default function AdminDessertsPage() {
                             <div className="min-w-0">
                               <p className="font-bold text-[#341B08] truncate">{dessert.name}</p>
                               <p className="mt-1 text-xs text-[#AC8764]">#{dessert.slug}</p>
+                              {dessert.is_chef_choice ? (
+                                <span className="mt-2 inline-flex items-center rounded-full bg-[#FFF0F4] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#F25D88]">
+                                  Chef's Choice
+                                </span>
+                              ) : null}
                             </div>
                           </div>
                         </td>
@@ -554,9 +516,16 @@ export default function AdminDessertsPage() {
                           </div>
                         </td>
                         <td className="px-5 py-5">
-                          <span className={`font-semibold ${dessert.stock <= 0 ? "text-[#F25D88]" : "text-[#341B08]"}`}>
-                            {dessert.stock}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className={`font-semibold ${dessert.stock <= 0 ? "text-[#F25D88]" : "text-[#341B08]"}`}>
+                              {dessert.stock}
+                            </span>
+                            {isLowStock ? (
+                              <span className="inline-flex items-center rounded-full bg-[#FFF3D8] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#C27A12]">
+                                Low stock
+                              </span>
+                            ) : null}
+                          </div>
                         </td>
                         <td className="px-5 py-5">
                           <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold capitalize ${status.bg} ${status.text}`}>
@@ -582,6 +551,7 @@ export default function AdminDessertsPage() {
                                     status: dessert.status,
                                     is_featured: !dessert.is_featured,
                                     is_best_seller: dessert.is_best_seller,
+                                    is_chef_choice: dessert.is_chef_choice,
                                     image_url: dessert.image_url ?? "",
                                     image_urls: dessert.image_urls,
                                   },
@@ -669,6 +639,7 @@ export default function AdminDessertsPage() {
               <div className="grid grid-cols-2 gap-5 p-6">
                 {desserts.map((dessert, idx) => {
                   const status = getStatusTone(dessert.status);
+                  const isLowStock = dessert.stock > 0 && dessert.stock < 5;
                   return (
                     <div
                       key={dessert.id}
@@ -696,6 +667,11 @@ export default function AdminDessertsPage() {
                             Featured
                           </span>
                         )}
+                        {dessert.is_chef_choice && (
+                          <span className="absolute left-3 top-14 inline-flex items-center rounded-full bg-[#FFF0F4] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#F25D88] shadow-[0_4px_12px_rgba(242,93,136,0.15)]">
+                            Chef's Choice
+                          </span>
+                        )}
                       </div>
 
                       <div className="p-4">
@@ -703,6 +679,11 @@ export default function AdminDessertsPage() {
                           <div className="min-w-0">
                             <h4 className="truncate text-base font-bold text-[#341B08]">{dessert.name}</h4>
                             <p className="mt-0.5 text-xs text-[#AC8764]">#{dessert.slug}</p>
+                            {dessert.is_chef_choice ? (
+                              <span className="mt-2 inline-flex items-center rounded-full bg-[#FFF0F4] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#F25D88]">
+                                Chef's Choice
+                              </span>
+                            ) : null}
                           </div>
                           <div className="text-right shrink-0">
                             <p className="text-lg font-black text-[#341B08]">{formatMoney(dessert.price)}</p>
@@ -720,6 +701,11 @@ export default function AdminDessertsPage() {
                           <span className={`font-semibold ${dessert.stock <= 0 ? "text-[#F25D88]" : "text-[#341B08]"}`}>
                             Stock: {dessert.stock}
                           </span>
+                          {isLowStock ? (
+                            <span className="inline-flex items-center rounded-full bg-[#FFF3D8] px-2.5 py-1 font-bold uppercase tracking-[0.12em] text-[#C27A12]">
+                              Low stock
+                            </span>
+                          ) : null}
                         </div>
 
                         {dessert.description && (
@@ -760,6 +746,7 @@ export default function AdminDessertsPage() {
                                     status: dessert.status,
                                     is_featured: !dessert.is_featured,
                                     is_best_seller: dessert.is_best_seller,
+                                    is_chef_choice: dessert.is_chef_choice,
                                     image_url: dessert.image_url ?? "",
                                     image_urls: dessert.image_urls,
                                   },
@@ -818,6 +805,7 @@ export default function AdminDessertsPage() {
           ) : desserts.length ? (
             desserts.map((dessert) => {
               const status = getStatusTone(dessert.status);
+              const isLowStock = dessert.stock > 0 && dessert.stock < 5;
               return (
                 <article
                   key={dessert.id}
@@ -848,11 +836,22 @@ export default function AdminDessertsPage() {
                         <span className={`font-semibold ${dessert.stock <= 0 ? "text-[#F25D88]" : "text-[#805B37]"}`}>
                           Stock: {dessert.stock}
                         </span>
+                        {isLowStock ? (
+                          <span className="inline-flex items-center rounded-full bg-[#FFF3D8] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#C27A12]">
+                            Low stock
+                          </span>
+                        ) : null}
                       </div>
                       {dessert.is_featured && (
                         <span className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-[#FDBA2D]">
                           <HiMiniStar className="h-3 w-3 fill-current" />
                           Featured
+                        </span>
+                      )}
+                      {dessert.is_chef_choice && (
+                        <span className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-[#F25D88]">
+                          <HiMiniCheckBadge className="h-3.5 w-3.5" />
+                          Chef's Choice
                         </span>
                       )}
                     </div>
@@ -950,7 +949,7 @@ export default function AdminDessertsPage() {
       </AdminSurface>
 
       {/* ── Delete confirmation modal ──────────────────────── */}
-      <ConfirmDialog
+      <AdminConfirmModal
         open={deleteTarget !== null}
         title="Delete Product"
         message={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}

@@ -32,6 +32,15 @@ export interface AdminRecentOrderItem {
   created_at: string;
 }
 
+export interface AdminLowStockItem {
+  id: string;
+  name: string;
+  slug: string;
+  stock: number;
+  status: "active" | "inactive" | "out_of_stock";
+  category_name?: string | null;
+}
+
 export interface AdminHeatmapCell {
   time: string;
   value: number;
@@ -47,6 +56,7 @@ export interface AdminDashboardData {
   total_orders: number;
   pending_orders: number;
   delivered_orders: number;
+  low_stock_count: number;
   pending_reviews: number;
   approved_reviews: number;
   total_desserts: number;
@@ -65,6 +75,7 @@ export interface AdminDashboardData {
   orders_by_time: AdminHeatmapRow[];
   top_desserts: AdminTopDessertItem[];
   recent_orders: AdminRecentOrderItem[];
+  low_stock_items: AdminLowStockItem[];
 }
 
 export interface AdminCategory {
@@ -122,6 +133,7 @@ export interface AdminDessert {
   status: "active" | "inactive" | "out_of_stock";
   is_featured: boolean;
   is_best_seller: boolean;
+  is_chef_choice: boolean;
   rating_avg: string;
   reviews_count: number;
   image_url?: string | null;
@@ -142,6 +154,7 @@ export interface AdminDessertPayload {
   status: "active" | "inactive" | "out_of_stock";
   is_featured: boolean;
   is_best_seller: boolean;
+  is_chef_choice: boolean;
   image_url?: string | null;
   image_urls: string[];
 }
@@ -160,6 +173,38 @@ export interface AdminDessertListResponse {
   page_size: number;
   total_pages: number;
   stats: AdminDessertStats;
+}
+
+export interface AdminGalleryImage {
+  id: string;
+  title?: string | null;
+  image_url: string;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminGalleryImagePayload {
+  title?: string | null;
+  image_url: string;
+  sort_order: number;
+  is_active: boolean;
+}
+
+export interface AdminGalleryImageStats {
+  total: number;
+  active: number;
+  hidden: number;
+}
+
+export interface AdminGalleryImageListResponse {
+  items: AdminGalleryImage[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+  stats: AdminGalleryImageStats;
 }
 
 export interface AdminOrderItem {
@@ -316,6 +361,36 @@ export interface AdminCouponListResponse {
   total_active: number;
 }
 
+export type AdminRewardStatus = "used" | "unused" | "expired";
+
+export interface AdminReward {
+  id: string;
+  customer_name: string;
+  reward: string;
+  code: string;
+  issued_date: string;
+  expire_date: string;
+  status: AdminRewardStatus;
+  value: string;
+  usage_count: number;
+}
+
+export interface AdminRewardStats {
+  total_rewards: number;
+  used_rewards: number;
+  unused_rewards: number;
+  expired_rewards: number;
+}
+
+export interface AdminRewardListResponse {
+  items: AdminReward[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+  stats: AdminRewardStats;
+}
+
 export interface AdminListParams {
   page?: number;
   page_size?: number;
@@ -369,6 +444,22 @@ export async function uploadAdminImage(file: File) {
   return data;
 }
 
+export async function uploadAdminGalleryImage(file: File) {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const { data } = await apiClient.post<{ url: string; file_id: string | null }>(
+    "/gallery-images/upload",
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
+  return data;
+}
+
 export async function uploadAdminCategoryImage(categoryId: string, file: File) {
   const formData = new FormData();
   formData.append("image", file);
@@ -406,6 +497,30 @@ export async function deleteAdminDessert(dessertId: string) {
   await apiClient.delete(`/desserts/${dessertId}`);
 }
 
+export async function getAdminGalleryImages(
+  params?: AdminListParams & { status?: "all" | "active" | "hidden" }
+) {
+  const { data } = await apiClient.get<AdminGalleryImageListResponse>("/gallery-images", { params });
+  return data;
+}
+
+export async function createAdminGalleryImage(payload: AdminGalleryImagePayload) {
+  const { data } = await apiClient.post<AdminGalleryImage>("/gallery-images", payload);
+  return data;
+}
+
+export async function updateAdminGalleryImage(
+  imageId: string,
+  payload: Partial<AdminGalleryImagePayload>
+) {
+  const { data } = await apiClient.patch<AdminGalleryImage>(`/gallery-images/${imageId}`, payload);
+  return data;
+}
+
+export async function deleteAdminGalleryImage(imageId: string) {
+  await apiClient.delete(`/gallery-images/${imageId}`);
+}
+
 export async function getAdminOrders(
   params?: AdminListParams & { status?: "all" | "pending" | "processing" | AdminOrder["status"] }
 ) {
@@ -441,6 +556,20 @@ export async function getAdminCoupons(
 
 export async function createAdminCoupon(payload: AdminCouponPayload) {
   const { data } = await apiClient.post<AdminCoupon>("/coupons", payload);
+  return data;
+}
+
+export async function updateAdminCoupon(couponId: string, payload: Partial<AdminCouponPayload>) {
+  const { data } = await apiClient.patch<AdminCoupon>(`/coupons/${couponId}`, payload);
+  return data;
+}
+
+export async function deleteAdminCoupon(couponId: string) {
+  await apiClient.delete(`/coupons/${couponId}`);
+}
+
+export async function getAdminRewards(params?: AdminListParams) {
+  const { data } = await apiClient.get<AdminRewardListResponse>("/coupons/rewards", { params });
   return data;
 }
 

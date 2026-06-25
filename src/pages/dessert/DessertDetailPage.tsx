@@ -369,6 +369,9 @@ export default function DessertDetailPage() {
   }, [dessert]);
   const rating = Number(dessert?.rating_avg ?? 0);
   const reviewsCount = Number(dessert?.reviews_count ?? 0);
+  const stockCount = Math.max(0, Number(dessert?.stock ?? 0));
+  const isOutOfStock = dessert?.status === "out_of_stock" || stockCount <= 0;
+  const isLowStock = !isOutOfStock && stockCount < 5;
   const filledStars = Math.max(0, Math.min(5, Math.round(rating)));
   const dessertReviews = reviewsQuery.data ?? [];
   const myReview = dessertReviews.find((review) => review.is_mine);
@@ -394,7 +397,7 @@ export default function DessertDetailPage() {
   });
 
   function handleAddToCart() {
-    if (!dessert) return;
+    if (!dessert || isOutOfStock) return;
     setAddingToCart(true);
     addItem(dessert, quantity);
     toast.success(
@@ -516,6 +519,10 @@ export default function DessertDetailPage() {
                       {discountPercent}% OFF
                     </div>
                   ) : null}
+
+                  <div className="absolute left-3 top-14 rounded-full bg-white/90 px-4 py-2 text-xs font-bold text-[#6B3E06] shadow-[0_8px_18px_rgba(92,56,5,0.12)]">
+                    {isOutOfStock ? "Out of stock" : isLowStock ? `Only ${stockCount} left` : `${stockCount} in stock`}
+                  </div>
 
                   {/* Favorite button - pill shaped */}
                   <button
@@ -653,6 +660,18 @@ export default function DessertDetailPage() {
                         {item}
                       </span>
                     ))}
+                    <span
+                      className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold shadow-sm ${
+                        isOutOfStock
+                          ? "bg-[#FFE8EE] text-[#D1386A]"
+                          : isLowStock
+                            ? "bg-[#FFF3DE] text-[#B87A0F]"
+                            : "bg-[#EAF8E8] text-[#3D8C1A]"
+                      }`}
+                    >
+                      <HiMiniSparkles className="h-2.5 w-2.5" />
+                      {isOutOfStock ? "Unavailable now" : isLowStock ? `Low stock: ${stockCount}` : "Ready to order"}
+                    </span>
                   </div>
 
                   {ingredientList.length > 0 ? (
@@ -705,9 +724,10 @@ export default function DessertDetailPage() {
                         <span className="min-w-5 text-center text-base font-bold text-[#6B3E06]">{quantity}</span>
                         <button
                           type="button"
-                          onClick={() => setQuantity((current) => current + 1)}
+                          onClick={() => setQuantity((current) => (isOutOfStock ? current : Math.min(stockCount || 1, current + 1)))}
                           className="text-[#B07D52] transition-all duration-200 hover:text-[#F25D88] hover:scale-125 active:scale-90"
                           aria-label="Increase quantity"
+                          disabled={isOutOfStock || quantity >= Math.max(stockCount, 1)}
                         >
                           <HiMiniPlus className="h-[18px] w-[18px]" />
                         </button>
@@ -718,7 +738,7 @@ export default function DessertDetailPage() {
                       <button
                         type="button"
                         onClick={handleAddToCart}
-                        disabled={addingToCart}
+                        disabled={addingToCart || isOutOfStock}
                         className="group inline-flex h-12 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#FF7E9F] to-[#F25D88] px-6 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(242,93,136,0.22)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_32px_rgba(242,93,136,0.30)] active:translate-y-0 active:scale-95 disabled:opacity-70"
                       >
                         {addingToCart ? (
@@ -732,7 +752,7 @@ export default function DessertDetailPage() {
                         ) : (
                           <>
                             <HiMiniShoppingBag className="h-[18px] w-[18px]" />
-                            Add to Cart
+                            {isOutOfStock ? "Out of stock" : "Add to Cart"}
                           </>
                         )}
                       </button>
