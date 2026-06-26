@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { HiMiniHeart, HiMiniPlay, HiMiniSparkles } from "react-icons/hi2";
+import { HiMiniHeart, HiMiniSparkles } from "react-icons/hi2";
 import { PiBowlFood, PiCake, PiCoffee, PiCookie, PiStarFour, PiFlowerTulip, PiHeartbeat, PiButterfly } from "react-icons/pi";
-import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import cakeDecoratingVideo from "../../../assets/videos/Cake_Decorating.mp4";
 import latteArtVideo from "../../../assets/videos/Latte_Art.mp4";
 import freshBakeryVideo from "../../../assets/videos/Fresh_Bakery.mp4";
@@ -22,7 +22,7 @@ const storyVideos = [
     iconColor: "text-[#E87894]",
     tag: "Signature",
     tagColor: "bg-[#F7C4D3]/30 text-[#B8627A]",
-    layout: "left",   // video on left, text on right
+    layout: "left",
     gradient: "bg-gradient-to-br from-[#FFF1F5] via-[#FFF5F7] to-white",
   },
   {
@@ -78,7 +78,6 @@ const storyVideos = [
   },
 ] as const;
 
-// ---- Enhanced floating decorative elements ----
 const floatElements = [
   { Icon: HiMiniSparkles, left: "5%", top: "12%", delay: 0, size: "h-8 w-8", color: "text-[#F7C4D3]/30" },
   { Icon: HiMiniHeart, right: "8%", top: "10%", delay: 0.6, size: "h-9 w-9", color: "text-[#F3D8BF]/30" },
@@ -88,7 +87,6 @@ const floatElements = [
   { Icon: PiHeartbeat, right: "48%", bottom: "6%", delay: 1.5, size: "h-6 w-6", color: "text-[#F3D8BF]/20" },
 ];
 
-// ---- Parallax decorative element ----
 function ParallaxSparkles() {
   const { scrollYProgress } = useScroll();
   const y1 = useTransform(scrollYProgress, [0, 0.5], [0, -30]);
@@ -118,7 +116,7 @@ function ParallaxSparkles() {
   );
 }
 
-// ---- SVG ornamental divider ----
+
 function OrnamentalDivider({ color = "#D39AA3" }: { color?: string }) {
   return (
     <svg className="mx-auto h-6 w-32" viewBox="0 0 120 24" fill="none">
@@ -135,7 +133,6 @@ function OrnamentalDivider({ color = "#D39AA3" }: { color?: string }) {
   );
 }
 
-// ---- Single story card with alternating layout ----
 function StoryCard({
   item,
   index,
@@ -156,222 +153,78 @@ function StoryCard({
   onHoverEnd: () => void;
 }) {
   const Icon = item.Icon;
-  const isLeft = item.layout === "left";
-  const cardRef = useRef<HTMLDivElement>(null);
+  const step = `${index + 1}`.padStart(2, "0");
 
   return (
     <motion.div
-      ref={cardRef}
       onMouseEnter={onHoverStart}
       onMouseLeave={onHoverEnd}
-      initial={{ opacity: 0, y: 60 }}
+      initial={{ opacity: 0, y: 36 }}
       whileInView={isVisible ? { opacity: 1, y: 0 } : {}}
       viewport={{ once: true, margin: "-80px" }}
       transition={{
-        duration: 0.8,
-        delay: index * 0.15,
+        duration: 0.7,
+        delay: index * 0.1,
         ease: [0.25, 0.46, 0.45, 0.94],
       }}
-      className={`relative mx-auto max-w-6xl ${index > 0 ? "mt-10 lg:mt-16" : ""}`}
+      className="group relative overflow-hidden rounded-[28px] border border-white/85 bg-[#F8E7DD] shadow-[0_18px_44px_rgba(126,77,34,0.08)] transition-all duration-500 sm:rounded-[32px] lg:rounded-[34px]"
     >
-      <div
-        className={`relative flex flex-col ${
-          isLeft ? "lg:flex-row" : "lg:flex-row-reverse"
-        } gap-0 overflow-hidden rounded-[36px] border border-white/80 bg-white shadow-[0_20px_60px_rgba(126,77,34,0.06)] transition-all duration-500 lg:rounded-[48px] ${
-          isHovered ? "shadow-[0_32px_80px_rgba(126,77,34,0.14)]" : ""
-        }`}
-      >
-        {/* ---- Top accent border ----
-        <div className="absolute left-0 right-0 top-0 z-10 h-[3px] bg-gradient-to-r from-transparent via-[#D39AA3] to-transparent" /> */}
+      <div className="relative aspect-[1.2/1] overflow-hidden sm:aspect-[16/9]">
+        {isReadyToLoad ? (
+          <video
+            ref={(el) => {
+              videoRefs.current[index] = el;
+            }}
+            className="h-full w-full object-cover transition-transform duration-700"
+            style={{
+              transform: isHovered ? "scale(1.06)" : "scale(1)",
+            }}
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="metadata"
+            disablePictureInPicture
+          >
+            <source src={item.video} type="video/mp4" />
+          </video>
+        ) : (
+          <div className="h-full w-full animate-pulse bg-[linear-gradient(120deg,#F8E7DD,#FFF4EC,#F8E7DD)] bg-[length:200%_100%]" />
+        )}
 
-        {/* ===== VIDEO COLUMN (50% width on desktop) ===== */}
-        <div className={`relative w-full overflow-hidden lg:w-[50%] ${isLeft ? "lg:rounded-l-[48px]" : "lg:rounded-r-[48px]"} ${isLeft ? "" : ""}`}>
-          {/* Aspect ratio container for mobile, full height on desktop */}
-          <div className="relative aspect-[4/3] overflow-hidden bg-[#F8E7DD] lg:aspect-auto lg:h-full lg:min-h-[420px]">
-            {/* Tag badge - slide in from side */}
-            <motion.div
-              className={`absolute left-4 top-4 z-20 rounded-full ${item.tagColor} px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] shadow-lg backdrop-blur-md`}
-              initial={{ x: isLeft ? -30 : 30, opacity: 0 }}
-              animate={
-                isHovered
-                  ? { x: 0, opacity: 1 }
-                  : { x: isLeft ? -30 : 30, opacity: 0 }
-              }
-              transition={{ type: "spring", stiffness: 200, damping: 15 }}
-            >
-              <span className="flex items-center gap-1.5">
-                <HiMiniSparkles className="h-3 w-3" />
-                {item.tag}
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(65,38,16,0.12)_0%,rgba(65,38,16,0.14)_36%,rgba(36,18,8,0.55)_100%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.12),transparent_30%)]" />
+
+        <motion.div
+          className={`absolute left-4 top-4 z-20 inline-flex items-center gap-2 rounded-full border border-white/35 bg-white/18 px-3.5 py-2 text-[11px] font-bold uppercase tracking-[0.14em] text-white/92 shadow-[0_12px_24px_rgba(0,0,0,0.14)] backdrop-blur-md sm:left-5 sm:top-5 ${item.tagColor}`}
+          animate={{
+            y: isHovered ? -2 : 0,
+            opacity: isHovered ? 1 : 0.92,
+          }}
+          transition={{ duration: 0.25 }}
+        >
+          <Icon className="h-3.5 w-3.5" />
+          {item.tag}
+        </motion.div>
+
+        <div className="absolute inset-x-0 bottom-0 z-20 p-5 sm:p-6 lg:p-7">
+          <div className="max-w-[78%]">
+            <div className="flex items-baseline gap-3">
+              <span className="text-[1.85rem] font-black leading-none text-[#FF8FA8] drop-shadow-[0_2px_8px_rgba(0,0,0,0.18)] sm:text-[2rem]">
+                {step}
               </span>
-            </motion.div>
-
-            {/* Video */}
-            {isReadyToLoad ? (
-              <video
-                ref={(el) => {
-                  videoRefs.current[index] = el;
-                }}
-                className="h-full w-full object-cover transition-all duration-700"
-                style={{
-                  transform: isHovered ? "scale(1.06)" : "scale(1)",
-                }}
-                autoPlay
-                loop
-                muted
-                playsInline
-                preload="metadata"
-                disablePictureInPicture
-              >
-                <source src={item.video} type="video/mp4" />
-              </video>
-            ) : (
-              <div className="h-full w-full animate-pulse bg-[linear-gradient(120deg,#F8E7DD,#FFF4EC,#F8E7DD)] bg-[length:200%_100%]" />
-            )}
-
-            {/* Gradient overlay at bottom */}
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
-
-            {/* Play button overlay - appears on hover */}
-            <AnimatePresence>
-              {isHovered && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="absolute inset-0 flex items-center justify-center bg-black/10 backdrop-blur-[2px]"
-                >
-                  <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.8, opacity: 0 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                    className="relative flex h-24 w-24 cursor-pointer items-center justify-center rounded-full border-2 border-white/80 bg-white/20 text-white shadow-[0_24px_48px_rgba(0,0,0,0.3)] backdrop-blur-xl"
-                  >
-                    {/* Pulse rings */}
-                    <motion.span
-                      className="absolute inset-0 rounded-full border border-white/50"
-                      animate={{
-                        scale: [1, 1.3, 1],
-                        opacity: [0.6, 0, 0.6],
-                      }}
-                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                    />
-                    <motion.span
-                      className="absolute inset-0 rounded-full border border-white/30"
-                      animate={{
-                        scale: [1, 1.5, 1],
-                        opacity: [0.4, 0, 0.4],
-                      }}
-                      transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
-                    />
-                    <HiMiniPlay className="relative ml-1.5 h-10 w-10 drop-shadow-lg" />
-                  </motion.div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Duration badge - bottom right */}
-            <motion.div
-              className="absolute bottom-4 right-4 z-10 rounded-full bg-black/50 px-4 py-1.5 text-xs font-bold tracking-[0.14em] text-white backdrop-blur-md"
-              whileHover={{ scale: 1.05 }}
-            >
-              {item.duration}
-            </motion.div>
+              <h3 className="font-['Trebuchet_MS','Avenir_Next',sans-serif] text-[1.5rem] font-semibold leading-tight text-white drop-shadow-[0_3px_12px_rgba(0,0,0,0.28)] sm:text-[1.8rem]">
+                {item.title}
+              </h3>
+            </div>
+            <p className="mt-2 text-[0.98rem] leading-7 text-white/92 drop-shadow-[0_2px_10px_rgba(0,0,0,0.25)] sm:text-[1.05rem]">
+              {item.description}
+            </p>
           </div>
         </div>
 
-        {/* ===== CONTENT COLUMN (50% width on desktop) ===== */}
-        <div
-          className={`relative flex w-full flex-col justify-center px-6 py-8 lg:w-[50%] lg:px-10 lg:py-12 ${
-            isLeft ? "lg:pl-12" : "lg:pr-12"
-          }`}
-        >
-          {/* Decorative corner accent */}
-          <div className={`pointer-events-none absolute top-0 ${isLeft ? "right-0" : "left-0"} h-24 w-24 opacity-[0.04]`}>
-            <svg viewBox="0 0 100 100" fill="none">
-              <circle cx={isLeft ? 80 : 20} cy="20" r="60" stroke="#4D2710" strokeWidth="0.8" />
-              <circle cx={isLeft ? 80 : 20} cy="20" r="40" stroke="#4D2710" strokeWidth="0.5" />
-            </svg>
-          </div>
-
-          {/* Icon + Title row */}
-          <motion.div
-            className="flex items-center gap-4"
-            initial={{ opacity: 0, x: isLeft ? 20 : -20 }}
-            whileInView={isVisible ? { opacity: 1, x: 0 } : {}}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 + index * 0.1 }}
-          >
-            <motion.div
-              className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${item.iconBg} ${item.iconColor} shadow-lg shadow-[rgba(0,0,0,0.04)]`}
-              whileHover={{ scale: 1.1, rotate: [0, -8, 8, 0] }}
-              transition={{ duration: 0.4 }}
-            >
-              <Icon className="h-7 w-7" />
-            </motion.div>
-            <div>
-              <h3
-                className="font-['Milkshake','Cooper_Black','Comic_Sans_MS',cursive] text-[2.4rem] leading-none text-[#4E2811] lg:text-[3rem]"
-                style={{
-                  background: "linear-gradient(135deg, #4D2710 0%, #7A4B30 60%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
-                {item.title}
-              </h3>
-              <p className="mt-1.5 text-[15px] font-medium text-[#A87558] tracking-wide">
-                {item.caption}
-              </p>
-            </div>
-          </motion.div>
-
-          {/* Divider */}
-          <motion.div
-            className={`my-5 h-px bg-gradient-to-r ${isLeft ? "from-[#F7C4D3]/40 via-[#F7C4D3]/20 to-transparent" : "from-transparent via-[#F3D8BF]/20 to-[#F3D8BF]/40"}`}
-            initial={{ scaleX: 0 }}
-            whileInView={isVisible ? { scaleX: 1 } : {}}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.35 + index * 0.1 }}
-            style={{ transformOrigin: isLeft ? "left" : "right" }}
-          />
-
-          {/* Description */}
-          <motion.p
-            className="text-[16px] leading-8 text-[#7D5B45] lg:text-[17px] lg:leading-9"
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={isVisible ? { opacity: 1, y: 0 } : {}}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.4 + index * 0.1 }}
-          >
-            {item.description}
-          </motion.p>
-
-          {/* Bottom metadata row */}
-          <motion.div
-            className={`mt-6 flex flex-wrap items-center gap-4 ${isLeft ? "" : "lg:justify-end"}`}
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={isVisible ? { opacity: 1, y: 0 } : {}}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.5 + index * 0.1 }}
-          >
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#F7C4D3]/25 bg-white/70 px-4 py-2 shadow-sm backdrop-blur-sm">
-              <HiMiniHeart className="h-4 w-4 text-[#D39AA3]" />
-              <span className="text-[12px] font-semibold text-[#B27A65]">
-                Handcrafted with passion
-              </span>
-            </div>
-            <motion.button
-              className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#F7C4D3]/80 to-[#F3D8BF]/80 px-5 py-2 text-[12px] font-bold uppercase tracking-[0.1em] text-[#6B3E2A] shadow-sm transition-shadow hover:shadow-md"
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.96 }}
-            >
-              Watch Full Story
-              <HiMiniPlay className="h-3 w-3" />
-            </motion.button>
-          </motion.div>
+        <div className="absolute bottom-4 right-4 z-20 rounded-full border border-white/25 bg-black/28 px-3.5 py-1.5 text-[11px] font-bold tracking-[0.18em] text-white backdrop-blur-md sm:bottom-5 sm:right-5">
+          {item.duration}
         </div>
       </div>
     </motion.div>
@@ -559,8 +412,8 @@ export default function CraftedWithLoveSection() {
           </motion.p>
         </motion.div>
 
-        {/* ===== VERTICAL STORY CARDS (alternating layout) ===== */}
-        <div className="mt-14 lg:mt-20">
+        {/* ===== VIDEO SHOWCASE GRID ===== */}
+        <div className="mt-14 grid gap-6 sm:gap-7 lg:mt-18 lg:grid-cols-2 lg:gap-8">
           {cards.map((item, index) => (
             <StoryCard
               key={item.id}

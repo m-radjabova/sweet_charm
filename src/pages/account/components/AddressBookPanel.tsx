@@ -89,6 +89,7 @@ export default function AddressBookPanel() {
   const [search, setSearch] = useState("");
   const [results, setResults] = useState<NominatimResult[]>([]);
   const [searching, setSearching] = useState(false);
+  const [mapLoaded, setMapLoaded] = useState(false);
 
   const addressesQuery = useQuery({ queryKey: ["my-addresses"], queryFn: getMyAddresses });
   const addresses = addressesQuery.data ?? [];
@@ -147,6 +148,12 @@ export default function AddressBookPanel() {
       zoom: 12,
     });
 
+    map.on("load", () => {
+      setMapLoaded(true);
+      requestAnimationFrame(() => map.resize());
+      window.setTimeout(() => map.resize(), 250);
+    });
+
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "top-right");
     map.on("click", (event) => {
       const lng = Number(event.lngLat.lng.toFixed(6));
@@ -163,6 +170,27 @@ export default function AddressBookPanel() {
       markerRef.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    if (!mapRef.current || !mapContainerRef.current) return;
+
+    const map = mapRef.current;
+    const container = mapContainerRef.current;
+
+    const resizeMap = () => map.resize();
+    requestAnimationFrame(resizeMap);
+    const timeoutId = window.setTimeout(resizeMap, 180);
+    window.addEventListener("resize", resizeMap);
+
+    const resizeObserver = new ResizeObserver(() => resizeMap());
+    resizeObserver.observe(container);
+
+    return () => {
+      window.removeEventListener("resize", resizeMap);
+      resizeObserver.disconnect();
+      window.clearTimeout(timeoutId);
+    };
+  }, [mapLoaded]);
 
   useEffect(() => {
     if (!mapRef.current || form.latitude === null || form.longitude === null) return;
@@ -225,16 +253,16 @@ export default function AddressBookPanel() {
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[1fr_1.35fr]">
+    <div className="grid gap-4 xl:grid-cols-[1fr_1.35fr]">
       {/* Addresses Form */}
-      <section className="rounded-3xl border border-white/60 bg-white/95 p-6 shadow-[0_8px_32px_rgba(175,117,60,0.08)]">
+      <section className="rounded-2xl border border-white/60 bg-white/95 p-4 shadow-[0_8px_32px_rgba(175,117,60,0.08)] sm:rounded-3xl sm:p-6">
         <SectionHeader
           icon={<HiMiniMapPin className="h-4 w-4" />}
           title="Addresses"
           subtitle="Manage your delivery locations"
         />
 
-        <form className="space-y-3.5" onSubmit={handleSubmit}>
+        <form className="space-y-3" onSubmit={handleSubmit}>
           <div className="grid gap-3 sm:grid-cols-2">
             <input
               className="h-12 rounded-xl border border-[#F2DEC8] bg-[#FFF9F1] px-4 text-sm text-[#6F420B] outline-none transition-all duration-200 focus:border-[#F25D88]/40 focus:shadow-[0_0_0_3px_rgba(242,93,136,0.08)] placeholder:text-[#C9A67E]"
@@ -346,7 +374,7 @@ export default function AddressBookPanel() {
       </section>
 
       {/* Map Section */}
-      <section className="rounded-3xl border border-white/60 bg-white/95 p-6 shadow-[0_8px_32px_rgba(175,117,60,0.08)]">
+      <section className="rounded-2xl border border-white/60 bg-white/95 p-4 shadow-[0_8px_32px_rgba(175,117,60,0.08)] sm:rounded-3xl sm:p-6">
         <div className="mb-4 flex gap-3">
           <div className="group relative flex-1">
             <HiMiniMagnifyingGlass className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#C9A67E] transition-colors group-focus-within:text-[#F25D88]" />
@@ -387,10 +415,20 @@ export default function AddressBookPanel() {
           </div>
         ) : null}
 
-        <div
-          ref={mapContainerRef}
-          className="h-[480px] overflow-hidden rounded-2xl border border-[#F2DEC8] bg-[#FFF9F1] shadow-inner"
-        />
+        <div className="relative h-[300px] overflow-hidden rounded-2xl border border-[#F2DEC8] bg-[#FFF9F1] shadow-inner sm:h-[400px] lg:h-[480px]">
+          <div
+            ref={mapContainerRef}
+            className="h-full w-full"
+          />
+          {!mapLoaded ? (
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.9),_rgba(255,249,241,0.96))]">
+              <div className="flex items-center gap-2 rounded-full border border-[#F2DEC8] bg-white/90 px-4 py-2 text-sm font-medium text-[#9A6E42] shadow-sm">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#F25D88] border-t-transparent" />
+                Loading map...
+              </div>
+            </div>
+          ) : null}
+        </div>
         <div className="mt-3 flex items-center gap-2 text-sm text-[#9A6E42]">
           <HiMiniMapPin className="h-4 w-4 text-[#F25D88]" />
           {form.latitude && form.longitude

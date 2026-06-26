@@ -138,6 +138,7 @@ export default function CheckoutPage() {
   const [locating, setLocating] = useState(false);
   const [appliedCouponCode, setAppliedCouponCode] = useState("");
   const [couponInput, setCouponInput] = useState("");
+  const [mapLoaded, setMapLoaded] = useState(false);
 
   const isAuthenticated = Boolean(getStoredAccessToken() && user);
 
@@ -173,11 +174,14 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (addresses.length === 0) {
-      setForm((current) => ({
-        ...current,
-        addressMode: "new",
-        selectedAddressId: "",
-      }));
+      setForm((current) => {
+        if (current.addressMode === "new" && !current.selectedAddressId) return current;
+        return {
+          ...current,
+          addressMode: "new",
+          selectedAddressId: "",
+        };
+      });
       return;
     }
 
@@ -190,10 +194,10 @@ export default function CheckoutPage() {
         addressMode: "saved",
       };
     });
-  }, [addresses]);
+  }, [addressesQuery.data]);
 
   useEffect(() => {
-    if (!mapContainerRef.current || mapRef.current) return;
+    if (form.addressMode !== "new" || !mapContainerRef.current || mapRef.current) return;
 
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
@@ -213,6 +217,12 @@ export default function CheckoutPage() {
       zoom: 12,
     });
 
+    map.on("load", () => {
+      setMapLoaded(true);
+      requestAnimationFrame(() => map.resize());
+      window.setTimeout(() => map.resize(), 250);
+    });
+
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "top-right");
     map.on("click", (event) => {
       const lng = Number(event.lngLat.lng.toFixed(6));
@@ -228,7 +238,28 @@ export default function CheckoutPage() {
       mapRef.current = null;
       markerRef.current = null;
     };
-  }, []);
+  }, [form.addressMode]);
+
+  useEffect(() => {
+    if (form.addressMode !== "new" || !mapRef.current || !mapContainerRef.current) return;
+
+    const map = mapRef.current;
+    const container = mapContainerRef.current;
+
+    const resizeMap = () => map.resize();
+    requestAnimationFrame(resizeMap);
+    const timeoutId = window.setTimeout(resizeMap, 180);
+    window.addEventListener("resize", resizeMap);
+
+    const resizeObserver = new ResizeObserver(() => resizeMap());
+    resizeObserver.observe(container);
+
+    return () => {
+      window.removeEventListener("resize", resizeMap);
+      resizeObserver.disconnect();
+      window.clearTimeout(timeoutId);
+    };
+  }, [form.addressMode, mapLoaded]);
 
   useEffect(() => {
     if (!mapRef.current || form.newAddressLatitude === null || form.newAddressLongitude === null) return;
@@ -593,7 +624,7 @@ export default function CheckoutPage() {
   return (
     <main className="min-h-screen overflow-hidden bg-[var(--color-header-bg)] text-[#6B3E06]">
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-        <img src={rabbitIcons} alt="" aria-hidden className="absolute right-0 top-10 w-44 opacity-[0.05] sm:w-60" />
+        <img loading="lazy" src={rabbitIcons} alt="" aria-hidden className="absolute right-0 top-10 w-44 opacity-[0.05] sm:w-60" />
         <div className="absolute left-[6%] top-[18%] h-4 w-4 animate-float rounded-full bg-[#FAD5DF]/70" />
         <div className="absolute right-[12%] top-[26%] h-5 w-5 animate-float rounded-full bg-[#F7E2B8]/80" />
       </div>
@@ -822,10 +853,17 @@ export default function CheckoutPage() {
                           </div>
                         ) : null}
 
-                        <div
-                          ref={mapContainerRef}
-                          className="mt-3 h-[320px] overflow-hidden rounded-[24px] border border-[#F2DEC8] bg-white shadow-inner"
-                        />
+                        <div className="relative mt-3 h-[320px] overflow-hidden rounded-[24px] border border-[#F2DEC8] bg-white shadow-inner">
+                          <div ref={mapContainerRef} className="h-full w-full" />
+                          {!mapLoaded ? (
+                            <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.92),_rgba(255,249,241,0.96))]">
+                              <div className="flex items-center gap-2 rounded-full border border-[#F2DEC8] bg-white/90 px-4 py-2 text-sm font-medium text-[#9A6E42] shadow-sm">
+                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#F25D88] border-t-transparent" />
+                                Loading map...
+                              </div>
+                            </div>
+                          ) : null}
+                        </div>
                         <div className="mt-3 flex items-center gap-2 text-sm text-[#9A6E42]">
                           <HiMiniMapPin className="h-4 w-4 text-[#F25D88]" />
                           {form.newAddressLatitude !== null && form.newAddressLongitude !== null
@@ -1020,7 +1058,8 @@ export default function CheckoutPage() {
                   <div className="mt-5 space-y-4">
                     {summaryItems.map((item) => (
                       <div key={item.id} className="flex items-center gap-3 rounded-[22px] bg-[#FFF9F4] p-3">
-                        <img
+                        <img 
+                          loading="lazy"
                           src={item.image_url ?? ""}
                           alt={item.name}
                           className="h-16 w-16 rounded-[18px] object-cover"

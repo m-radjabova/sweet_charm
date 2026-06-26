@@ -1,224 +1,238 @@
 function IsLoading() {
   return (
-    <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: '#fff8f1' }}>
-      <div className="flex w-full max-w-sm flex-col items-center gap-10 px-6">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#FCF8EF] px-6">
+      {/* Background glow */}
+      <div className="pointer-events-none absolute -left-32 top-10 h-80 w-80 rounded-full bg-[#F75D86]/20 blur-3xl" />
+      <div className="pointer-events-none absolute -right-24 bottom-10 h-96 w-96 rounded-full bg-[#FFD9B3]/55 blur-3xl" />
+      <div className="pointer-events-none absolute left-1/2 top-1/3 h-72 w-72 -translate-x-1/2 rounded-full bg-white/70 blur-3xl" />
 
-        {/* Cupcake SVG loader */}
-        <div className="relative animate-bounce-slow">
-          <svg
-            width="120"
-            height="120"
-            viewBox="0 0 200 200"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            className="drop-shadow-[0_12px_20px_rgba(151,91,28,0.12)]"
-          >
-            {/* Cupcake base (wrapper) */}
-            <path
-              d="M45 118 C45 118 38 150 42 158 C46 166 70 170 100 170 C130 170 154 166 158 158 C162 150 155 118 155 118 Z"
-              fill="#f75d86"
-              className="animate-pulse-slow"
-            />
+      {/* Floating decorations */}
+      <span className="pointer-events-none absolute left-[14%] top-[24%] animate-float text-3xl text-[#F75D86]/45">
+        ♡
+      </span>
+      <span className="pointer-events-none absolute right-[18%] top-[28%] animate-float-delayed text-2xl text-[#F6B04B]/60">
+        ✦
+      </span>
+      <span className="pointer-events-none absolute bottom-[22%] left-[22%] animate-float-slow text-xl text-[#F75D86]/40">
+        ✧
+      </span>
+      <span className="pointer-events-none absolute bottom-[26%] right-[20%] animate-float-delayed text-3xl text-[#8B5B19]/30">
+        ♡
+      </span>
 
-            {/* Wrapper lines */}
-            <path
-              d="M55 125 L58 155"
-              stroke="#d94874"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-            />
-            <path
-              d="M77 120 L78 162"
-              stroke="#d94874"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-            />
-            <path
-              d="M100 118 L100 168"
-              stroke="#d94874"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-            />
-            <path
-              d="M123 120 L122 162"
-              stroke="#d94874"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-            />
-            <path
-              d="M145 125 L142 155"
-              stroke="#d94874"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-            />
+      <div className="relative flex w-full max-w-[430px] flex-col items-center">
+        {/* Soft card */}
+        <div className="relative w-full rounded-[2.5rem] border border-white/80 bg-white/55 px-8 py-10 text-center shadow-[0_30px_90px_rgba(112,68,7,0.12)] backdrop-blur-xl">
+          <div className="pointer-events-none absolute inset-3 rounded-[2rem] border border-[#F7D8C8]/70" />
 
-            {/* Cake top (frosting/cream) */}
-            <path
-              d="M30 118 C30 90 42 72 55 62 C58 58 62 55 68 55 C72 55 76 57 80 60 C84 56 89 52 96 52 C103 52 108 56 112 60 C118 55 124 52 130 55 C138 58 146 64 155 80 C165 96 170 112 170 118 C170 122 168 125 165 125 L35 125 C32 125 30 122 30 118 Z"
-              fill="#ffd9b3"
-            />
+          {/* Icon area */}
+          <div className="relative mx-auto mb-7 flex h-44 w-44 items-center justify-center">
+            <div className="absolute inset-0 animate-soft-pulse rounded-full bg-[#F75D86]/10 blur-xl" />
+            <div className="absolute h-36 w-36 animate-spin-slow rounded-full border border-dashed border-[#F75D86]/35" />
 
-            {/* Frosting swirl top */}
-            <path
-              d="M55 95 C58 80 68 70 80 66 C84 64 88 64 92 66 C96 62 102 58 108 60 C114 58 120 62 124 66 C130 64 136 66 140 72 C148 82 152 94 150 105 C148 110 142 112 135 110 C130 108 126 104 122 102 C118 100 112 100 108 102 C104 100 98 98 94 100 C88 98 82 100 78 104 C72 108 65 112 58 110 C52 108 50 102 55 95 Z"
-              fill="#f75d86"
-              className="animate-pulse-slow"
-            />
+            <svg
+              width="145"
+              height="145"
+              viewBox="0 0 200 200"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="relative animate-bunny-float drop-shadow-[0_18px_30px_rgba(151,91,28,0.16)]"
+            >
+              {/* cake shadow */}
+              <ellipse cx="100" cy="172" rx="54" ry="11" fill="#E8C9B5" opacity="0.45" />
 
-            {/* Small decoration dots */}
-            <circle cx="70" cy="90" r="4" fill="#ff9bc0" className="animate-ping-slow" />
-            <circle cx="105" cy="80" r="3.5" fill="#ff9bc0" className="animate-ping-slow" style={{ animationDelay: '0.3s' }} />
-            <circle cx="132" cy="92" r="3" fill="#ff9bc0" className="animate-ping-slow" style={{ animationDelay: '0.6s' }} />
+              {/* bunny ears */}
+              <path
+                d="M70 52C61 25 69 10 82 17C94 24 91 45 84 62"
+                fill="#FFF8F1"
+                stroke="#704407"
+                strokeWidth="4"
+                strokeLinecap="round"
+              />
+              <path
+                d="M130 52C139 25 131 10 118 17C106 24 109 45 116 62"
+                fill="#FFF8F1"
+                stroke="#704407"
+                strokeWidth="4"
+                strokeLinecap="round"
+              />
+              <path d="M76 26C73 36 76 46 81 54" stroke="#FFB7C8" strokeWidth="6" strokeLinecap="round" />
+              <path d="M124 26C127 36 124 46 119 54" stroke="#FFB7C8" strokeWidth="6" strokeLinecap="round" />
 
-            {/* Cherry on top */}
-            <circle cx="100" cy="46" r="12" fill="#f3507d" className="animate-float" />
-            <ellipse cx="100" cy="42" rx="5" ry="3" fill="rgba(255,255,255,0.3)" />
-            {/* Cherry stem */}
-            <path
-              d="M100 34 C100 26 106 18 114 14"
-              stroke="#8b6130"
-              strokeWidth="3"
-              strokeLinecap="round"
-              className="animate-sway"
-            />
-            {/* Cherry leaf */}
-            <path
-              d="M110 16 C116 12 122 14 120 20 C118 24 112 24 110 20 Z"
-              fill="#7cb342"
-            />
+              {/* bunny face */}
+              <circle cx="100" cy="84" r="42" fill="#FFF8F1" stroke="#704407" strokeWidth="4" />
+              <circle cx="84" cy="84" r="5" fill="#704407" />
+              <circle cx="116" cy="84" r="5" fill="#704407" />
+              <circle cx="86" cy="82" r="1.5" fill="white" />
+              <circle cx="118" cy="82" r="1.5" fill="white" />
+              <ellipse cx="76" cy="95" rx="8" ry="5" fill="#FFB7C8" opacity="0.7" />
+              <ellipse cx="124" cy="95" rx="8" ry="5" fill="#FFB7C8" opacity="0.7" />
+              <path d="M98 96C100 99 102 99 104 96" stroke="#704407" strokeWidth="3" strokeLinecap="round" />
+              <path d="M100 92V96" stroke="#704407" strokeWidth="3" strokeLinecap="round" />
 
-            {/* Eyes on cupcake */}
-            <ellipse cx="82" cy="78" rx="4" ry="5" fill="#704407" />
-            <ellipse cx="118" cy="78" rx="4" ry="5" fill="#704407" />
-            <circle cx="83" cy="76" r="1.5" fill="white" />
-            <circle cx="119" cy="76" r="1.5" fill="white" />
+              {/* bow */}
+              <circle cx="100" cy="44" r="5" fill="#F75D86" />
+              <path d="M95 44C82 35 76 42 81 51C87 57 94 50 95 44Z" fill="#FF9FBA" stroke="#704407" strokeWidth="3" />
+              <path d="M105 44C118 35 124 42 119 51C113 57 106 50 105 44Z" fill="#FF9FBA" stroke="#704407" strokeWidth="3" />
 
-            {/* Blush */}
-            <ellipse cx="72" cy="86" rx="6" ry="3" fill="#ff9bc0" opacity="0.6" />
-            <ellipse cx="128" cy="86" rx="6" ry="3" fill="#ff9bc0" opacity="0.6" />
+              {/* cupcake body */}
+              <path
+                d="M58 126C58 113 68 105 81 108C88 96 112 96 119 108C132 105 142 113 142 126C142 136 134 140 124 138H76C66 140 58 136 58 126Z"
+                fill="#FFD9B3"
+                stroke="#704407"
+                strokeWidth="4"
+              />
+              <path
+                d="M70 137H130L123 166C121 173 79 173 77 166L70 137Z"
+                fill="#F75D86"
+                stroke="#704407"
+                strokeWidth="4"
+                strokeLinejoin="round"
+              />
+              <path d="M84 142L86 164" stroke="#D94874" strokeWidth="3" strokeLinecap="round" />
+              <path d="M100 140V167" stroke="#D94874" strokeWidth="3" strokeLinecap="round" />
+              <path d="M116 142L114 164" stroke="#D94874" strokeWidth="3" strokeLinecap="round" />
 
-            {/* Sparkles */}
-            <g className="animate-sparkle" opacity="0.7">
-              <path d="M38 60 L44 60 M41 57 L41 63" stroke="#f75d86" strokeWidth="2.5" strokeLinecap="round" />
-            </g>
-            <g className="animate-sparkle" style={{ animationDelay: '0.5s' }} opacity="0.7">
-              <path d="M155 52 L161 52 M158 49 L158 55" stroke="#f75d86" strokeWidth="2.5" strokeLinecap="round" />
-            </g>
-            <g className="animate-sparkle" style={{ animationDelay: '1s' }} opacity="0.7">
-              <path d="M170 85 L178 85 M174 81 L174 89" stroke="#f75d86" strokeWidth="2.5" strokeLinecap="round" />
-            </g>
-          </svg>
-        </div>
+              {/* heart */}
+              <path
+                className="animate-heart-beat"
+                d="M100 125C94 118 84 120 84 129C84 139 100 146 100 146C100 146 116 139 116 129C116 120 106 118 100 125Z"
+                fill="#FF6F9D"
+              />
 
-        {/* Loading text */}
-        <div className="flex flex-col items-center gap-3">
-          <h2
-            className="text-3xl font-bold tracking-wide"
-            style={{ color: '#704407', fontFamily: '"Milkshake", "Comic Sans MS", cursive' }}
-          >
-            Sweet Charm
-          </h2>
-          <div className="flex items-center gap-1.5">
-            <span
-              className="inline-block h-2.5 w-2.5 animate-bounce rounded-full"
-              style={{ backgroundColor: '#f75d86', animationDelay: '0s' }}
-            />
-            <span
-              className="inline-block h-2.5 w-2.5 animate-bounce rounded-full"
-              style={{ backgroundColor: '#f75d86', animationDelay: '0.15s' }}
-            />
-            <span
-              className="inline-block h-2.5 w-2.5 animate-bounce rounded-full"
-              style={{ backgroundColor: '#f75d86', animationDelay: '0.3s' }}
-            />
+              {/* sparkles */}
+              <path className="animate-sparkle" d="M43 70L49 70M46 67L46 73" stroke="#F75D86" strokeWidth="3" strokeLinecap="round" />
+              <path className="animate-sparkle-delayed" d="M153 62L161 62M157 58L157 66" stroke="#F6B04B" strokeWidth="3" strokeLinecap="round" />
+              <circle className="animate-dot" cx="151" cy="105" r="3" fill="#F75D86" opacity="0.6" />
+            </svg>
           </div>
-          <p
-            className="text-sm font-semibold tracking-[0.25em]"
-            style={{ color: '#8b6130' }}
-          >
-            LOADING
-          </p>
-        </div>
 
-        {/* Progress bar */}
-        <div className="relative w-full max-w-[220px]">
-          <div
-            className="relative h-2.5 overflow-hidden rounded-full shadow-inner"
-            style={{ backgroundColor: '#f0dfcf' }}
+          <h2
+            className="text-4xl font-bold tracking-wide text-[#704407]"
+            style={{ fontFamily: '"Milkshake", "Comic Sans MS", cursive' }}
           >
-            <div
-              className="h-full w-full origin-left animate-loading-bar rounded-full"
-              style={{ backgroundColor: '#f75d86' }}
-            />
+            SweetCharm
+          </h2>
+
+          <p className="mt-2 text-sm font-medium tracking-[0.22em] text-[#B07A4A]">
+            PREPARING SOMETHING SWEET
+          </p>
+
+          {/* Progress */}
+          <div className="mx-auto mt-8 w-full max-w-[260px]">
+            <div className="relative h-3 overflow-hidden rounded-full bg-[#F0DFCF] shadow-inner">
+              <div className="absolute inset-y-0 left-0 animate-loading-ribbon rounded-full bg-gradient-to-r from-[#F75D86] via-[#FFB067] to-[#F75D86]" />
+              <div className="absolute inset-0 animate-shimmer bg-gradient-to-r from-transparent via-white/45 to-transparent" />
+            </div>
+
+            <div className="mt-4 flex justify-center gap-2">
+              <span className="h-2 w-2 animate-bounce rounded-full bg-[#F75D86]" />
+              <span className="h-2 w-2 animate-bounce rounded-full bg-[#F75D86] [animation-delay:0.15s]" />
+              <span className="h-2 w-2 animate-bounce rounded-full bg-[#F75D86] [animation-delay:0.3s]" />
+            </div>
           </div>
         </div>
       </div>
 
       <style>{`
-        @keyframes bounce-slow {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-12px); }
-        }
-
-        @keyframes pulse-slow {
-          0%, 100% { opacity: 0.9; }
-          50% { opacity: 1; }
-        }
-
-        @keyframes ping-slow {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.5; transform: scale(1.4); }
+        @keyframes bunny-float {
+          0%, 100% { transform: translateY(0) rotate(-1deg); }
+          50% { transform: translateY(-10px) rotate(1deg); }
         }
 
         @keyframes float {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-4px); }
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          50% { transform: translateY(-16px) rotate(8deg); }
         }
 
-        @keyframes sway {
-          0%, 100% { transform: rotate(-3deg); }
-          50% { transform: rotate(3deg); }
+        @keyframes soft-pulse {
+          0%, 100% { opacity: 0.6; transform: scale(0.95); }
+          50% { opacity: 1; transform: scale(1.08); }
+        }
+
+        @keyframes spin-slow {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+
+        @keyframes heart-beat {
+          0%, 100% { transform: scale(1); transform-origin: center; }
+          50% { transform: scale(1.12); transform-origin: center; }
         }
 
         @keyframes sparkle {
-          0%, 100% { opacity: 0.4; transform: scale(0.8); }
-          50% { opacity: 1; transform: scale(1.2); }
+          0%, 100% { opacity: 0.25; transform: scale(0.85); }
+          50% { opacity: 1; transform: scale(1.25); }
         }
 
-        @keyframes loading-bar {
-          0% { transform: scaleX(0); }
-          40% { transform: scaleX(0.4); }
-          70% { transform: scaleX(0.85); }
-          100% { transform: scaleX(1); }
+        @keyframes dot {
+          0%, 100% { opacity: 0.3; transform: translateY(0); }
+          50% { opacity: 1; transform: translateY(-5px); }
         }
 
-        .animate-bounce-slow {
-          animation: bounce-slow 2s ease-in-out infinite;
+        @keyframes loading-ribbon {
+          0% { width: 0%; }
+          45% { width: 55%; }
+          75% { width: 88%; }
+          100% { width: 100%; }
         }
 
-        .animate-pulse-slow {
-          animation: pulse-slow 2s ease-in-out infinite;
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
         }
 
-        .animate-ping-slow {
-          animation: ping-slow 1.8s ease-in-out infinite;
+        .animate-bunny-float {
+          animation: bunny-float 2.6s ease-in-out infinite;
         }
 
         .animate-float {
-          animation: float 1.6s ease-in-out infinite;
+          animation: float 4s ease-in-out infinite;
         }
 
-        .animate-sway {
-          animation: sway 1.4s ease-in-out infinite;
+        .animate-float-delayed {
+          animation: float 4.8s ease-in-out infinite;
+          animation-delay: .8s;
+        }
+
+        .animate-float-slow {
+          animation: float 6s ease-in-out infinite;
+          animation-delay: .4s;
+        }
+
+        .animate-soft-pulse {
+          animation: soft-pulse 2.2s ease-in-out infinite;
+        }
+
+        .animate-spin-slow {
+          animation: spin-slow 12s linear infinite;
+        }
+
+        .animate-heart-beat {
+          animation: heart-beat 1.4s ease-in-out infinite;
         }
 
         .animate-sparkle {
-          animation: sparkle 1.2s ease-in-out infinite;
+          animation: sparkle 1.6s ease-in-out infinite;
+          transform-origin: center;
         }
 
-        .animate-loading-bar {
-          animation: loading-bar 1.8s ease-in-out infinite;
-          transform-origin: left;
+        .animate-sparkle-delayed {
+          animation: sparkle 1.6s ease-in-out infinite;
+          animation-delay: .55s;
+          transform-origin: center;
+        }
+
+        .animate-dot {
+          animation: dot 1.8s ease-in-out infinite;
+        }
+
+        .animate-loading-ribbon {
+          animation: loading-ribbon 2s ease-in-out infinite;
+        }
+
+        .animate-shimmer {
+          animation: shimmer 1.5s linear infinite;
         }
       `}</style>
     </div>

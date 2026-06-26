@@ -291,7 +291,7 @@ export default function OrdersPanel() {
   );
 
   return (
-    <section className="rounded-3xl border border-white/50 bg-white/90 p-6 shadow-[0_8px_32px_rgba(175,117,60,0.08)] backdrop-blur-sm md:p-8">
+    <section className="rounded-2xl border border-white/50 bg-white/90 p-4 shadow-[0_8px_32px_rgba(175,117,60,0.08)] backdrop-blur-sm sm:rounded-3xl sm:p-6 md:p-8">
       <SectionHeader
         icon={<HiMiniShoppingBag className="h-4 w-4" />}
         title="My Orders"
@@ -305,7 +305,7 @@ export default function OrdersPanel() {
       ) : (
         <div className="space-y-5">
           {/* Mini stats bar */}
-          <div className="flex flex-wrap items-center gap-4 rounded-2xl bg-[#FFF8F0] px-5 py-3 text-sm shadow-sm">
+          <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-[#FFF8F0] px-4 py-2.5 text-sm shadow-sm">
             <span className="flex items-center gap-2 font-semibold text-[#6C410C]">
               <HiMiniShoppingBag className="h-4 w-4 text-[#F25D88]" />
               {orders.length} {orders.length === 1 ? "order" : "orders"}
@@ -344,7 +344,7 @@ export default function OrdersPanel() {
                   className={`absolute bottom-0 left-0 top-1 hidden w-1 rounded-bl-2xl md:block ${status.accent.replace("border-l-", "bg-") || "bg-[#F25D88]/30"}`}
                 />
 
-                <div className="p-5 md:p-6">
+                <div className="p-4 md:p-5 lg:p-6">
                   {/* ── Header ── */}
                   <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                     <div className="flex-1">
@@ -416,7 +416,7 @@ export default function OrdersPanel() {
                       type="button"
                       onClick={() => repeatOrderMutation.mutate(order.id)}
                       disabled={repeatOrderMutation.isPending}
-                      className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#F25D88] to-[#F47A9D] px-5 py-2.5 text-sm font-bold text-white shadow-md transition-all duration-200 hover:from-[#D94874] hover:to-[#F25D88] hover:shadow-lg active:scale-[0.97] disabled:opacity-50 disabled:hover:from-[#F25D88] disabled:hover:to-[#F47A9D]"
+                      className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#F25D88] to-[#F47A9D] px-4 py-2 text-sm font-bold text-white shadow-md transition-all duration-200 hover:from-[#D94874] hover:to-[#F25D88] hover:shadow-lg active:scale-[0.97] disabled:opacity-50 disabled:hover:from-[#F25D88] disabled:hover:to-[#F47A9D]"
                     >
                       {repeatOrderMutation.isPending ? (
                         <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
@@ -431,7 +431,7 @@ export default function OrdersPanel() {
                         type="button"
                         onClick={() => cancelOrderMutation.mutate(order.id)}
                         disabled={cancelOrderMutation.isPending}
-                        className="inline-flex items-center gap-2 rounded-xl border-2 border-[#FFD6DE] bg-white px-5 py-2.5 text-sm font-bold text-[#F25D88] shadow-sm transition-all duration-200 hover:border-[#F25D88] hover:bg-[#FFF4F7] hover:shadow-md active:scale-[0.97] disabled:opacity-50"
+                        className="inline-flex items-center gap-2 rounded-xl border-2 border-[#FFD6DE] bg-white px-4 py-2 text-sm font-bold text-[#F25D88] shadow-sm transition-all duration-200 hover:border-[#F25D88] hover:bg-[#FFF4F7] hover:shadow-md active:scale-[0.97] disabled:opacity-50"
                       >
                         {cancelOrderMutation.isPending ? (
                           <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#F25D88] border-t-transparent" />

@@ -57,7 +57,6 @@ const accentStyles = {
   },
 } as const;
 
-/* ─── floating particle config ─── */
 const PARTICLES = [
   { char: "✦", size: 20, delay: 0, duration: 8, x: 5, y: 8 },
   { char: "✧", size: 16, delay: 0.6, duration: 9, x: 88, y: 14 },
@@ -71,7 +70,7 @@ const PARTICLES = [
   { char: "♥", size: 12, delay: 2.5, duration: 8.2, x: 60, y: 78 },
 ];
 
-/* ─── decorative sparkle line ─── */
+
 function SparkleLine({ color }: { color: string }) {
   return (
     <span className="inline-flex items-center gap-1.5">
@@ -113,6 +112,7 @@ function FloatingParticles({ palette }: { palette: (typeof accentStyles)[keyof t
 /* ─── action button ─── */
 function ActionButton({ action }: { action: ErrorAction }) {
   const isSecondary = action.variant === "secondary";
+  const buttonStyle = isSecondary ? undefined : { color: "var(--color-surface)" };
 
   const classes = isSecondary
     ? [
@@ -125,7 +125,7 @@ function ActionButton({ action }: { action: ErrorAction }) {
       ].join(" ")
     : [
         "relative overflow-hidden",
-        "bg-gradient-to-r from-[#FF8BA6] to-[#F56D92] text-white",
+        "bg-gradient-to-r from-[#FF8BA6] to-[#F56D92]",
         "shadow-[0_12px_28px_rgba(245,109,146,0.28)]",
         "hover:-translate-y-0.5 hover:shadow-[0_18px_40px_rgba(245,109,146,0.35)]",
         "active:translate-y-0 active:scale-[0.97]",
@@ -138,7 +138,7 @@ function ActionButton({ action }: { action: ErrorAction }) {
 
   if (action.to?.startsWith("mailto:")) {
     return (
-      <a href={action.to} className={shared}>
+      <a href={action.to} className={shared} style={buttonStyle}>
         <span className="relative z-10">{action.label}</span>
       </a>
     );
@@ -146,14 +146,14 @@ function ActionButton({ action }: { action: ErrorAction }) {
 
   if (action.to) {
     return (
-      <Link to={action.to} className={shared}>
+      <Link to={action.to} className={shared} style={buttonStyle}>
         <span className="relative z-10">{action.label}</span>
       </Link>
     );
   }
 
   return (
-    <button type="button" onClick={action.onClick} className={shared}>
+    <button type="button" onClick={action.onClick} className={shared} style={buttonStyle}>
       <span className="relative z-10">{action.label}</span>
     </button>
   );
@@ -337,6 +337,7 @@ function ErrorPageShell({
                   style={{ background: `radial-gradient(ellipse at center, ${palette.star}, transparent 70%)` }}
                 />
                 <img
+                loading="lazy"
                   src={imageSrc}
                   alt={imageAlt}
                   className="relative max-h-[62vh] w-full max-w-[560px] object-contain drop-shadow-[0_30px_60px_rgba(160,106,56,0.14)] transition-transform duration-500 hover:scale-[1.02] lg:max-h-[76vh]"

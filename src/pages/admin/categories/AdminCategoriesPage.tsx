@@ -352,7 +352,7 @@ export default function AdminCategoriesPage() {
                       <div className="flex items-center gap-4">
                         <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-[20px] bg-[#FFF2F4] shadow-[0_10px_20px_rgba(224,197,166,0.18)]">
                           {category.image ? (
-                            <img src={category.image} alt={category.name} className="h-full w-full object-cover" />
+                            <img loading="lazy" src={category.image} alt={category.name} className="h-full w-full object-cover" />
                           ) : (
                             <span className="text-lg font-black text-[#F25D88]">{category.name.slice(0, 1)}</span>
                           )}
@@ -448,7 +448,7 @@ export default function AdminCategoriesPage() {
               <article key={category.id} className="rounded-[28px] border border-[#F2E1D2] bg-[#FFF9F3] p-4 shadow-[0_18px_40px_rgba(229,205,178,0.18)]">
                 <div className="flex items-start gap-4">
                   <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-[22px] bg-white">
-                    {category.image ? <img src={category.image} alt={category.name} className="h-full w-full object-cover" /> : null}
+                    {category.image ? <img loading="lazy" src={category.image} alt={category.name} className="h-full w-full object-cover" /> : null}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">

@@ -105,7 +105,7 @@ function OrderNowSection() {
         </div>
 
         {/* Content */}
-        <div className="absolute inset-y-0 left-0 flex w-full items-center justify-center px-6 sm:px-10 lg:w-[47%] lg:px-16">
+        <div className="absolute inset-y-0 left-0 flex w-full items-center justify-center px-4 sm:px-10 lg:w-[47%] lg:px-16">
           <div className="flex max-w-[470px] flex-col items-center text-center">
             {/* Decorative line above title */}
             <div

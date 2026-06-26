@@ -118,7 +118,7 @@ function BestSellerCard({
             src={dessert.image_url ?? ""}
             alt={dessert.name}
             loading="lazy"
-            className="h-[260px] w-full object-cover transition-all duration-700 ease-out"
+            className="h-[200px] w-full object-cover transition-all duration-700 ease-out sm:h-[260px]"
             style={{
               transform: isHovered ? "scale(1.08)" : "scale(1)",
               filter: isHovered ? "brightness(1.05) saturate(1.1)" : "brightness(1) saturate(1)",

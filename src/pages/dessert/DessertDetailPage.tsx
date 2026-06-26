@@ -150,6 +150,7 @@ function RelatedDessertCard({
       <div className="relative h-44 overflow-hidden bg-[#FFF4EA]">
         {!imgLoaded && <div className="absolute inset-0 shimmer-bg" />}
         <img
+          loading="lazy"
           src={image}
           alt={dessert.name}
           onLoad={() => setImgLoaded(true)}
@@ -242,7 +243,7 @@ function ReviewCard({ review, index }: { review: DessertReview; index: number })
       <div className="flex items-start gap-3">
         <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-[#FFE8EF] to-[#FFF5E1] text-xs font-bold text-[#6B3E06] shadow-sm transition-transform duration-300 group-hover:scale-110">
           {review.avatar ? (
-            <img src={review.avatar} alt={review.customer_name} className="h-full w-full object-cover" />
+            <img loading="lazy" src={review.avatar} alt={review.customer_name} className="h-full w-full object-cover" />
           ) : (
             <span className="relative z-10">{getInitials(review.customer_name)}</span>
           )}
@@ -500,6 +501,7 @@ export default function DessertDetailPage() {
                   {!imgLoaded && <div className="absolute inset-0 shimmer-bg" />}
                   {galleryImages.length > 0 ? (
                     <img
+                    loading="lazy"
                       src={galleryImages[selectedImage] ?? galleryImages[0]}
                       alt={dessert.name}
                       onLoad={() => setImgLoaded(true)}
@@ -584,6 +586,7 @@ export default function DessertDetailPage() {
                         aria-label={`Show image ${index + 1} for ${dessert.name}`}
                       >
                         <img
+                        loading="lazy"
                           src={image}
                           alt={`${dessert.name} preview ${index + 1}`}
                           className="h-16 w-24 rounded-[14px] object-cover transition-all duration-300 group-hover/thumb:scale-110 sm:h-20 sm:w-28"
@@ -625,6 +628,7 @@ export default function DessertDetailPage() {
                       </h1>
                     </div>
                     <img
+                    loading="lazy"
                       src={bunnyCupcake}
                       alt="Sweet bunny cupcake"
                       className="hidden h-24 w-24 object-contain drop-shadow-[0_10px_20px_rgba(175,117,60,0.14)] transition-transform duration-500 hover:scale-110 hover:rotate-3 lg:block animate-float-delayed"

@@ -74,7 +74,7 @@ function LimitedOfferBanner() {
             </div>
 
             {/* Dots indicator */}
-            <div className="absolute right-6 top-6 flex gap-1.5">
+            <div className="absolute right-6 top-6 flex gap-1.5 max-[480px]:hidden">
               {offers.map((_, i) => (
                 <button
                   key={i}
@@ -94,13 +94,13 @@ function LimitedOfferBanner() {
             <button
               type="button"
               onClick={() => setDismissed(true)}
-              className="absolute right-6 top-14 flex h-8 w-8 items-center justify-center rounded-full bg-[#F0DDBE]/50 text-[#8F6A2F]/60 transition-all duration-300 hover:bg-[#F0DDBE] hover:text-[#68400A]"
+              className="absolute right-4 top-4 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-[#F0DDBE]/70 text-[#8F6A2F]/80 transition-all duration-300 hover:bg-[#F0DDBE] hover:text-[#68400A] sm:right-6 sm:top-14"
               aria-label="Dismiss banner"
             >
               <HiMiniXMark className="h-4 w-4" />
             </button>
 
-            <div className="flex flex-col items-center gap-6 sm:flex-row sm:gap-8">
+            <div className="flex flex-col items-center gap-5 sm:flex-row sm:gap-8">
               {/* Icon */}
               <div className="relative shrink-0">
                 <div className={`flex h-20 w-20 items-center justify-center rounded-[24px] bg-gradient-to-br ${offer.gradient} text-white shadow-lg`}>
@@ -110,17 +110,17 @@ function LimitedOfferBanner() {
               </div>
 
               {/* Content */}
-              <div className="flex-1 text-center sm:text-left">
+              <div className="flex-1 text-center sm:text-left max-[480px]:px-0">
                 <div className="inline-flex items-center gap-2 rounded-full bg-[#F86B87]/10 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.15em] text-[#F86B87]">
                   <HiMiniSparkles className="h-3 w-3" />
                   Limited Offer
                   <HiMiniSparkles className="h-3 w-3" />
                 </div>
-                <h3 className="mt-3 font-['Milkshake','Cooper_Black','Comic_Sans_MS',cursive] text-[clamp(1.8rem,3.5vw,2.8rem)] leading-[1.1] text-[#68400A]">
+                  <h3 className="mt-2 font-['Milkshake','Cooper_Black','Comic_Sans_MS',cursive] text-[clamp(1.5rem,3.5vw,2.8rem)] leading-[1.1] text-[#68400A] sm:mt-3">
                   {offer.description}
                 </h3>
-                <div className="mt-3 flex flex-wrap items-center justify-center gap-3 sm:justify-start">
-                  <span className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#F86B87] to-[#FA94A9] px-5 py-2 text-[15px] font-bold tracking-wider text-white shadow-[0_4px_12px_rgba(248,107,135,0.3)]">
+                <div className="mt-2 flex flex-wrap items-center justify-center gap-2 sm:mt-3 sm:gap-3">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#F86B87] to-[#FA94A9] px-4 py-1.5 text-[13px] font-bold tracking-wider text-white shadow-[0_4px_12px_rgba(248,107,135,0.3)] sm:px-5 sm:py-2 sm:text-[15px]">
                     Use code: {offer.code}
                   </span>
                   <span className="text-[14px] text-[#8F6A2F]/70">

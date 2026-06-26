@@ -218,7 +218,7 @@ function BirthdayGreetingModal({ enabled }: BirthdayGreetingModalProps) {
           ))}
 
           {/* main greeting card */}
-          <div className="relative flex flex-col overflow-hidden rounded-[32px] border border-white/80 bg-[#FFFCFA] shadow-[0_32px_100px_rgba(60,30,6,0.22)] sm:flex-row sm:items-stretch">
+          <div className="relative flex flex-col overflow-hidden rounded-[24px] border border-white/80 bg-[#FFFCFA] shadow-[0_32px_100px_rgba(60,30,6,0.22)] sm:flex-row sm:items-stretch sm:rounded-[32px]">
             {/* sparkle dots inside card */}
             <SparkleDot top="6%" left="8%" delay={0} color="#F5B33F" />
             <SparkleDot top="10%" left="75%" delay={0.5} color="#FF8BA6" />
@@ -236,7 +236,7 @@ function BirthdayGreetingModal({ enabled }: BirthdayGreetingModalProps) {
             </button>
 
             {/* ---------- LEFT: content ---------- */}
-            <div className="relative flex flex-col justify-center px-6 pb-8 pt-12 sm:w-1/2 sm:px-7 sm:pb-8 sm:pt-10">
+            <div className="relative flex flex-col justify-center px-5 pb-6 pt-10 sm:w-1/2 sm:px-7 sm:pb-8 sm:pt-10">
               {/* badge */}
               <div className="inline-flex w-fit items-center gap-2 rounded-full bg-gradient-to-r from-[#FFF0F4] to-[#FFE8EF] px-4 py-[7px] shadow-[0_4px_12px_rgba(242,93,136,0.08)]">
                 <HiMiniGift className="h-4 w-4 text-[#F25D88]" />
@@ -316,7 +316,7 @@ function BirthdayGreetingModal({ enabled }: BirthdayGreetingModalProps) {
             </div>
 
             {/* ---------- RIGHT: image section ---------- */}
-            <div className="relative flex items-center justify-center overflow-hidden bg-[radial-gradient(ellipse_at_center,rgba(255,225,235,0.55),rgba(255,245,240,0.92)_70%)] px-4 pb-6 pt-4 sm:w-1/2 sm:pb-0 sm:pt-0">
+            <div className="relative flex items-center justify-center overflow-hidden bg-[radial-gradient(ellipse_at_center,rgba(255,225,235,0.55),rgba(255,245,240,0.92)_70%)] px-4 pb-4 pt-2 sm:w-1/2 sm:pb-0 sm:pt-0">
               {/* decorative shimmer line */}
               <div
                 className="pointer-events-none absolute inset-y-0 right-0 w-[3px]"
@@ -330,6 +330,7 @@ function BirthdayGreetingModal({ enabled }: BirthdayGreetingModalProps) {
 
               {/* greeting card image */}
               <img
+              loading="lazy"
                 src={greetingCard}
                 alt="Sweet Charm birthday greeting card"
                 className="relative z-10 w-full max-w-[280px] object-contain drop-shadow-[0_18px_36px_rgba(144,88,33,0.18)] sm:max-w-[340px]"

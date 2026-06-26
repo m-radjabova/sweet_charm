@@ -469,6 +469,7 @@ function DesktopTable({
                   <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-[#FF7E9F] to-[#F25D88] text-sm font-black text-white shadow-md">
                     {customer.avatar ? (
                       <img
+                      loading="lazy"
                         src={customer.avatar}
                         alt={customer.full_name}
                         className="h-full w-full object-cover"
@@ -581,6 +582,7 @@ function MobileCards({
             <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-[#FF7E9F] to-[#F25D88] text-sm font-black text-white shadow-md">
               {customer.avatar ? (
                 <img
+                  loading="lazy"
                   src={customer.avatar}
                   alt={customer.full_name}
                   className="h-full w-full object-cover"

@@ -45,9 +45,9 @@ export default function SettingsPanel({
   const isBirthdayMissing = !profileForm.birthday;
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+    <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
       {/* Personal Information */}
-      <section className="rounded-3xl border border-white/60 bg-white/95 p-6 shadow-[0_8px_32px_rgba(175,117,60,0.08)]">
+      <section className="rounded-2xl border border-white/60 bg-white/95 p-4 shadow-[0_8px_32px_rgba(175,117,60,0.08)] sm:rounded-3xl sm:p-6">
         <SectionHeader
           icon={<HiMiniUser className="h-4 w-4" />}
           title="Personal Information"
@@ -136,7 +136,7 @@ export default function SettingsPanel({
       </section>
 
       {/* Security */}
-      <section className="rounded-3xl border border-white/60 bg-white/95 p-6 shadow-[0_8px_32px_rgba(175,117,60,0.08)]">
+      <section className="rounded-2xl border border-white/60 bg-white/95 p-4 shadow-[0_8px_32px_rgba(175,117,60,0.08)] sm:rounded-3xl sm:p-6">
         <SectionHeader
           icon={<HiMiniKey className="h-4 w-4" />}
           title="Security"

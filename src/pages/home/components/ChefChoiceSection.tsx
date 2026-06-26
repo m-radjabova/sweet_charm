@@ -235,7 +235,7 @@ function ChefChoiceSection() {
         </div>
 
         {/* ========== right column (image) ========== */}
-        <div className="relative flex min-h-[360px] items-end justify-center overflow-hidden px-5 pb-6 pt-2 sm:min-h-[460px] sm:px-10 lg:min-h-full lg:pb-10">
+        <div className="relative flex min-h-[240px] items-end justify-center overflow-hidden px-4 pb-4 pt-2 sm:min-h-[460px] sm:px-10 lg:min-h-full lg:pb-10">
           {/* ---- glow behind image ---- */}
           <div
             className="absolute inset-x-[8%] bottom-8 h-20 animate-[glowPulse_4s_ease-in-out_infinite] rounded-full"
@@ -270,6 +270,7 @@ function ChefChoiceSection() {
             </span>
 
             <img
+            loading="lazy"
               src={dessert.image_url ?? ""}
               alt={dessert.name}
               className="w-full max-w-[520px] rounded-[28px] object-cover shadow-[0_20px_40px_rgba(149,91,28,0.12)] transition-all duration-700 hover:scale-[1.02] lg:max-h-[620px]"

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { HiMiniBars3BottomLeft } from "react-icons/hi2";
 import { toast } from "react-toastify";
 import { getMyAddresses, getMyOrders, getMyRewards } from "../../api/account";
 import { getErrorMessage } from "../../api/auth";
@@ -39,6 +40,7 @@ function ProfilePage() {
   } = useContextPro();
 
   const [activeTab, setActiveTab] = useState<ProfileTab>("dashboard");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileForm, setProfileForm] = useState<ProfileFormState>({
     full_name: "",
     email: "",
@@ -71,6 +73,13 @@ function ProfilePage() {
   const memberTier = rewardsQuery.data?.current_level.name ?? deriveTier(sweetPoints);
   const isAdmin = profile?.role === "admin";
   const avatarBusy = false;
+
+  useEffect(() => {
+    document.body.style.overflow = sidebarOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [sidebarOpen]);
 
   useEffect(() => {
     setProfileForm({
@@ -235,15 +244,44 @@ function ProfilePage() {
         backgroundImage: `linear-gradient(135deg, rgba(255,250,244,0.85), rgba(255,247,237,0.92)), url(${profileBackground})`,
       }}
     >
-      <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-4 px-3 py-3 sm:px-4 lg:px-5 xl:flex-row xl:py-4">
+      <style>{`
+        @keyframes slideInLeft {
+          from { transform: translateX(-18px); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+      `}</style>
+
+      <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-3 px-3 py-3 sm:px-4 sm:gap-4 lg:px-5 xl:flex-row xl:py-4">
         <ProfileSidebar
           activeTab={activeTab}
           isAdmin={Boolean(isAdmin)}
+          isOpen={sidebarOpen}
           onTabChange={setActiveTab}
           onLogout={() => void logout()}
+          onClose={() => setSidebarOpen(false)}
         />
 
-        <section className="flex-1 space-y-4">
+        <section className="min-w-0 flex-1 space-y-4">
+          <div className="xl:hidden">
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(true)}
+              className="flex w-full items-center justify-between rounded-[22px] border border-white/70 bg-white/92 px-4 py-3.5 text-left shadow-[0_10px_30px_rgba(175,117,60,0.10)] backdrop-blur-xl transition-all duration-200 active:scale-[0.99]"
+            >
+              <span>
+                <span className="block text-[11px] font-bold uppercase tracking-[0.18em] text-[#C28564]">
+                  Navigation
+                </span>
+                <span className="mt-1 block text-[1rem] font-semibold text-[#5C3805]">
+                  Open profile menu
+                </span>
+              </span>
+              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-[#FFF0F3] to-[#FFF6E8] text-[#F25D88] shadow-sm">
+                <HiMiniBars3BottomLeft className="h-5 w-5" />
+              </span>
+            </button>
+          </div>
+
           <ProfileTopbar profile={profile} memberTier={memberTier} isAdmin={Boolean(isAdmin)} />
           {activeTab === "dashboard" ? (
             <ProfileHero

@@ -90,7 +90,7 @@ function ImagePreviewModal({ src, alt, onClose }: { src: string; alt: string; on
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
       <div className="mx-4 max-h-[80vh] max-w-3xl overflow-hidden rounded-[28px] bg-white p-2 shadow-[0_40px_80px_rgba(0,0,0,0.3)]" onClick={(e) => e.stopPropagation()}>
-        <img src={src} alt={alt} className="max-h-[70vh] w-full rounded-[20px] object-contain" />
+        <img loading="lazy" src={src} alt={alt} className="max-h-[70vh] w-full rounded-[20px] object-contain" />
         <button
           onClick={onClose}
           className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-[#5E3906] backdrop-blur transition hover:bg-white"
@@ -476,7 +476,7 @@ export default function AdminDessertsPage() {
                             <div className="group/img relative h-16 w-16 shrink-0 overflow-hidden rounded-[20px] bg-[#FFF2F4] shadow-[0_8px_16px_rgba(224,197,166,0.18)] transition-all duration-300 hover:shadow-[0_12px_24px_rgba(224,197,166,0.3)]">
                               {dessert.image_url ? (
                                 <>
-                                  <img src={dessert.image_url} alt={dessert.name} className="h-full w-full object-cover transition-all duration-500 group-hover/img:scale-110" />
+                                  <img loading="lazy" src={dessert.image_url} alt={dessert.name} className="h-full w-full object-cover transition-all duration-500 group-hover/img:scale-110" />
                                   <button
                                     onClick={() => setPreviewImage({ src: dessert.image_url!, alt: dessert.name })}
                                     className="absolute inset-0 flex items-center justify-center bg-black/0 text-white/0 transition-all duration-300 hover:bg-black/30 hover:text-white"
@@ -649,7 +649,7 @@ export default function AdminDessertsPage() {
                       <div className="group/img relative h-44 overflow-hidden bg-[#FFF2F4]">
                         {dessert.image_url ? (
                           <>
-                            <img src={dessert.image_url} alt={dessert.name} className="h-full w-full object-cover transition-all duration-700 group-hover/card:scale-110" />
+                            <img loading="lazy" src={dessert.image_url} alt={dessert.name} className="h-full w-full object-cover transition-all duration-700 group-hover/card:scale-110" />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 transition-all duration-300 group-hover/card:opacity-100" />
                           </>
                         ) : (
@@ -814,7 +814,7 @@ export default function AdminDessertsPage() {
                   <div className="flex items-start gap-4 p-4">
                     <div className="group/img relative h-20 w-20 shrink-0 overflow-hidden rounded-[22px] bg-white shadow-[0_8px_16px_rgba(224,197,166,0.12)]">
                       {dessert.image_url ? (
-                        <img src={dessert.image_url} alt={dessert.name} className="h-full w-full object-cover transition-all duration-500 group-hover/img:scale-110" />
+                        <img loading="lazy" src={dessert.image_url} alt={dessert.name} className="h-full w-full object-cover transition-all duration-500 group-hover/img:scale-110" />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center text-lg font-black text-[#F25D88]">
                           {dessert.name.slice(0, 1)}

@@ -147,7 +147,7 @@ function FaqSection() {
         </div>
 
         {/* ===== FAQ ACCORDION LIST ===== */}
-        <div className="mt-12 space-y-6 sm:mt-14 lg:mt-16">
+        <div className="mt-10 space-y-4 sm:mt-14 sm:space-y-6 lg:mt-16">
           {faqs.map((item, index) => {
             const isOpen = activeIndex === index;
             return (

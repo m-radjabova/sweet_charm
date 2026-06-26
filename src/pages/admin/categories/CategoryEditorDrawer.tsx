@@ -660,6 +660,7 @@ export default function CategoryEditorDrawer({
                   }}
                 >
                   <img
+                  loading="lazy"
                     src={form.image}
                     alt="Category preview"
                     style={{

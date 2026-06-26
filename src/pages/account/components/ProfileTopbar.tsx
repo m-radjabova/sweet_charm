@@ -6,7 +6,6 @@ import {
   HiMiniBell,
   HiMiniCalendarDays,
   HiMiniCheck,
-  HiMiniMagnifyingGlass,
   HiMiniSquares2X2,
   HiMiniTruck,
   HiMiniXMark,
@@ -27,7 +26,6 @@ const READ_COUPON_NOTIFICATIONS_KEY = "sweet_charm_read_coupon_notifications";
 export default function ProfileTopbar({ isAdmin }: Props) {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [readCouponIds, setReadCouponIds] = useState<string[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState("");
   const notificationsRef = useRef<HTMLDivElement>(null);
   const {
     notifications,
@@ -83,44 +81,10 @@ export default function ProfileTopbar({ isAdmin }: Props) {
   }
 
   return (
-    <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-      {/* Search Section */}
-      <div className="relative flex-1">
-        <div className="group relative flex min-h-[52px] items-center rounded-2xl bg-white/95 px-4 shadow-[0_2px_12px_rgba(175,117,60,0.08)] ring-1 ring-[#F5E6D8]/60 transition-all duration-300 focus-within:shadow-[0_4px_20px_rgba(242,93,136,0.12)] focus-within:ring-[#F25D88]/30 hover:shadow-[0_4px_16px_rgba(175,117,60,0.1)]">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#FFF0F5] to-[#FFE8EF] transition-all duration-300 group-focus-within:from-[#F25D88] group-focus-within:to-[#FF6B9D]">
-            <HiMiniMagnifyingGlass className="h-4 w-4 text-[#C9A67E] transition-all duration-300 group-focus-within:text-white" />
-          </div>
-          <input
-            type="text"
-            placeholder="Search desserts..."
-            className="ml-3 w-full border-0 bg-transparent text-sm font-medium text-[#71460B] outline-none placeholder:text-[#C9A67E]/70"
-          />
-
-          {/* Quick filters */}
-          <div className="mr-1 flex items-center gap-1.5">
-            {["Cakes", "Macarons", "Ice cream"].map((item) => (
-              <button
-                key={item}
-                type="button"
-                onClick={() => setSelectedCategory(selectedCategory === item ? "" : item)}
-                className={`hidden whitespace-nowrap rounded-lg px-3 py-1.5 text-[11px] font-bold tracking-wide transition-all duration-200 hover:scale-105 active:scale-95 sm:block ${
-                  selectedCategory === item
-                    ? "bg-gradient-to-r from-[#F25D88] to-[#FF6B9D] text-white shadow-[0_2px_8px_rgba(242,93,136,0.3)]"
-                    : "bg-[#FFF8F1] text-[#9B7045] hover:bg-[#FFF0E6] hover:text-[#71460B]"
-                }`}
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Search suggestions dropdown placeholder */}
-        <div className="pointer-events-none absolute -bottom-1 left-0 right-0 h-2 rounded-b-2xl bg-gradient-to-r from-[#F5E6D8]/30 to-[#F5E6D8]/10 blur-sm" />
-      </div>
+    <div className="flex flex-col gap-3">
 
       {/* Actions */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-end gap-2">
         <Link
           to="/"
           className="hidden h-11 items-center gap-2.5 rounded-xl bg-gradient-to-r from-white/95 to-white/90 px-4 text-sm font-semibold text-[#7F5B30] shadow-[0_2px_8px_rgba(175,117,60,0.08)] ring-1 ring-[#F5E6D8]/50 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(175,117,60,0.12)] active:scale-[0.97] sm:inline-flex"
@@ -144,7 +108,7 @@ export default function ProfileTopbar({ isAdmin }: Props) {
         ) : null}
 
         {/* Notifications */}
-        <div className="relative" ref={notificationsRef}>
+        <div className="relative ml-auto" ref={notificationsRef}>
           <button
             type="button"
             onClick={() => setIsNotificationsOpen((current) => !current)}
@@ -169,7 +133,7 @@ export default function ProfileTopbar({ isAdmin }: Props) {
           </button>
 
           {isNotificationsOpen && (
-            <div className="absolute right-0 top-14 z-50 w-[360px] origin-top-right animate-[slideDown_0.2s_ease-out] rounded-[24px] border border-[#F5E6D8]/80 bg-white/95 p-5 shadow-[0_24px_64px_rgba(92,56,5,0.15)] backdrop-blur-xl">
+            <div className="absolute right-0 top-14 z-50 w-[calc(100vw-2rem)] max-w-[360px] origin-top-right animate-[slideDown_0.2s_ease-out] rounded-[24px] border border-[#F5E6D8]/80 bg-white/95 p-4 shadow-[0_24px_64px_rgba(92,56,5,0.15)] backdrop-blur-xl sm:w-[360px] sm:p-5">
               {/* Header */}
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -205,7 +169,7 @@ export default function ProfileTopbar({ isAdmin }: Props) {
               <div className="my-4 h-px bg-gradient-to-r from-[#F5E6D8]/60 via-[#F5E6D8]/30 to-transparent" />
 
               {/* Coupon list */}
-              <div className="space-y-3 max-h-[320px] overflow-y-auto scrollbar-thin">
+              <div className="space-y-2.5 max-h-[280px] overflow-y-auto scrollbar-thin sm:max-h-[320px] sm:space-y-3">
                 {couponsQuery.isLoading ? (
                   <div className="flex flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-[#FFF8F1] to-[#FFF5EB] px-6 py-10">
                     <div className="flex gap-1.5">
@@ -338,7 +302,6 @@ export default function ProfileTopbar({ isAdmin }: Props) {
         </div>
       </div>
 
-      {/* Animation keyframes */}
       <style>{`
         @keyframes ring {
           0%, 100% { transform: rotate(0deg); }

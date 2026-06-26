@@ -320,32 +320,73 @@ function BestSellingBars({
 function PieRevenueChart({ items }: { items: AdminBreakdownItem[] }) {
   const palette = ["#FF7E9F", "#FFC25C", "#B18CF5", "#76D0A0", "#7ABFFF", "#F29E6E"];
   const safeTotal = Math.max(1, items.reduce((sum, item) => sum + item.value, 0));
+  const featuredItem = items.reduce<AdminBreakdownItem | null>((best, item) => {
+    if (!best || item.value > best.value) return item;
+    return best;
+  }, null);
   let currentAngle = -90;
+
+  if (items.length === 0) {
+    return (
+      <div className="flex min-h-[260px] items-center justify-center rounded-[26px] bg-[#FFF8F1] text-center">
+        <p className="max-w-[220px] text-sm font-semibold leading-6 text-[#B1845D]">
+          Revenue by category will appear here once orders start coming in.
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div className="grid gap-5 lg:grid-cols-[220px_1fr] lg:items-center">
-      <svg viewBox="0 0 220 220" className="mx-auto h-[220px] w-[220px]">
-        {items.map((item, index) => {
-          const angle = (item.value / safeTotal) * 360;
-          const start = polarToCartesian(110, 110, 80, currentAngle);
-          const end = polarToCartesian(110, 110, 80, currentAngle + angle);
-          const largeArcFlag = angle > 180 ? 1 : 0;
-          const d = `M 110 110 L ${start.x} ${start.y} A 80 80 0 ${largeArcFlag} 1 ${end.x} ${end.y} Z`;
-          const color = palette[index % palette.length];
-          currentAngle += angle;
-          return <path key={item.key} d={d} fill={color} opacity="0.96" />;
-        })}
-      </svg>
+    <div className="grid gap-5 lg:grid-cols-[minmax(0,240px)_1fr] lg:items-center">
+      <div className="relative mx-auto flex h-[220px] w-[220px] items-center justify-center sm:h-[240px] sm:w-[240px]">
+        <div className="absolute inset-3 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.96),rgba(255,246,238,0.92)_55%,rgba(255,233,221,0.6)_100%)] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.7)]" />
+        <svg viewBox="0 0 220 220" className="relative z-10 h-[220px] w-[220px] -rotate-90">
+          <circle cx="110" cy="110" r="80" fill="#FFF5EB" />
+          {items.map((item, index) => {
+            const angle = (item.value / safeTotal) * 360;
+            const color = palette[index % palette.length];
+
+            if (angle >= 359.99) {
+              return <circle key={item.key} cx="110" cy="110" r="80" fill={color} opacity="0.96" />;
+            }
+
+            const start = polarToCartesian(110, 110, 80, currentAngle);
+            const end = polarToCartesian(110, 110, 80, currentAngle + angle);
+            const largeArcFlag = angle > 180 ? 1 : 0;
+            const d = `M 110 110 L ${start.x} ${start.y} A 80 80 0 ${largeArcFlag} 1 ${end.x} ${end.y} Z`;
+            currentAngle += angle;
+            return <path key={item.key} d={d} fill={color} opacity="0.96" />;
+          })}
+          <circle cx="110" cy="110" r="48" fill="rgba(255,251,247,0.96)" />
+        </svg>
+
+        <div className="absolute z-20 flex max-w-[120px] flex-col items-center text-center">
+          <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#C5946D]">
+            Featured
+          </span>
+          <span className="mt-1 text-lg font-black leading-tight text-[#5C3805]">
+            {featuredItem?.label ?? "No data"}
+          </span>
+          <span className="mt-2 text-sm font-bold text-[#F25D88]">
+            {featuredItem ? `${Math.round((featuredItem.value / safeTotal) * 100)}%` : ""}
+          </span>
+        </div>
+      </div>
+
       <div className="space-y-3">
         {items.map((item, index) => {
           const color = palette[index % palette.length];
           const percent = Math.round((item.value / safeTotal) * 100);
           return (
-            <div key={item.key} className="flex items-center justify-between gap-3 rounded-2xl bg-[#FFF8F1] px-4 py-3 transition-all duration-300 hover:bg-[#FFF0E3] hover:shadow-sm">
-              <div className="flex items-center gap-3">
-                <span className="h-3.5 w-3.5 rounded-full" style={{ backgroundColor: color }} />
-                <span className="text-sm font-semibold text-[#7E531F]">{item.label}</span>
+            <div key={item.key} className="flex items-center justify-between gap-3 rounded-[22px] bg-[#FFF8F1] px-4 py-3.5 transition-all duration-300 hover:bg-[#FFF0E3] hover:shadow-sm">
+              <div className="min-w-0 flex items-center gap-3">
+                <span className="h-3.5 w-3.5 shrink-0 rounded-full" style={{ backgroundColor: color }} />
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-[#7E531F]">{item.label}</p>
+                  <p className="mt-0.5 text-xs font-medium text-[#B1845D]">{formatMoney(item.value)}</p>
+                </div>
               </div>
-              <span className="text-sm font-bold text-[#4F2C06]">{percent}%</span>
+              <span className="shrink-0 text-sm font-bold text-[#4F2C06]">{percent}%</span>
             </div>
           );
         })}

@@ -167,11 +167,11 @@ export default function DashboardPanel({
   const firstName = profile?.full_name?.split(" ")[0];
 
   return (
-    <div className="grid gap-4 xl:grid-cols-[0.95fr_2fr]">
+    <div className="grid gap-3 xl:grid-cols-[0.95fr_2fr]">
       {/* Left Column */}
       <div className="space-y-4">
         {/* Profile Snapshot */}
-        <section className="rounded-3xl border border-white/60 bg-white/95 p-5 shadow-[0_8px_32px_rgba(175,117,60,0.08)]">
+        <section className="rounded-2xl border border-white/60 bg-white/95 p-4 shadow-[0_8px_32px_rgba(175,117,60,0.08)] sm:rounded-3xl sm:p-5">
           <SectionHeader
             icon={<HiMiniSparkles className="h-4 w-4" />}
             title="Profile Snapshot"
@@ -197,7 +197,7 @@ export default function DashboardPanel({
             </div>
           </div>
 
-          <div className="grid gap-3">
+          <div className="grid gap-2.5 sm:gap-3">
             <InfoRow icon={HiMiniUser} label="Full Name" value={profile?.full_name ?? "Sweet guest"} />
             <InfoRow icon={HiMiniEnvelope} label="Email" value={profile?.email ?? "hello@sweetcharm.com"} />
             <InfoRow icon={HiMiniPhone} label="Phone" value={formatDisplayPhone(profile?.phone)} />
@@ -211,7 +211,7 @@ export default function DashboardPanel({
       {/* Right Column */}
       <div className="space-y-4">
         {/* Recent Orders */}
-        <section className="rounded-3xl border border-white/60 bg-white/95 p-5 shadow-[0_8px_32px_rgba(175,117,60,0.08)]">
+        <section className="rounded-2xl border border-white/60 bg-white/95 p-4 shadow-[0_8px_32px_rgba(175,117,60,0.08)] sm:rounded-3xl sm:p-5">
           <SectionHeader
             icon={<HiMiniGift className="h-4 w-4" />}
             title="Recent Orders"
@@ -321,7 +321,7 @@ export default function DashboardPanel({
         </section>
 
         {/* Favorites */}
-        <section className="rounded-3xl border border-white/60 bg-white/95 p-5 shadow-[0_8px_32px_rgba(175,117,60,0.08)]">
+        <section className="rounded-2xl border border-white/60 bg-white/95 p-4 shadow-[0_8px_32px_rgba(175,117,60,0.08)] sm:rounded-3xl sm:p-5">
           <SectionHeader
             icon={<HiMiniHeart className="h-4 w-4" />}
             title="Favorites"
@@ -361,7 +361,7 @@ export default function DashboardPanel({
         </section>
 
         {/* Stats Grid */}
-        <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <section className="grid gap-2.5 sm:grid-cols-2 md:gap-3 xl:grid-cols-4">
           {stats.map(({ label, value, note, icon: Icon, tab }) => {
             const count =
               tab === "orders"
@@ -376,7 +376,7 @@ export default function DashboardPanel({
                 type="button"
                 onClick={() => setActiveTab(tab)}
                 key={label}
-                className="group relative flex min-h-[210px] h-full flex-col overflow-hidden rounded-[28px] border border-white/75 bg-[linear-gradient(145deg,rgba(255,251,247,0.98),rgba(255,244,235,0.94))] p-4 text-left shadow-[0_10px_24px_rgba(206,160,111,0.10)] transition-all duration-200 hover:-translate-y-1.5 hover:shadow-[0_18px_34px_rgba(206,160,111,0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2C9D6] active:scale-[0.98]"
+                className="group relative flex min-h-[180px] h-full flex-col overflow-hidden rounded-[24px] border border-white/75 bg-[linear-gradient(145deg,rgba(255,251,247,0.98),rgba(255,244,235,0.94))] p-3.5 text-left shadow-[0_10px_24px_rgba(206,160,111,0.10)] transition-all duration-200 hover:-translate-y-1.5 hover:shadow-[0_18px_34px_rgba(206,160,111,0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2C9D6] active:scale-[0.98] sm:min-h-[210px] sm:rounded-[28px] sm:p-4"
               >
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(242,93,136,0.14),_transparent_34%)] transition-opacity duration-200 group-hover:opacity-90" />
                 <div className="pointer-events-none absolute -bottom-8 -right-8 h-24 w-24 rounded-full bg-[radial-gradient(circle,_rgba(255,255,255,0.55),_transparent_68%)]" />

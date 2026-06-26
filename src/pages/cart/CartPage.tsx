@@ -17,24 +17,28 @@ export default function CartPage() {
     <main className="min-h-screen overflow-hidden bg-[var(--color-header-bg)] text-[#6B3E06]">
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <img
+          loading="lazy"
           src={rabbitIcons}
           alt=""
           aria-hidden
           className="absolute -right-8 -top-6 w-40 opacity-[0.08] sm:w-56"
         />
         <img
+          loading="lazy"
           src={bearIcons}
           alt=""
           aria-hidden
           className="absolute -left-10 top-1/3 w-36 -translate-y-1/2 opacity-[0.06] sm:w-48"
         />
         <img
+          loading="lazy"
           src={strawberryIcons}
           alt=""
           aria-hidden
           className="absolute bottom-20 right-6 w-24 opacity-[0.07] sm:w-32"
         />
         <img
+          loading="lazy"
           src={macaronIcon}
           alt=""
           aria-hidden
@@ -72,6 +76,7 @@ export default function CartPage() {
               <div className="shrink-0">
                 <div className="relative h-20 w-20 sm:h-28 sm:w-28">
                   <img
+                    loading="lazy"
                     src={rabbitIcons}
                     alt=""
                     aria-hidden
@@ -108,12 +113,14 @@ export default function CartPage() {
               <div className="relative overflow-hidden rounded-[30px] bg-[linear-gradient(180deg,rgba(255,249,242,0.95),rgba(255,243,233,0.96))] px-6 py-14 text-center shadow-[0_10px_24px_rgba(175,117,60,0.06)]">
                 {/* Decorative background bunnies */}
                 <img
+                  loading="lazy"
                   src={rabbitIcons}
                   alt=""
                   aria-hidden
                   className="absolute -right-6 -top-4 w-28 opacity-[0.10]"
                 />
                 <img
+                  loading="lazy"
                   src={bearIcons}
                   alt=""
                   aria-hidden
@@ -122,6 +129,7 @@ export default function CartPage() {
 
                 <div className="relative z-10 mx-auto flex h-24 w-24 items-center justify-center rounded-[32px] bg-white shadow-[0_8px_24px_rgba(242,93,136,0.12)]">
                   <img
+                    loading="lazy"
                     src={rabbitIcons}
                     alt=""
                     className="h-16 w-16 object-contain drop-shadow-[0_2px_8px_rgba(242,93,136,0.10)]"
@@ -138,7 +146,7 @@ export default function CartPage() {
                     to="/desserts"
                     className="inline-flex h-12 items-center gap-2 rounded-full bg-gradient-to-r from-[#FF7E9F] to-[#F25D88] px-6 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(242,93,136,0.22)] transition-all duration-200 hover:-translate-y-0.5"
                   >
-                    <img src={cakeIcon} alt="" className="h-5 w-5 invert brightness-0" />
+                    <img loading="lazy" src={cakeIcon} alt="" className="h-5 w-5 invert brightness-0" />
                     Explore desserts
                   </Link>
                   <Link
@@ -155,7 +163,7 @@ export default function CartPage() {
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
                     <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-[#F25D88]/10">
-                      <img src={cakeIcon} alt="" className="h-4 w-4 invert-[0.3]" />
+                      <img loading="lazy" src={cakeIcon} alt="" className="h-4 w-4 invert-[0.3]" />
                     </span>
                     <span className="text-sm font-semibold text-[#C69B71]">
                       Cart items ({itemCount})
@@ -169,6 +177,7 @@ export default function CartPage() {
                     >
                       {/* Decorative bunny silhouette */}
                       <img
+                        loading="lazy"
                         src={rabbitIcons}
                         alt=""
                         aria-hidden
@@ -178,6 +187,7 @@ export default function CartPage() {
                       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                         <div className="relative shrink-0">
                           <img
+                            loading="lazy"
                             src={item.image_url ?? ""}
                             alt={item.name}
                             className="h-28 w-full rounded-[24px] object-cover shadow-[0_4px_12px_rgba(175,117,60,0.10)] sm:w-36"
@@ -248,12 +258,14 @@ export default function CartPage() {
                   {/* Decorative bunny */}
                   <img
                     src={rabbitIcons}
+                    loading="lazy"
                     alt=""
                     aria-hidden
                     className="absolute -right-8 -top-6 w-28 opacity-[0.06]"
                   />
                   <img
                     src={bearIcons}
+                    loading="lazy"
                     alt=""
                     aria-hidden
                     className="absolute -bottom-8 -left-6 w-24 opacity-[0.05]"
@@ -313,7 +325,7 @@ export default function CartPage() {
               <span className="text-[10px] uppercase tracking-[0.3em] text-[#C9A67E]">
                 SweetCharm
               </span>
-              <img src={macaronIcon} alt="" className="h-4 w-4 opacity-50" />
+              <img loading="lazy" src={macaronIcon} alt="" className="h-4 w-4 opacity-50" />
             </div>
             <div className="h-px w-8 bg-gradient-to-r from-[#EFD9C8] to-transparent" />
           </div>

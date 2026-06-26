@@ -62,6 +62,7 @@ function getModeFromPath(pathname: string): AuthMode {
 function FloatingOrnament({ src, alt, className, style }: { src: string; alt: string; className: string; style?: React.CSSProperties }) {
   return (
     <img
+    loading="lazy"
       src={src}
       alt={alt}
       className={`pointer-events-none absolute animate-float object-contain ${className}`}

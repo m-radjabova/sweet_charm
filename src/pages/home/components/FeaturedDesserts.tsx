@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { HiMiniChevronRight, HiOutlineStar, HiOutlineHeart } from "react-icons/hi2";
 import { getFeaturedDesserts } from "../../../api/desserts";
 import type { FeaturedDessert } from "../../../types/types";
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useFavorites } from "../../account/hooks/useFavorites";
 import { useNavigate } from "react-router-dom";
 
@@ -20,29 +20,6 @@ function getFilledStars(rating: number) {
   return Math.max(0, Math.min(5, Math.round(rating)));
 }
 
-function useInView(threshold = 0.15) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [inView, setInView] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setInView(true);
-          observer.unobserve(el);
-        }
-      },
-      { threshold }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [threshold]);
-
-  return [ref, inView] as const;
-}
-
 function DessertCard({
   dessert,
   index,
@@ -54,7 +31,6 @@ function DessertCard({
   favorite: boolean;
   onToggleFavorite: (dessertId: string, dessert?: FeaturedDessert) => void;
 }) {
-  const [cardRef, inView] = useInView(0.1);
   const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate();
   const rating = getDessertRating(dessert);
@@ -62,22 +38,20 @@ function DessertCard({
 
   return (
     <article
-      ref={cardRef}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={`
-        group relative flex h-full flex-col overflow-hidden rounded-[40px] 
+        group relative flex h-full flex-col overflow-hidden rounded-[34px]
         bg-gradient-to-b from-[#FFFBF3] to-[#FDF3E0]
         shadow-[0_8px_32px_rgba(104,64,10,0.06)]
         transition-all duration-500 ease-out
         hover:shadow-[0_20px_60px_rgba(248,107,135,0.15)]
         hover:-translate-y-1.5
-        ${inView ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"}
       `}
       style={{
         transitionDelay: `${index * 80}ms`,
-        transitionProperty: "transform, opacity, box-shadow",
-        transitionDuration: "600ms",
+        transitionProperty: "transform, box-shadow",
+        transitionDuration: "450ms",
         transitionTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)",
       }}
     >
@@ -98,7 +72,7 @@ function DessertCard({
             src={dessert.image_url ?? ""}
             alt={dessert.name}
             loading="lazy"
-            className="h-[300px] w-full object-cover transition-all duration-700 ease-out"
+            className="h-[220px] w-full object-cover transition-all duration-700 ease-out sm:h-[300px]"
             style={{
               transform: isHovered ? "scale(1.08)" : "scale(1)",
               filter: isHovered ? "brightness(1.05) saturate(1.1)" : "brightness(1) saturate(1)",
@@ -197,7 +171,7 @@ function DessertCard({
       </div>
 
       {/* Content */}
-      <div className="relative flex flex-1 flex-col px-5 pb-5 pt-5">
+        <div className="relative flex flex-1 flex-col px-4 pb-4 pt-4 sm:px-5 sm:pb-5 sm:pt-5">
         {/* Rating stars */}
         <div className="mb-2 flex items-center gap-0.5">
           {Array.from({ length: 5 }).map((_, i) => (
@@ -280,17 +254,12 @@ function DessertCard({
 }
 
 function DessertSkeleton({ index }: { index: number }) {
-  const [cardRef, inView] = useInView(0.1);
-
   return (
     <div
-      ref={cardRef}
-      className={`overflow-hidden rounded-[40px] bg-gradient-to-b from-[#FFFBF3] to-[#FDF3E0] p-[1px] shadow-[0_8px_32px_rgba(104,64,10,0.06)] ${
-        inView ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"
-      }`}
+      className="overflow-hidden rounded-[34px] bg-gradient-to-b from-[#FFFBF3] to-[#FDF3E0] p-[1px] shadow-[0_8px_32px_rgba(104,64,10,0.06)]"
       style={{
         transitionDelay: `${index * 80}ms`,
-        transition: "all 600ms cubic-bezier(0.34, 1.56, 0.64, 1)",
+        transition: "box-shadow 450ms cubic-bezier(0.34, 1.56, 0.64, 1)",
       }}
     >
       <div className="overflow-hidden rounded-[39px] bg-[#FEF7E7] p-4">
@@ -321,13 +290,12 @@ function FeaturedDesserts() {
     queryFn: () => getFeaturedDesserts(8),
   });
 
-  const [sectionRef, sectionInView] = useInView(0.05);
   const { favoriteIds, toggleFavorite } = useFavorites(data);
 
   return (
     <section
       id="menu"
-      className="relative z-30 -mt-1 overflow-hidden bg-[#FEF7E7] px-4 py-16 sm:px-8 lg:px-12 lg:py-24"
+      className="relative z-30 overflow-hidden bg-[#FEF7E7] px-4 py-16 sm:px-8 lg:px-12 lg:py-24"
     >
       {/* Background decorative elements */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -346,7 +314,7 @@ function FeaturedDesserts() {
         />
       </div>
 
-      <div ref={sectionRef} className="relative mx-auto max-w-[1440px]">
+      <div className="relative mx-auto max-w-[1440px]">
         {/* Section header */}
         <div className="text-center">
           <div className="inline-flex items-center gap-4">
@@ -357,9 +325,8 @@ function FeaturedDesserts() {
               className="text-[#F86B87] transition-all duration-700"
               style={{
                 fontSize: "clamp(1.2rem, 2vw, 1.8rem)",
-                opacity: sectionInView ? 1 : 0,
-                transform: sectionInView ? "rotate(180deg) scale(1)" : "rotate(0deg) scale(0)",
-                transition: "all 700ms cubic-bezier(0.34, 1.56, 0.64, 1)",
+                opacity: 1,
+                transform: "rotate(180deg) scale(1)",
               }}
             >
               ✦
@@ -367,10 +334,8 @@ function FeaturedDesserts() {
           </div>
 
           <h2
-            className={`font-['Milkshake','Cooper_Black','Comic_Sans_MS',cursive] leading-[0.95] tracking-[0] text-[#68400A] transition-all duration-700 ${
-              sectionInView ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-            }`}
-            style={{ fontSize: "clamp(4.5rem, 8vw, 7.8rem)", transitionDelay: "150ms" }}
+            className="font-['Milkshake','Cooper_Black','Comic_Sans_MS',cursive] leading-[0.95] tracking-[0] text-[#68400A]"
+            style={{ fontSize: "clamp(4.5rem, 8vw, 7.8rem)" }}
           >
             Featured Desserts
             <br />
@@ -383,9 +348,8 @@ function FeaturedDesserts() {
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
                 style={{
-                  opacity: sectionInView ? 1 : 0,
-                  transform: sectionInView ? "scaleX(1)" : "scaleX(0)",
-                  transition: "all 800ms cubic-bezier(0.34, 1.56, 0.64, 1) 300ms",
+                  opacity: 1,
+                  transform: "scaleX(1)",
                   transformOrigin: "center",
                 }}
               >
@@ -406,9 +370,8 @@ function FeaturedDesserts() {
               className="text-[#F86B87] transition-all duration-700"
               style={{
                 fontSize: "clamp(1.2rem, 2vw, 1.8rem)",
-                opacity: sectionInView ? 1 : 0,
-                transform: sectionInView ? "rotate(180deg) scale(1)" : "rotate(0deg) scale(0)",
-                transition: "all 700ms cubic-bezier(0.34, 1.56, 0.64, 1) 200ms",
+                opacity: 1,
+                transform: "rotate(180deg) scale(1)",
               }}
             >
               ✦
@@ -419,10 +382,7 @@ function FeaturedDesserts() {
 
           {/* Subtitle */}
           <p
-            className={`mx-auto mt-6 max-w-[500px] text-[17px] leading-relaxed text-[#8F6A2F]/70 transition-all duration-700 ${
-              sectionInView ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
-            }`}
-            style={{ transitionDelay: "350ms" }}
+            className="mx-auto mt-6 max-w-[500px] text-[17px] leading-relaxed text-[#8F6A2F]/70"
           >
             Indulge in our handcrafted sweet creations — each dessert is a masterpiece made with love
             and the finest ingredients.
@@ -430,7 +390,7 @@ function FeaturedDesserts() {
         </div>
 
         {/* Dessert grid */}
-        <div className="relative mt-14 grid gap-8 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="relative mt-10 grid grid-cols-1 gap-5 sm:mt-14 sm:grid-cols-2 sm:gap-8 xl:grid-cols-4">
           {isLoading
             ? Array.from({ length: 8 }).map((_, index) => (
                 <DessertSkeleton key={index} index={index} />
@@ -449,9 +409,7 @@ function FeaturedDesserts() {
         {/* Empty / Error state */}
         {!isLoading && (isError || data.length === 0) ? (
           <div
-            className={`mx-auto mt-14 max-w-[500px] rounded-[28px] border border-[#f6e7c5] bg-[#FEF7E7] px-8 py-10 text-center transition-all duration-700 ${
-              sectionInView ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-            }`}
+            className="mx-auto mt-14 max-w-[500px] rounded-[28px] border border-[#f6e7c5] bg-[#FEF7E7] px-8 py-10 text-center"
           >
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#f6e7c5]">
               <span className="text-[32px]">🍰</span>
@@ -466,12 +424,7 @@ function FeaturedDesserts() {
         ) : null}
 
         {/* CTA Button */}
-        <div
-          className={`mt-14 flex justify-center transition-all duration-700 ${
-            sectionInView ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-          }`}
-          style={{ transitionDelay: "500ms" }}
-        >
+        <div className="mt-14 flex justify-center">
           <Link
             to="/desserts"
             className="group relative inline-flex h-[76px] min-w-[272px] items-center justify-center rounded-[24px] bg-gradient-to-r from-[#F75D86] to-[#F86B87] px-[34px] text-[19px] font-bold shadow-[0_13px_22px_rgba(248,107,135,0.22)] transition-all duration-300 hover:-translate-y-[3px] hover:shadow-[0_17px_30px_rgba(248,107,135,0.28)] active:scale-[0.97] max-[900px]:h-[68px] max-[900px]:min-w-[min(250px,78vw)] max-[900px]:rounded-[20px] max-[900px]:px-7 max-[900px]:text-[18px]"

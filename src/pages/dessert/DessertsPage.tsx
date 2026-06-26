@@ -514,6 +514,7 @@ function HeroSection() {
         >
           <div className="relative">
             <img
+            loading="lazy"
               src={bunnyMascot}
               alt=""
               className="h-44 w-44 animate-float object-contain drop-shadow-[0_18px_28px_rgba(126,79,35,0.10)]"
@@ -543,9 +544,34 @@ function countActiveFilters(filters: FilterState) {
   ].filter(Boolean).length;
 }
 
+function CategoryPillsSkeleton() {
+  const skeletonWidths = [
+    "w-[150px]",
+    "w-[132px]",
+    "w-[158px]",
+    "w-[146px]",
+    "w-[126px]",
+    "w-[176px]",
+    "w-[138px]",
+    "w-[118px]",
+  ];
+
+  return (
+    <>
+      {skeletonWidths.map((width, index) => (
+        <div
+          key={index}
+          className={`shimmer-bg h-[46px] shrink-0 rounded-full border border-[#F1DCCD]/70 ${width} sm:h-[52px]`}
+        />
+      ))}
+    </>
+  );
+}
+
 function SidebarFilters({
   filters,
   categories,
+  isCategoriesLoading,
   onFilterChange,
   onClear,
   isOpen,
@@ -554,6 +580,7 @@ function SidebarFilters({
 }: {
   filters: FilterState;
   categories: string[];
+  isCategoriesLoading: boolean;
   onFilterChange: (key: keyof FilterState, value: unknown) => void;
   onClear: () => void;
   isOpen: boolean;
@@ -568,7 +595,7 @@ function SidebarFilters({
       <button
         type="button"
         onClick={onToggle}
-        className="flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-[#68400A] shadow-[0_6px_16px_rgba(104,64,10,0.08)] transition-all duration-200 hover:shadow-[0_10px_24px_rgba(104,64,10,0.12)] lg:hidden"
+        className="hidden items-center gap-2 rounded-full bg-white px-4 py-2.5 text-[#68400A] shadow-[0_6px_16px_rgba(104,64,10,0.08)] transition-all duration-200 hover:shadow-[0_10px_24px_rgba(104,64,10,0.12)] lg:hidden"
         aria-haspopup="dialog"
         aria-expanded={isOpen}
       >
@@ -599,7 +626,13 @@ function SidebarFilters({
               </button>
             </div>
             <div className="flex-1 overflow-y-auto px-5 pb-4">
-              <FilterContent filters={filters} categories={categories} onFilterChange={onFilterChange} onClear={onClear} />
+              <FilterContent
+                filters={filters}
+                categories={categories}
+                isCategoriesLoading={isCategoriesLoading}
+                onFilterChange={onFilterChange}
+                onClear={onClear}
+              />
             </div>
             <div className="shrink-0 border-t border-[#EED9CB] bg-[#FFF9F2] px-5 py-4">
               <button
@@ -629,7 +662,13 @@ function SidebarFilters({
             )}
           </div>
 
-          <FilterContent filters={filters} categories={categories} onFilterChange={onFilterChange} onClear={onClear} />
+          <FilterContent
+            filters={filters}
+            categories={categories}
+            isCategoriesLoading={isCategoriesLoading}
+            onFilterChange={onFilterChange}
+            onClear={onClear}
+          />
         </div>
       </aside>
     </>
@@ -639,11 +678,13 @@ function SidebarFilters({
 function FilterContent({
   filters,
   categories,
+  isCategoriesLoading,
   onFilterChange,
   onClear,
 }: {
   filters: FilterState;
   categories: string[];
+  isCategoriesLoading: boolean;
   onFilterChange: (key: keyof FilterState, value: unknown) => void;
   onClear: () => void;
 }) {
@@ -656,26 +697,36 @@ function FilterContent({
       <div>
         <h4 className="mb-3.5 text-[15px] font-bold text-[#68400A]">Categories</h4>
         <div className="space-y-3">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              type="button"
-              onClick={() => onFilterChange("category", cat)}
-              aria-pressed={filters.category === cat}
-              className={`flex w-full items-center gap-3 text-left text-[14px] font-semibold transition-all duration-200 ${
-                filters.category === cat ? "text-[#68400A]" : "text-[#7D5636] hover:text-[#F85D85]"
-              }`}
-            >
-              <span
-                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
-                  filters.category === cat ? "border-[#F85D85]" : "border-[#E8CFC0] bg-white"
-                }`}
-              >
-                {filters.category === cat && <span className="h-2.5 w-2.5 rounded-full bg-[#F85D85]" />}
-              </span>
-              {cat}
-            </button>
-          ))}
+          {isCategoriesLoading
+            ? Array.from({ length: 7 }).map((_, index) => (
+                <div key={index} className="flex items-center gap-3">
+                  <div className="shimmer-bg h-5 w-5 shrink-0 rounded-full border border-[#E8CFC0]" />
+                  <div
+                    className="shimmer-bg h-4 rounded-full"
+                    style={{ width: `${120 + (index % 3) * 28}px` }}
+                  />
+                </div>
+              ))
+            : categories.map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => onFilterChange("category", cat)}
+                  aria-pressed={filters.category === cat}
+                  className={`flex w-full items-center gap-3 text-left text-[14px] font-semibold transition-all duration-200 ${
+                    filters.category === cat ? "text-[#68400A]" : "text-[#7D5636] hover:text-[#F85D85]"
+                  }`}
+                >
+                  <span
+                    className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
+                      filters.category === cat ? "border-[#F85D85]" : "border-[#E8CFC0] bg-white"
+                    }`}
+                  >
+                    {filters.category === cat && <span className="h-2.5 w-2.5 rounded-full bg-[#F85D85]" />}
+                  </span>
+                  {cat}
+                </button>
+              ))}
         </div>
       </div>
 
@@ -814,8 +865,25 @@ export default function DessertsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [sortBy, setSortBy] = useState("popular");
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "list">(() =>
+    typeof window !== "undefined" && window.innerWidth < 640 ? "list" : "grid"
+  );
   const activeSearch = searchParams.get("search") || "";
+  const activeFilterCount = countActiveFilters(filters);
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 639px)");
+    const handleChange = (event: MediaQueryListEvent) => {
+      setViewMode(event.matches ? "list" : "grid");
+    };
+
+    if (media.matches) {
+      setViewMode("list");
+    }
+
+    media.addEventListener("change", handleChange);
+    return () => media.removeEventListener("change", handleChange);
+  }, []);
 
   // Keep the URL in sync with filters/search so refresh and back/forward work as expected.
   useEffect(() => {
@@ -853,6 +921,7 @@ export default function DessertsPage() {
     () => [ALL_DESSERTS_CATEGORY, ...(categoriesQuery.data ?? [])],
     [categoriesQuery.data]
   );
+  const isCategoriesLoading = categoriesQuery.isLoading;
 
   const { favoriteIds, toggleFavorite } = useFavorites(data);
   const sortedDesserts = useMemo(() => {
@@ -931,36 +1000,39 @@ export default function DessertsPage() {
 
         <div className="mx-auto max-w-[1680px]">
           {/* Category Pills - horizontal scroll on mobile, wrap on desktop */}
-          <div className="no-scrollbar mb-5 flex gap-3 overflow-x-auto px-1 pb-1 sm:mb-6 sm:flex-wrap sm:items-center sm:justify-center sm:gap-5 sm:overflow-visible sm:px-0">
-            {categories.map((cat) => {
-              const isActive = filters.category === cat;
-              return (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => handleFilterChange("category", cat)}
-                  aria-pressed={isActive}
-                  className={`
-                    relative inline-flex shrink-0 items-center justify-center gap-2 overflow-hidden rounded-full px-4 py-2.5 text-[13px] font-bold transition-all duration-300 sm:min-w-[110px] sm:px-5 sm:py-3 sm:text-[15px]
-                    ${isActive
-                      ? "bg-[#F85D85] text-white shadow-[0_12px_24px_rgba(248,93,133,0.24)]"
-                      : "border border-[#F1DCCD] bg-white/86 text-[#68400A] shadow-[0_7px_16px_rgba(126,79,35,0.06)] hover:bg-white hover:text-[#F85D85]"
-                    }
-                  `}
-                >
-                  <span className={isActive ? "text-white" : "text-[#FF9A73]"}>🧁</span>
-                  {cat}
-                </button>
-              );
-            })}
+          <div className="no-scrollbar mb-4 flex gap-2.5 overflow-x-auto px-1 pb-1 sm:mb-6 sm:flex-wrap sm:items-center sm:justify-center sm:gap-5 sm:overflow-visible sm:px-0">
+            {isCategoriesLoading
+              ? <CategoryPillsSkeleton />
+              : categories.map((cat) => {
+                  const isActive = filters.category === cat;
+                  return (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => handleFilterChange("category", cat)}
+                      aria-pressed={isActive}
+                      className={`
+                        relative inline-flex shrink-0 items-center justify-center gap-2 overflow-hidden rounded-full px-3.5 py-2 text-[12px] font-bold transition-all duration-300 sm:min-w-[110px] sm:px-5 sm:py-3 sm:text-[15px]
+                        ${isActive
+                          ? "bg-[#F85D85] text-white shadow-[0_12px_24px_rgba(248,93,133,0.24)]"
+                          : "border border-[#F1DCCD] bg-white/86 text-[#68400A] shadow-[0_7px_16px_rgba(126,79,35,0.06)] hover:bg-white hover:text-[#F85D85]"
+                        }
+                      `}
+                    >
+                      <span className={isActive ? "text-white" : "text-[#FF9A73]"}>🧁</span>
+                      {cat}
+                    </button>
+                  );
+                })}
           </div>
 
-          <div className="rounded-[24px] border border-[#F1DCCD]/80 bg-white/76 p-4 shadow-[0_16px_42px_rgba(126,79,35,0.08)] backdrop-blur-sm sm:rounded-[28px] sm:p-6 lg:p-9">
+          <div className="rounded-[24px] border border-[#F1DCCD]/80 bg-white/76 p-3.5 shadow-[0_16px_42px_rgba(126,79,35,0.08)] backdrop-blur-sm sm:rounded-[28px] sm:p-6 lg:p-9">
             <div className="flex gap-6 lg:gap-9">
               {/* Sidebar Filters */}
               <SidebarFilters
                 filters={filters}
                 categories={categories}
+                isCategoriesLoading={isCategoriesLoading}
                 onFilterChange={handleFilterChange}
                 onClear={handleClearFilters}
                 isOpen={sidebarOpen}
@@ -992,9 +1064,41 @@ export default function DessertsPage() {
                   )}
                 </form>
 
+                <div className="mb-4 grid grid-cols-2 gap-2.5 sm:hidden">
+                  <button
+                    type="button"
+                    onClick={() => setSidebarOpen(true)}
+                    className="flex h-12 items-center justify-center gap-2 rounded-[16px] border border-[#F1DCCD] bg-white text-[13px] font-bold text-[#68400A] shadow-[0_8px_18px_rgba(126,79,35,0.05)]"
+                  >
+                    <HiMiniAdjustmentsHorizontal className="h-4.5 w-4.5 text-[#F85D85]" />
+                    Filters
+                    {activeFilterCount > 0 ? (
+                      <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#FFF1F5] px-1 text-[10px] text-[#F85D85]">
+                        {activeFilterCount}
+                      </span>
+                    ) : null}
+                  </button>
+
+                  <label className="relative flex h-12 items-center rounded-[16px] border border-[#F1DCCD] bg-white px-4 text-[13px] font-bold text-[#68400A] shadow-[0_8px_18px_rgba(126,79,35,0.05)]">
+                    <span>Sort</span>
+                    <select
+                      value={sortBy}
+                      onChange={(event) => setSortBy(event.target.value)}
+                      className="ml-2 min-w-0 flex-1 bg-transparent pr-6 text-right text-[#68400A] outline-none"
+                      aria-label="Sort desserts"
+                    >
+                      <option value="popular">Popular</option>
+                      <option value="rating">Rating</option>
+                      <option value="price-low">Low</option>
+                      <option value="price-high">High</option>
+                    </select>
+                    <HiMiniChevronDown className="pointer-events-none absolute right-3.5 h-4 w-4 text-[#A7775C]" />
+                  </label>
+                </div>
+
                 {/* Results header */}
-                <div className="mb-5 flex flex-wrap items-center justify-between gap-3 sm:mb-8 sm:gap-4">
-                  <p className="text-[14px] font-bold text-[#A7775C] sm:text-[16px]">
+                <div className="mb-5 flex flex-col gap-3 sm:mb-8 sm:gap-4 lg:flex-row lg:items-center lg:justify-between">
+                  <p className="text-[13px] font-bold text-[#A7775C] sm:text-[16px]">
                     {activeSearch ? (
                       <>
                         Results for <span className="text-[#8A5434]">&ldquo;{activeSearch}&rdquo;</span> &middot;{" "}
@@ -1003,7 +1107,7 @@ export default function DessertsPage() {
                     <span className="text-[#8A5434]">{data.length}</span> {data.length === 1 ? "dessert" : "desserts"}
                   </p>
 
-                  <div className="flex flex-wrap items-center gap-2.5 sm:gap-4">
+                  <div className="hidden flex-wrap items-center gap-2.5 sm:gap-4 md:flex">
                     <form onSubmit={handleSearchSubmit} className="relative hidden min-w-[240px] md:block lg:min-w-[260px]">
                       <input
                         type="text"
@@ -1041,7 +1145,7 @@ export default function DessertsPage() {
                       <HiMiniChevronDown className="pointer-events-none absolute right-3.5 h-4 w-4 text-[#A7775C]" />
                     </label>
 
-                    <div className="flex items-center gap-2">
+                    <div className="hidden items-center gap-2 sm:flex">
                       <button
                         type="button"
                         onClick={() => setViewMode("grid")}
@@ -1073,7 +1177,7 @@ export default function DessertsPage() {
                 </div>
 
                 {/* Active filter chips (mobile-friendly quick clear) */}
-                {countActiveFilters(filters) > 0 && (
+                {activeFilterCount > 0 && (
                   <div className="mb-5 flex flex-wrap items-center gap-2">
                     {filters.category !== ALL_DESSERTS_CATEGORY && (
                       <FilterChip label={filters.category} onRemove={() => handleFilterChange("category", ALL_DESSERTS_CATEGORY)} />

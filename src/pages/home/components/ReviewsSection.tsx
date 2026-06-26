@@ -192,6 +192,7 @@ function ReviewsSection() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [visibleIndexes, setVisibleIndexes] = useState<number[]>([]);
   const autoplayRef = useRef(
     Autoplay({ delay: 5000, stopOnInteraction: false, stopOnMouseEnter: true })
   );
@@ -209,11 +210,6 @@ function ReviewsSection() {
       dragFree: false,
       containScroll: "trimSnaps",
       slidesToScroll: 1,
-      breakpoints: {
-        "(min-width: 1024px)": {
-          slidesToScroll: 3,
-        },
-      },
     },
     [autoplayRef.current]
   );
@@ -221,6 +217,7 @@ function ReviewsSection() {
   const onSelect = useCallback(() => {
     if (!emblaApi) return;
     setSelectedIndex(emblaApi.selectedScrollSnap());
+    setVisibleIndexes(emblaApi.slidesInView());
   }, [emblaApi]);
 
   useEffect(() => {
@@ -460,10 +457,7 @@ function ReviewsSection() {
               ) : (
                 data.map((review, idx) => {
                   const isActive =
-                    idx === selectedIndex ||
-                    (emblaApi
-                      ? Math.abs(emblaApi.selectedScrollSnap() - idx) <= 1
-                      : false);
+                    idx === selectedIndex || visibleIndexes.includes(idx);
                   return (
                     <div
                       key={review.id}

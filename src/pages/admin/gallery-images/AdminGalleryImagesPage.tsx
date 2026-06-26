@@ -142,6 +142,7 @@ function ImageLightbox({
         onClick={(event) => event.stopPropagation()}
       >
         <img
+          loading="lazy"
           src={item.image_url}
           alt={item.title ?? "Gallery image"}
           className="max-h-[75vh] max-w-full rounded-2xl object-contain shadow-2xl"

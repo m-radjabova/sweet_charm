@@ -27,6 +27,7 @@ function Footer() {
             {/* Glow effect behind cat */}
             <div className="absolute inset-x-[10%] top-[10%] -z-10 h-[65%] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.95),rgba(255,215,175,0.3)_65%,transparent_100%)] blur-2xl" />
             <img
+            loading="lazy"
               src={heroCatCenter}
               alt="SweetCharm mascot"
               className="w-[min(72vw,440px)] object-contain drop-shadow-[0_12px_28px_rgba(137,84,23,0.15)] transition-transform duration-300 hover:scale-[1.02] sm:w-[min(48vw,520px)]"

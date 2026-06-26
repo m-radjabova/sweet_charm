@@ -57,6 +57,7 @@ export default function DessertMiniCard({
           <img
             src={dessert.image_url}
             alt={dessert.name}
+            loading="lazy"
             className="h-full w-full object-cover transition-all duration-500 group-hover:scale-105"
           />
         ) : (

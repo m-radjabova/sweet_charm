@@ -787,6 +787,7 @@ export default function DessertEditorDrawer({
                   }}
                 >
                   <img
+                    loading="lazy"
                     src={form.image_url}
                     alt="Preview"
                     style={{
@@ -882,6 +883,7 @@ export default function DessertEditorDrawer({
                       className="gallery-thumb"
                     >
                       <img
+                        loading="lazy"
                         src={url}
                         alt={`Gallery ${i + 1}`}
                         style={{

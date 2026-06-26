@@ -1,12 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
+import { getStoredUser } from "../../../api/auth";
 import type { FeaturedDessert } from "../../../types/types";
 
 const FAVORITES_KEY = "sweet_charm_favorite_dessert_ids";
 const FAVORITES_EVENT = "sweet-charm-favorites-updated";
 
-function readFavorites() {
+function getFavoritesStorageKey() {
+  const userId = getStoredUser()?.id;
+  return userId ? `${FAVORITES_KEY}:${userId}` : `${FAVORITES_KEY}:guest`;
+}
+
+function parseFavorites(rawValue: string | null) {
   try {
-    const parsed = JSON.parse(localStorage.getItem(FAVORITES_KEY) ?? "[]");
+    const parsed = JSON.parse(rawValue ?? "[]");
     if (!Array.isArray(parsed)) return [];
 
     return parsed
@@ -30,8 +36,30 @@ function readFavorites() {
   }
 }
 
+function readFavorites(storageKey: string) {
+  const scopedFavorites = parseFavorites(localStorage.getItem(storageKey));
+  if (scopedFavorites.length > 0) return scopedFavorites;
+
+  // Fallback for older builds that stored all favorites in one shared key.
+  if (storageKey !== FAVORITES_KEY) {
+    return parseFavorites(localStorage.getItem(FAVORITES_KEY));
+  }
+
+  return scopedFavorites;
+}
+
 export function useFavorites(desserts: FeaturedDessert[]) {
-  const [favoriteDesserts, setFavoriteDesserts] = useState<FeaturedDessert[]>(() => readFavorites());
+  const currentStorageKey = getFavoritesStorageKey();
+  const [storageKey, setStorageKey] = useState(() => getFavoritesStorageKey());
+  const [favoriteDesserts, setFavoriteDesserts] = useState<FeaturedDessert[]>(() => readFavorites(getFavoritesStorageKey()));
+
+  useEffect(() => {
+    setStorageKey((current) => (current === currentStorageKey ? current : currentStorageKey));
+  }, [currentStorageKey]);
+
+  useEffect(() => {
+    setFavoriteDesserts(readFavorites(storageKey));
+  }, [storageKey]);
 
   useEffect(() => {
     if (desserts.length === 0) return;
@@ -42,13 +70,19 @@ export function useFavorites(desserts: FeaturedDessert[]) {
   }, [desserts]);
 
   useEffect(() => {
-    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favoriteDesserts));
+    localStorage.setItem(storageKey, JSON.stringify(favoriteDesserts));
     window.dispatchEvent(new Event(FAVORITES_EVENT));
-  }, [favoriteDesserts]);
+  }, [favoriteDesserts, storageKey]);
 
   useEffect(() => {
     const syncFavorites = () => {
-      const nextFavorites = readFavorites();
+      const nextStorageKey = getFavoritesStorageKey();
+      if (nextStorageKey !== storageKey) {
+        setStorageKey(nextStorageKey);
+        return;
+      }
+
+      const nextFavorites = readFavorites(nextStorageKey);
       setFavoriteDesserts((current) =>
         JSON.stringify(current) === JSON.stringify(nextFavorites) ? current : nextFavorites,
       );
@@ -61,7 +95,7 @@ export function useFavorites(desserts: FeaturedDessert[]) {
       window.removeEventListener("storage", syncFavorites);
       window.removeEventListener(FAVORITES_EVENT, syncFavorites);
     };
-  }, []);
+  }, [storageKey]);
 
   const favoriteIds = useMemo(() => favoriteDesserts.map((dessert) => dessert.id), [favoriteDesserts]);
 

@@ -270,7 +270,7 @@ export default function AdminReviewsPage() {
                         <div className="flex items-center gap-4">
                           <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-[#FF7E9F] to-[#F25D88] text-sm font-black text-white shadow-md">
                             {review.avatar ? (
-                              <img src={review.avatar} alt={review.customer_name} className="h-full w-full object-cover" />
+                              <img loading="lazy" src={review.avatar} alt={review.customer_name} className="h-full w-full object-cover" />
                             ) : (
                               review.customer_name
                                 .split(" ")

@@ -37,20 +37,21 @@ export default function ProfileHero({
       <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-gradient-to-br from-[#FFE8EF]/40 to-[#FFF5E1]/20 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-10 -left-10 h-48 w-48 rounded-full bg-gradient-to-tr from-[#FFF5E1]/30 to-[#FFE8EF]/10 blur-2xl" />
 
-      <div className="relative z-10 flex flex-col gap-5 px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8 lg:py-6">
+      <div className="relative z-10 flex flex-col gap-4 px-4 py-4 sm:gap-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8 lg:py-6">
         {/* Left Section */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center">
           {/* Avatar */}
           <div className="relative mx-auto md:mx-0">
-            <div className="flex h-[140px] w-[140px] items-center justify-center overflow-hidden rounded-2xl border-[4px] border-white bg-gradient-to-br from-[#FFF1F5] via-[#FFF6E9] to-[#FFE8EF] shadow-lg ring-2 ring-[#F25D88]/10 lg:h-[160px] lg:w-[160px]">
+            <div className="flex h-[110px] w-[110px] items-center justify-center overflow-hidden rounded-2xl border-[4px] border-white bg-gradient-to-br from-[#FFF1F5] via-[#FFF6E9] to-[#FFE8EF] shadow-lg ring-2 ring-[#F25D88]/10 sm:h-[140px] sm:w-[140px] lg:h-[160px] lg:w-[160px]">
               {profile?.avatar ? (
                 <img
+                loading="lazy"
                   src={profile.avatar}
                   alt={profile.full_name ?? "Profile avatar"}
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <span className="text-[2.8rem] font-bold text-[#6F420B] lg:text-[3.2rem]">
+                <span className="text-[2rem] font-bold text-[#6F420B] sm:text-[2.8rem] lg:text-[3.2rem]">
                   {getInitials(profile?.full_name)}
                 </span>
               )}
@@ -76,7 +77,7 @@ export default function ProfileHero({
           </div>
 
           {/* Info */}
-          <div className="space-y-2.5 text-center md:text-left">
+          <div className="space-y-2 text-center md:text-left sm:space-y-2.5">
             <div>
               <h1 className="text-[clamp(1.8rem,3vw,2.8rem)] font-bold leading-tight text-[#4A2800]">
                 {profile?.full_name ?? "Sweet guest"}
@@ -122,9 +123,10 @@ export default function ProfileHero({
         {/* Right Section */}
         <div className="flex flex-col items-center gap-2.5 lg:items-end">
           <img
+          loading="lazy"
             src={profileBunnyCupcake}
             alt="Sweet bunny cupcake"
-            className="h-28 w-28 object-contain drop-shadow-lg lg:h-36 lg:w-36"
+            className="h-20 w-20 object-contain drop-shadow-lg sm:h-28 sm:w-28 lg:h-36 lg:w-36"
           />
           <button
             type="button"

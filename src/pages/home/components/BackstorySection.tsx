@@ -110,6 +110,7 @@ function BackstorySection() {
         >
           <div className="relative">
             <img
+            loading="lazy"
               src={strawberryIcon}
               alt="Strawberry badge"
               className="h-[86px] w-[100px] object-contain sm:h-[110px] sm:w-[126px] drop-shadow-lg"
@@ -161,7 +162,7 @@ function BackstorySection() {
             isVisible ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"
           }`}
         >
-          <p className="relative text-[21px] leading-[1.6] text-[#7A4E1A] sm:text-[25px]">
+          <p className="relative px-2 text-[18px] leading-[1.6] text-[#7A4E1A] sm:px-0 sm:text-[25px]">
             <span className="absolute -left-3 -top-3 text-[40px] text-[#C8924A]/30 font-serif leading-none">"</span>
             Beginning 2020, SweetCharm started out as homebakery business. By March 2022, we
             took the leap to our very own production space. Fast forward to March 2023, and
@@ -184,6 +185,7 @@ function BackstorySection() {
           <div className="relative w-full max-w-[1240px] rounded-3xl bg-white/40 p-3 shadow-[0_20px_60px_-15px_rgba(139,91,25,0.3)] backdrop-blur-sm ring-1 ring-[#FFD4A0]/30">
             <div className="overflow-hidden rounded-2xl">
               <img
+              loading="lazy"
                 src={backstoryImage}
                 alt="SweetCharm backstory"
                 className="w-full object-contain transition-transform duration-700 hover:scale-105"
@@ -206,7 +208,7 @@ function BackstorySection() {
                 >
                   Cake
                 </span>
-                <img src={arrowTop} alt="" className="w-[96px] object-contain drop-shadow-md" style={{ animation: "gentleBob 4s ease-in-out infinite" }} />
+                <img loading="lazy" src={arrowTop} alt="" className="w-[96px] object-contain drop-shadow-md" style={{ animation: "gentleBob 4s ease-in-out infinite" }} />
               </div>
             </div>
 
@@ -217,7 +219,7 @@ function BackstorySection() {
               }`}
             >
               <div className="flex flex-col items-center gap-2 rounded-2xl bg-white/70 px-5 py-3 shadow-lg backdrop-blur-sm ring-1 ring-[#FFD4A0]/30">
-                <img src={arrowDown} alt="" className="w-[104px] object-contain drop-shadow-md" style={{ animation: "gentleBob 4s ease-in-out infinite 0.5s" }} />
+                <img loading="lazy" src={arrowDown} alt="" className="w-[104px] object-contain drop-shadow-md" style={{ animation: "gentleBob 4s ease-in-out infinite 0.5s" }} />
                 <span
                   className="font-['Milkshake','Cooper_Black','Comic_Sans_MS',cursive] text-[4.2rem] leading-none text-[#68400A]"
                   style={{ transform: "rotate(6deg)", filter: "drop-shadow(0 2px 4px rgba(139,91,25,0.15))" }}
@@ -229,6 +231,7 @@ function BackstorySection() {
 
             {/* Rabbit icon */}
             <img
+              loading="lazy"
               src={rabbitIcon}
               alt="Rabbit icon"
               className={`absolute right-[15%] top-[36%] w-[148px] object-contain drop-shadow-lg transition-all duration-1000 delay-[1500ms] ${
@@ -239,6 +242,7 @@ function BackstorySection() {
 
             {/* Ice cream icon */}
             <img
+              loading="lazy"
               src={iceCreamIcon}
               alt="Cupcake icon"
               className={`absolute left-[16%] top-[77%] w-[158px] object-contain drop-shadow-lg transition-all duration-1000 delay-[1700ms] ${
@@ -263,15 +267,15 @@ function BackstorySection() {
               >
                 Cake
               </span>
-              <img src={arrowTop} alt="" className="w-[60px] object-contain" />
+              <img loading="lazy" src={arrowTop} alt="" className="w-[60px] object-contain" />
             </div>
-            <img src={rabbitIcon} alt="Rabbit icon" className="w-[86px] object-contain drop-shadow-md" />
+            <img loading="lazy" src={rabbitIcon} alt="Rabbit icon" className="w-[86px] object-contain drop-shadow-md" />
           </div>
 
           <div className="flex items-center justify-center gap-4">
-            <img src={iceCreamIcon} alt="Cupcake icon" className="w-[88px] object-contain drop-shadow-md" />
+            <img loading="lazy" src={iceCreamIcon} alt="Cupcake icon" className="w-[88px] object-contain drop-shadow-md" />
             <div className="flex items-center gap-3 rounded-2xl bg-white/60 px-4 py-2 shadow-md backdrop-blur-sm ring-1 ring-[#FFD4A0]/30">
-              <img src={arrowDown} alt="" className="w-[60px] object-contain" />
+              <img loading="lazy" src={arrowDown} alt="" className="w-[60px] object-contain" />
               <span
                 className="font-['Milkshake','Cooper_Black','Comic_Sans_MS',cursive] text-[3rem] leading-none text-[#68400A]"
                 style={{ transform: "rotate(6deg)" }}

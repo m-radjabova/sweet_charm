@@ -38,6 +38,7 @@ function HeaderAvatar({
     <span className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-[var(--color-surface)] text-sm font-bold text-[var(--color-brown)] shadow-[0_8px_18px_rgba(114,70,11,0.12)] ring-2 ring-white/80 transition hover:scale-105 sm:h-12 sm:w-12">
       {avatar ? (
         <img
+        loading="lazy"
           src={avatar}
           alt={name ?? "Profile"}
           className="h-full w-full object-cover"
@@ -132,7 +133,7 @@ function CartAction({ mobile = false }: { mobile?: boolean }) {
       to="/cart"
       aria-label={`Open cart${itemCount > 0 ? `, ${itemCount} items` : ""}`}
       className={`relative inline-flex items-center justify-center rounded-full border border-white/75 bg-white/88 text-[#71460B] shadow-[0_8px_18px_rgba(114,70,11,0.10)] transition hover:-translate-y-0.5 hover:border-[#F7A7BB] hover:text-[#F25D88] ${
-        mobile ? "h-12 min-w-[160px] gap-3 px-6 text-base font-semibold" : "h-12 w-12"
+        mobile ? "h-12 min-w-[160px] gap-3 px-6 text-base font-semibold" : "h-11 w-11 sm:h-12 sm:w-12"
       }`}
     >
       <HiMiniShoppingBag className="h-5 w-5" />
@@ -175,13 +176,13 @@ function Header() {
   return (
     <>
       <header
-        className={`fixed left-1/2 top-4 z-50 -translate-x-1/2 transition-all duration-300 ${
+        className={`fixed left-1/2 z-50 w-[calc(100%-1rem)] max-w-[980px] -translate-x-1/2 transition-all duration-300 sm:w-[calc(100%-2rem)] ${
           scrolled
-            ? "top-3 rounded-2xl bg-[var(--color-header-bg)]/85 shadow-[0_8px_32px_rgba(112,68,7,0.10)] backdrop-blur-lg"
-            : "top-4"
+            ? "top-2 rounded-[28px] border border-white/60 bg-[var(--color-header-bg)]/86 shadow-[0_8px_32px_rgba(112,68,7,0.10)] backdrop-blur-lg sm:top-3"
+            : "top-2 sm:top-4"
         }`}
       >
-        <div className="mx-auto flex max-w-6xl items-center justify-center gap-4 px-4 py-2 sm:px-6 sm:py-3">
+        <div className="mx-auto flex items-center justify-between gap-3 rounded-[28px] bg-white/20 px-3 py-2.5 sm:gap-4 sm:px-6 sm:py-3">
           {/* Desktop navigation */}
           <nav className="hidden items-center gap-2 sm:flex">
             {navItems.map((item) => (
@@ -227,7 +228,7 @@ function Header() {
           </button>
 
           {/* Mobile profile outside nav */}
-          <div className="flex items-center gap-2 sm:hidden">
+          <div className="ml-auto flex items-center gap-2 sm:hidden">
             <CartAction />
             <ProfileAction className={loginClassName} />
           </div>
@@ -244,7 +245,7 @@ function Header() {
 
       {/* Mobile fullscreen menu overlay */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-50 sm:hidden">
+        <div className="fixed inset-0 z-[70] sm:hidden">
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
@@ -252,11 +253,14 @@ function Header() {
           />
 
           {/* Menu panel */}
-          <div className="absolute bottom-0 left-0 right-0 animate-slide-up rounded-t-3xl bg-[var(--color-header-bg)] px-6 pb-10 pt-8 shadow-[0_-8px_40px_rgba(112,68,7,0.15)]">
-            {/* Handle bar */}
-            <div className="mx-auto mb-6 h-1.5 w-12 rounded-full bg-[var(--color-border-soft)]" />
+          <div
+            className={`absolute left-3 right-3 overflow-hidden rounded-[28px] border border-white/70 bg-[var(--color-header-bg)] px-4 pb-6 pt-5 shadow-[0_20px_50px_rgba(112,68,7,0.16)] ${
+              scrolled ? "top-[78px]" : "top-[84px]"
+            }`}
+          >
+            <div className="mx-auto mb-5 h-1.5 w-12 rounded-full bg-[var(--color-border-soft)]" />
 
-            <nav className="flex flex-col items-center gap-3">
+            <nav className="flex flex-col items-stretch gap-3">
               {navItems.map((item) => (
                 <NavLink
                   key={item.label}
@@ -266,15 +270,15 @@ function Header() {
               ))}
             </nav>
 
-            <div className="mt-6 flex justify-center">
+            <div className="mt-5 flex justify-center">
               <CartAction mobile />
             </div>
 
-            <div className="mt-4 flex justify-center">
+            <div className="mt-3 flex justify-center">
               <ProfileAction
                 className={
                   loginClassName +
-                  " min-w-[160px] rounded-2xl px-8 py-3 text-lg"
+                  " min-w-[140px] rounded-2xl px-6 py-2.5 text-base sm:min-w-[160px] sm:px-8 sm:py-3 sm:text-lg"
                 }
               />
             </div>
@@ -290,7 +294,7 @@ function Header() {
       )}
 
       {/* Spacer to prevent content from going under fixed header */}
-      <div className="h-20 sm:h-22" />
+      <div className="h-[84px] sm:h-24" />
     </>
   );
 }

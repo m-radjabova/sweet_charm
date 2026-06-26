@@ -62,7 +62,7 @@ export default function MyCouponsPanel() {
   }
 
   return (
-    <section className="rounded-3xl border border-white/60 bg-white/95 p-6 shadow-[0_8px_32px_rgba(175,117,60,0.08)] sm:p-8">
+    <section className="rounded-2xl border border-white/60 bg-white/95 p-4 shadow-[0_8px_32px_rgba(175,117,60,0.08)] sm:rounded-3xl sm:p-6 sm:sm:p-8">
       {/* Header */}
       <SectionHeader
         icon={
@@ -77,11 +77,11 @@ export default function MyCouponsPanel() {
 
       {/* Loading State */}
       {couponsQuery.isLoading ? (
-        <div className="mt-6 space-y-4">
+        <div className="mt-5 space-y-3 sm:mt-6 sm:space-y-4">
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="animate-pulse rounded-[28px] border border-[#F5E6D8] bg-[#FFF8F0] p-6"
+              className="animate-pulse rounded-2xl border border-[#F5E6D8] bg-[#FFF8F0] p-4 sm:rounded-[28px] sm:p-6"
             >
               <div className="flex items-start justify-between">
                 <div className="space-y-3">
@@ -105,7 +105,7 @@ export default function MyCouponsPanel() {
         </div>
       ) : coupons.length ? (
         /* Coupons Grid */
-        <div className="mt-6 grid gap-6 sm:grid-cols-2">
+        <div className="mt-5 grid gap-4 sm:mt-6 sm:grid-cols-2 sm:gap-6">
           {coupons.map((coupon, index) => {
             const isPercentage = coupon.type === "percentage";
             const discountText = getCouponLabel(coupon.type, coupon.value);
@@ -274,7 +274,7 @@ export default function MyCouponsPanel() {
         </div>
       ) : (
         /* Empty State - Beautiful */
-        <div className="relative mt-6 overflow-hidden rounded-[28px] border border-dashed border-[#F5E6D8] bg-gradient-to-br from-[#FFFAF5] to-[#FFF2F7] px-6 py-12 text-center">
+        <div className="relative mt-5 overflow-hidden rounded-2xl border border-dashed border-[#F5E6D8] bg-gradient-to-br from-[#FFFAF5] to-[#FFF2F7] px-5 py-10 text-center sm:rounded-[28px] sm:px-6 sm:py-12">
           {/* Decorative elements */}
           <div className="absolute -left-6 -top-6 h-24 w-24 rounded-full bg-gradient-to-br from-[#F25D88]/5 to-transparent blur-2xl" />
           <div className="absolute -bottom-6 -right-6 h-24 w-24 rounded-full bg-gradient-to-br from-[#C2956A]/5 to-transparent blur-2xl" />

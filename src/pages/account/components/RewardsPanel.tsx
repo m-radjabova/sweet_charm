@@ -177,7 +177,7 @@ export default function RewardsPanel({
   });
 
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-white/60 bg-gradient-to-br from-[#FFFDF8] to-[#FFF5E8] p-5 shadow-[0_8px_32px_rgba(175,117,60,0.08)]">
+    <section className="relative overflow-hidden rounded-2xl border border-white/60 bg-gradient-to-br from-[#FFFDF8] to-[#FFF5E8] p-4 shadow-[0_8px_32px_rgba(175,117,60,0.08)] sm:rounded-3xl sm:p-5">
       {/* Decorative background elements */}
       <div className="pointer-events-none absolute -right-20 -top-20 h-60 w-60 rounded-full bg-gradient-to-br from-[#FFE8EF]/30 to-transparent blur-3xl" />
       <div className="pointer-events-none absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-gradient-to-tr from-[#FFF5E1]/40 to-transparent blur-3xl" />
@@ -276,6 +276,7 @@ export default function RewardsPanel({
               <div className="mx-auto flex h-32 w-32 items-center justify-center sm:h-36 sm:w-36">
                 <div className={`absolute inset-0 rounded-full bg-gradient-to-br ${colors.bg} blur-xl transition-all duration-500 group-hover:scale-110`} />
                 <img
+                loading="lazy"
                   src={bunnyImage}
                   alt={currentLevel.name}
                   className="relative h-28 w-28 object-contain transition-all duration-500 group-hover:scale-110 sm:h-32 sm:w-32"
