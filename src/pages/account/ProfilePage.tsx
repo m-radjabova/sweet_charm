@@ -28,6 +28,38 @@ import SettingsPanel from "./components/SettingsPanel";
 import { useFavorites } from "./hooks/useFavorites";
 import type { PasswordFormState, ProfileFormState, ProfileTab } from "./types";
 import { deriveTier, normalizePhoneForApi } from "./utils";
+import Seo from "../../components/Seo";
+
+const profileSeoCopy: Record<ProfileTab, { title: string; description: string }> = {
+  dashboard: {
+    title: "My Profile | SweetCharm",
+    description: "Manage your SweetCharm profile, rewards, favorites, and recent account activity.",
+  },
+  orders: {
+    title: "My Orders | SweetCharm",
+    description: "Track your SweetCharm dessert orders and stay updated on each sweet delivery.",
+  },
+  favorites: {
+    title: "My Favorites | SweetCharm",
+    description: "See your saved SweetCharm desserts and return to your favorite treats anytime.",
+  },
+  rewards: {
+    title: "My Rewards | SweetCharm",
+    description: "Check your SweetCharm points, membership level, and available reward benefits.",
+  },
+  coupons: {
+    title: "My Coupons | SweetCharm",
+    description: "View your SweetCharm discount coupons and active promotions in one place.",
+  },
+  addresses: {
+    title: "My Addresses | SweetCharm",
+    description: "Manage your saved delivery addresses for faster SweetCharm checkout.",
+  },
+  settings: {
+    title: "Account Settings | SweetCharm",
+    description: "Update your SweetCharm account details, password, and personal preferences.",
+  },
+};
 
 function ProfilePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -244,6 +276,13 @@ function ProfilePage() {
         backgroundImage: `linear-gradient(135deg, rgba(255,250,244,0.85), rgba(255,247,237,0.92)), url(${profileBackground})`,
       }}
     >
+      <Seo
+        title={profileSeoCopy[activeTab].title}
+        description={profileSeoCopy[activeTab].description}
+        path="/account/profile"
+        noindex
+      />
+
       <style>{`
         @keyframes slideInLeft {
           from { transform: translateX(-18px); opacity: 0; }

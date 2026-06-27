@@ -6,6 +6,7 @@ import type { FeaturedDessert } from "../../../types/types";
 import { useState } from "react";
 import { useFavorites } from "../../account/hooks/useFavorites";
 import { useNavigate } from "react-router-dom";
+import RevealMedia from "./RevealMedia";
 
 function formatPrice(price?: string | null) {
   const numeric = Number(price ?? 0);
@@ -68,16 +69,18 @@ function DessertCard({
       <div className="relative overflow-hidden">
         {/* Image wrapper with gradient overlay */}
         <div className="relative">
-          <img
-            src={dessert.image_url ?? ""}
-            alt={dessert.name}
-            loading="lazy"
-            className="h-[220px] w-full object-cover transition-all duration-700 ease-out sm:h-[300px]"
-            style={{
-              transform: isHovered ? "scale(1.08)" : "scale(1)",
-              filter: isHovered ? "brightness(1.05) saturate(1.1)" : "brightness(1) saturate(1)",
-            }}
-          />
+          <RevealMedia delayMs={index * 70} className="rounded-b-[28px] rounded-t-[34px]">
+            <img
+              src={dessert.image_url ?? ""}
+              alt={dessert.name}
+              loading="lazy"
+              className="h-[260px] w-full object-cover transition-all duration-700 ease-out sm:h-[300px]"
+              style={{
+                transform: isHovered ? "scale(1.08)" : "scale(1)",
+                filter: isHovered ? "brightness(1.05) saturate(1.1)" : "brightness(1) saturate(1)",
+              }}
+            />
+          </RevealMedia>
           {/* Gradient overlay on hover */}
           <div
             className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#FEF7E7]/60 to-transparent opacity-0 transition-opacity duration-500"
@@ -187,7 +190,7 @@ function DessertCard({
         </div>
 
         <h3
-          className="text-[24px] font-bold leading-[1.15] tracking-tight text-[#68400A] transition-colors duration-300"
+          className="text-[22px] font-bold leading-[1.15] tracking-tight text-[#68400A] transition-colors duration-300 sm:text-[24px]"
           style={{ color: isHovered ? "#F86B87" : "#68400A" }}
         >
           {dessert.name}
@@ -203,7 +206,7 @@ function DessertCard({
         {/* Price and CTA */}
         <div className="mt-auto flex items-center justify-between">
           <div className="flex items-baseline gap-2.5">
-            <span className="text-[24px] font-bold text-[#68400A]">{formatPrice(dessert.price)}</span>
+            <span className="text-[22px] font-bold text-[#68400A] sm:text-[24px]">{formatPrice(dessert.price)}</span>
             {dessert.old_price && (
               <span className="text-[15px] text-[#C6A879] line-through">{formatPrice(dessert.old_price)}</span>
             )}
@@ -295,7 +298,7 @@ function FeaturedDesserts() {
   return (
     <section
       id="menu"
-      className="relative z-30 overflow-hidden bg-[#FEF7E7] px-4 py-16 sm:px-8 lg:px-12 lg:py-24"
+      className="relative z-30 overflow-hidden bg-[#FEF7E7] px-4 py-14 sm:px-8 lg:px-12 lg:py-24"
     >
       {/* Background decorative elements */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -335,7 +338,7 @@ function FeaturedDesserts() {
 
           <h2
             className="font-['Milkshake','Cooper_Black','Comic_Sans_MS',cursive] leading-[0.95] tracking-[0] text-[#68400A]"
-            style={{ fontSize: "clamp(4.5rem, 8vw, 7.8rem)" }}
+            style={{ fontSize: "clamp(3.5rem, 13vw, 7.8rem)" }}
           >
             Featured Desserts
             <br />
@@ -382,7 +385,7 @@ function FeaturedDesserts() {
 
           {/* Subtitle */}
           <p
-            className="mx-auto mt-6 max-w-[500px] text-[17px] leading-relaxed text-[#8F6A2F]/70"
+            className="mx-auto mt-4 max-w-[500px] px-2 text-[16px] leading-relaxed text-[#8F6A2F]/70 sm:mt-6 sm:text-[17px]"
           >
             Indulge in our handcrafted sweet creations — each dessert is a masterpiece made with love
             and the finest ingredients.
@@ -390,7 +393,7 @@ function FeaturedDesserts() {
         </div>
 
         {/* Dessert grid */}
-        <div className="relative mt-10 grid grid-cols-1 gap-5 sm:mt-14 sm:grid-cols-2 sm:gap-8 xl:grid-cols-4">
+        <div className="relative mt-8 grid grid-cols-1 gap-5 sm:mt-14 sm:grid-cols-2 sm:gap-8 xl:grid-cols-4">
           {isLoading
             ? Array.from({ length: 8 }).map((_, index) => (
                 <DessertSkeleton key={index} index={index} />
@@ -424,13 +427,13 @@ function FeaturedDesserts() {
         ) : null}
 
         {/* CTA Button */}
-        <div className="mt-14 flex justify-center">
+        <div className="mt-10 flex justify-center sm:mt-14">
           <Link
             to="/desserts"
-            className="group relative inline-flex h-[76px] min-w-[272px] items-center justify-center rounded-[24px] bg-gradient-to-r from-[#F75D86] to-[#F86B87] px-[34px] text-[19px] font-bold shadow-[0_13px_22px_rgba(248,107,135,0.22)] transition-all duration-300 hover:-translate-y-[3px] hover:shadow-[0_17px_30px_rgba(248,107,135,0.28)] active:scale-[0.97] max-[900px]:h-[68px] max-[900px]:min-w-[min(250px,78vw)] max-[900px]:rounded-[20px] max-[900px]:px-7 max-[900px]:text-[18px]"
+            className="group relative inline-flex h-[70px] min-w-[260px] items-center justify-center rounded-[24px] bg-gradient-to-r from-[#F75D86] to-[#F86B87] px-[34px] text-[18px] font-bold shadow-[0_13px_22px_rgba(248,107,135,0.22)] transition-all duration-300 hover:-translate-y-[3px] hover:shadow-[0_17px_30px_rgba(248,107,135,0.28)] active:scale-[0.97] sm:h-[76px] sm:min-w-[272px] sm:text-[19px]"
           >
             <span className="relative z-10 flex items-center gap-3 text-[var(--color-surface)]">
-              View All Desserts
+              View all
               <HiMiniChevronRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
             </span>
             <span className="absolute inset-0 rounded-[24px] bg-gradient-to-r from-[#F86B87] to-[#FA94A9] opacity-0 transition-opacity duration-300 group-hover:opacity-100 max-[900px]:rounded-[20px]" />

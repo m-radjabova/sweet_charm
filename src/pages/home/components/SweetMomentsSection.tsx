@@ -11,16 +11,6 @@ function mockLikes(id: string): number {
   }
   return Math.max(42, (Math.abs(h) % 2800) + 80);
 }
-
-/* ─── Filter Categories ─── */
-const CATEGORIES = [
-  { id: "all", label: "All Moments", emoji: "✨" },
-  { id: "cakes", label: "Cakes", emoji: "🎂" },
-  { id: "desserts", label: "Desserts", emoji: "🍰" },
-  { id: "events", label: "Events", emoji: "🎉" },
-  { id: "behind", label: "Behind Scenes", emoji: "🎬" },
-];
-
 /* ─── Floating Decorations ─── */
 const FLOATING_ELEMENTS = [
   { emoji: "🌸", x: "4%", y: "12%", delay: "0s", size: 22 },
@@ -211,9 +201,6 @@ function SweetMomentsSection() {
     queryFn: () => getGalleryImages(9),
   });
 
-  const [activeCategory, setActiveCategory] = useState("all");
-
-  /* Masonry layout pattern: mix of normal, tall, wide cards */
   const layoutPattern: Array<"normal" | "tall" | "wide"> = [
     "normal", "tall", "normal",
     "wide",   "normal", "normal",
@@ -283,9 +270,6 @@ function SweetMomentsSection() {
       </div>
 
       <div className="relative mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        {/* ════════════════════════════════════════ */}
-        {/* SECTION HEADER                          */}
-        {/* ════════════════════════════════════════ */}
         <div className="mb-12 text-center">
           {/* Decorative top */}
           <div className="mb-4 flex items-center justify-center gap-2">
@@ -316,36 +300,6 @@ function SweetMomentsSection() {
           </p>
         </div>
 
-        {/* ════════════════════════════════════════ */}
-        {/* CATEGORY FILTERS (pill style)           */}
-        {/* ════════════════════════════════════════ */}
-        <div className="mb-10 flex flex-wrap items-center justify-center gap-3">
-          {CATEGORIES.map((cat) => {
-            const isActive = activeCategory === cat.id;
-            return (
-              <button
-                key={cat.id}
-                type="button"
-                onClick={() => setActiveCategory(cat.id)}
-                className={`relative inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[13px] font-medium transition-all duration-300 ${
-                  isActive
-                    ? "bg-[#68400A] text-white shadow-lg shadow-[#68400A]/15"
-                    : "border border-[#E8D5B0]/50 bg-white/60 text-[#68400A]/60 shadow-sm backdrop-blur-sm hover:border-[#D4B896] hover:bg-white hover:text-[#68400A] hover:shadow-md"
-                }`}
-              >
-                <span className="text-[15px]">{cat.emoji}</span>
-                {cat.label}
-                {isActive && (
-                  <span className="absolute inset-0 animate-pulse rounded-full bg-white/10" />
-                )}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* ════════════════════════════════════════ */}
-        {/* GALLERY GRID (masonry style)             */}
-        {/* ════════════════════════════════════════ */}
         {isLoading ? (
           <div className="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-4">
             {Array.from({ length: 9 }).map((_, i) => (
@@ -384,10 +338,7 @@ function SweetMomentsSection() {
           </div>
         )}
 
-        {/* ════════════════════════════════════════ */}
-        {/* INSTAGRAM CTA                            */}
-        {/* ════════════════════════════════════════ */}
-        {!isLoading && data.length > 0 && (
+       {!isLoading && data.length > 0 && (
           <div className="mt-14 text-center">
             <div className="relative mx-auto inline-flex flex-col items-center gap-4 overflow-hidden rounded-[24px] border border-[#E8D5B0]/40 bg-gradient-to-b from-white/80 to-[#FFF8F1]/60 px-8 py-7 shadow-[0_8px_32px_rgba(104,64,10,0.04)] backdrop-blur-sm sm:flex-row sm:gap-6 sm:px-12 sm:py-6">
               {/* subtle border accent */}

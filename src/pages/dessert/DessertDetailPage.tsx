@@ -28,6 +28,8 @@ import bunnyCupcake from "../../assets/profile/profile_bunny2.png";
 import useContextPro from "../../hooks/useContextPro";
 import { toast } from "react-toastify";
 import { useCart } from "../../hooks/useCart";
+import Seo from "../../components/Seo";
+import { SITE_URL } from "../../components/seoConfig";
 
 // ─── Helpers ───────────────────────────────────────────
 function buildDetailCopy(dessert: FeaturedDessert) {
@@ -381,6 +383,56 @@ export default function DessertDetailPage() {
       ? Math.round((1 - Number(dessert.price) / Number(dessert.old_price)) * 100)
       : null;
   const [imgLoaded, setImgLoaded] = useState(false);
+  const dessertUrl = dessert ? `${SITE_URL}/desserts/${dessert.slug}` : `${SITE_URL}/desserts`;
+  const primaryImage = dessert?.image_url || dessert?.image_urls?.[0] || "/website.png";
+  const normalizedImage = primaryImage.startsWith("http")
+    ? primaryImage
+    : `${SITE_URL}${primaryImage.startsWith("/") ? primaryImage : `/${primaryImage}`}`;
+  const dessertSchema = dessert
+    ? [
+        {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+            { "@type": "ListItem", position: 2, name: "Desserts", item: `${SITE_URL}/desserts` },
+            { "@type": "ListItem", position: 3, name: dessert.name, item: dessertUrl },
+          ],
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: dessert.name,
+          image: [normalizedImage],
+          description:
+            detailCopy?.description ??
+            `${dessert.name} at SweetCharm. Freshly prepared dessert with premium ingredients and a cozy handcrafted finish.`,
+          sku: dessert.id,
+          category: dessert.category_name ?? "Desserts",
+          brand: {
+            "@type": "Brand",
+            name: "SweetCharm",
+          },
+          offers: {
+            "@type": "Offer",
+            url: dessertUrl,
+            priceCurrency: "USD",
+            price: Number(dessert.price),
+            availability: isOutOfStock ? "https://schema.org/OutOfStock" : "https://schema.org/InStock",
+            itemCondition: "https://schema.org/NewCondition",
+          },
+          ...(rating > 0 && reviewsCount > 0
+            ? {
+                aggregateRating: {
+                  "@type": "AggregateRating",
+                  ratingValue: Number(rating.toFixed(1)),
+                  reviewCount: reviewsCount,
+                },
+              }
+            : {}),
+        },
+      ]
+    : undefined;
 
   const createReviewMutation = useMutation({
     mutationFn: () => createDessertReview(slug ?? "", reviewForm),
@@ -426,6 +478,13 @@ export default function DessertDetailPage() {
   if (!dessert) {
     return (
       <main className="min-h-screen bg-[#FFF7ED]">
+        <Seo
+          title="Dessert Not Found | SweetCharm"
+          description="The dessert you are looking for is not available right now. Explore other handmade treats from SweetCharm."
+          path="/desserts"
+          noindex
+        />
+
         <Header />
         <section className="mx-auto max-w-[900px] px-4 py-12 sm:px-6 lg:px-8">
           <div className="animate-fade-in-up rounded-[32px] border border-white/70 bg-white/90 px-6 py-14 shadow-[0_10px_28px_rgba(175,117,60,0.08)] text-center">
@@ -453,6 +512,17 @@ export default function DessertDetailPage() {
   // ── Main render ────────────────────────────────────
   return (
     <main ref={mainRef} className="dessert-detail-page min-h-screen overflow-hidden bg-[var(--color-header-bg)] text-[#6B3E06]">
+      <Seo
+        title={`${dessert.name} | SweetCharm`}
+        description={
+          detailCopy?.description ??
+          `${dessert.name} at SweetCharm. Freshly prepared dessert with premium ingredients and a cozy handcrafted finish.`
+        }
+        path={`/desserts/${dessert.slug}`}
+        image={normalizedImage}
+        structuredData={dessertSchema}
+      />
+
       <style>{animationStyles}</style>
 
       {/* Header */}

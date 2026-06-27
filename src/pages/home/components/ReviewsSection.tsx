@@ -77,7 +77,7 @@ function ReviewCard({
     <motion.article
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group relative flex h-full min-h-[400px] cursor-grab flex-col rounded-[32px] border border-[#F4E2B6] bg-white px-6 py-8 shadow-[0_12px_36px_-8px_rgba(104,64,10,0.06)] select-none sm:px-8 sm:py-9"
+      className="group relative flex h-full min-h-[360px] cursor-grab flex-col rounded-[28px] border border-[#F4E2B6] bg-white px-5 py-6 shadow-[0_12px_36px_-8px_rgba(104,64,10,0.06)] select-none sm:min-h-[400px] sm:rounded-[32px] sm:px-8 sm:py-9"
       style={{
         transformStyle: "preserve-3d",
         perspective: 1000,
@@ -157,7 +157,7 @@ function ReviewCard({
       <StarRating rating={review.rating} />
 
       {/* Review text */}
-      <p className="mt-4 text-[19px] leading-[1.5] text-[#68400A] sm:text-[21px]">
+      <p className="mt-4 text-[17px] leading-[1.55] text-[#68400A] sm:text-[21px]">
         {review.text}
       </p>
 
@@ -175,7 +175,7 @@ function ReviewCard({
             </span>
           </motion.div>
           <div>
-            <p className="text-[19px] font-semibold text-[#68400A]">
+            <p className="text-[17px] font-semibold text-[#68400A] sm:text-[19px]">
               {review.customer_name}
             </p>
             <p className="mt-0.5 text-[14px] text-[#8F6A2F]/80">
@@ -269,7 +269,7 @@ function ReviewsSection() {
     <section
       id="reviews"
       ref={sectionRef}
-      className="relative overflow-hidden bg-gradient-to-b from-[#FDE8C8] via-[#FEF0D8] to-[#FFF5E8] px-4 pb-24 pt-14 sm:px-8 lg:px-12 lg:pb-32 lg:pt-24"
+      className="relative overflow-hidden bg-gradient-to-b from-[#FDE8C8] via-[#FEF0D8] to-[#FFF5E8] px-4 pb-20 pt-14 sm:px-8 lg:px-12 lg:pb-32 lg:pt-24"
     >
       {/* ===== DECORATIVE BACKGROUND ===== */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -340,7 +340,7 @@ function ReviewsSection() {
           animate={isVisible ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
-          <div className="mb-5 flex justify-center">
+          <div className="mb-5 hidden justify-center sm:flex">
             <div className="relative">
               <motion.div
                 className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#FA94A9] to-[#FFB880] text-white shadow-lg shadow-[#FA94A9]/30 sm:h-20 sm:w-20"
@@ -364,7 +364,7 @@ function ReviewsSection() {
             <h2
               className="font-['Milkshake','Cooper_Black','Comic_Sans_MS',cursive] leading-[0.95] tracking-[0]"
               style={{
-                fontSize: "clamp(4.5rem, 8vw, 7rem)",
+                fontSize: "clamp(3.4rem, 13vw, 7rem)",
                 background:
                   "linear-gradient(135deg, #68400A 0%, #8B5B19 40%, #A07030 70%, #68400A 100%)",
                 WebkitBackgroundClip: "text",
@@ -395,13 +395,13 @@ function ReviewsSection() {
             <span className="block h-[2px] w-12 rounded-full bg-gradient-to-r from-transparent via-[#C8924A] to-transparent sm:w-16" />
           </div>
 
-          <p className="mx-auto mt-6 max-w-[620px] text-[17px] leading-[1.7] text-[#7A4E1A] sm:text-[19px]">
+          <p className="mx-auto mt-4 max-w-[620px] px-2 text-[16px] leading-[1.65] text-[#7A4E1A] sm:mt-6 sm:text-[19px]">
             Hear from our lovely customers about their sweet experiences with us.
           </p>
         </motion.div>
 
         {/* ===== REVIEWS CAROUSEL ===== */}
-        <div className="mt-12 flex items-center gap-4 xl:gap-6">
+        <div className="mt-10 flex items-center gap-4 xl:gap-6">
           <div className="hidden shrink-0 lg:block">
             <FlowerArrowButton
               direction="left"
@@ -461,7 +461,7 @@ function ReviewsSection() {
                   return (
                     <div
                       key={review.id}
-                      className="relative min-h-[400px] min-w-0 shrink-0 grow-0 basis-full pl-4 sm:pl-6 lg:basis-1/3"
+                      className="relative min-h-[400px] min-w-0 shrink-0 grow-0 basis-full pl-2 sm:pl-6 lg:basis-1/3"
                     >
                       <ReviewCard review={review} isActive={!!isActive} />
                     </div>
@@ -483,7 +483,7 @@ function ReviewsSection() {
         {/* ===== MOBILE ARROWS & DOTS ===== */}
         {slideCount > 0 && (
           <>
-            <div className="mt-8 flex justify-center gap-4 lg:hidden">
+            <div className="mt-7 flex justify-center gap-4 lg:hidden">
               <FlowerArrowButton
                 direction="left"
                 onClick={scrollPrev}

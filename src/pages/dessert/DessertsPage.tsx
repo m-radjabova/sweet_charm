@@ -24,6 +24,8 @@ import { toast } from "react-toastify";
 import Header from "../home/components/Header";
 import Footer from "../home/components/Footer";
 import bunnyMascot from "../../assets/profile/profile_bunny2.png";
+import Seo from "../../components/Seo";
+import { SITE_URL } from "../../components/seoConfig";
 
 // ─── Animations ────────────────────────────────────────────
 const animationStyles = `
@@ -940,6 +942,23 @@ export default function DessertsPage() {
 
   const displayedDesserts = sortedDesserts.slice(0, visibleCount);
   const hasMore = sortedDesserts.length > visibleCount;
+  const dessertsSchema = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "Dessert Gallery | SweetCharm",
+    url: `${SITE_URL}/desserts`,
+    description:
+      "Browse SweetCharm desserts, cakes, cheesecakes, macarons, and signature sweet treats made fresh with care.",
+    mainEntity: {
+      "@type": "ItemList",
+      itemListElement: sortedDesserts.slice(0, 12).map((dessert, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        url: `${SITE_URL}/desserts/${dessert.slug}`,
+        name: dessert.name,
+      })),
+    },
+  };
 
   function handleFilterChange(key: keyof FilterState, value: unknown) {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -976,6 +995,13 @@ export default function DessertsPage() {
   // ── Render ──────────────────────────────────────────────
   return (
     <main className="desserts-page min-h-screen bg-[#FFF9F2] text-[#6B4423]">
+      <Seo
+        title="Dessert Gallery | SweetCharm"
+        description="Browse SweetCharm desserts, cakes, cheesecakes, macarons, and signature sweet treats made fresh with care."
+        path="/desserts"
+        structuredData={dessertsSchema}
+      />
+
       <style>{animationStyles}</style>
 
       {/* Header */}

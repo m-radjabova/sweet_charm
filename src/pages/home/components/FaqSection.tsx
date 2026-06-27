@@ -84,7 +84,7 @@ function FaqSection() {
     <section
       id="faqs"
       ref={sectionRef}
-      className="relative overflow-hidden bg-gradient-to-b from-[#FFF5E8] via-[#FEEFD6] to-[#FDE8C8] px-4 pb-24 pt-14 sm:px-8 lg:px-12 lg:pb-32 lg:pt-24"
+      className="relative overflow-hidden bg-gradient-to-b from-[#FFF7EA] via-[#FDF3DE] to-[#FBEFD8] px-4 pb-22 pt-14 sm:px-8 lg:px-12 lg:pb-32 lg:pt-24"
     >
       {/* ===== DECORATIVE BACKGROUND ELEMENTS ===== */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -108,7 +108,7 @@ function FaqSection() {
             isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
           }`}
         >
-          <div className="mb-4 flex justify-center">
+          <div className="mb-4 hidden justify-center sm:flex">
             <div className="relative">
               <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#F86B87] to-[#FF8FA3] text-white shadow-lg shadow-[#F86B87]/30 sm:h-20 sm:w-20">
                 <IoHelpCircleOutline className="h-8 w-8 sm:h-10 sm:w-10" />
@@ -122,7 +122,7 @@ function FaqSection() {
             <h2
               className="font-['Milkshake','Cooper_Black','Comic_Sans_MS',cursive] leading-[0.95] tracking-[0]"
               style={{
-                fontSize: "clamp(4.5rem, 8vw, 7rem)",
+                fontSize: "clamp(3.6rem, 13vw, 7rem)",
                 background: "linear-gradient(135deg, #68400A 0%, #8B5B19 40%, #A07030 70%, #68400A 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
@@ -141,7 +141,7 @@ function FaqSection() {
             <span className="block h-[2px] w-12 rounded-full bg-gradient-to-r from-transparent via-[#C8924A] to-transparent sm:w-16" />
           </div>
 
-          <p className="mx-auto mt-6 max-w-[680px] text-[18px] leading-[1.7] text-[#7A4E1A] sm:text-[20px]">
+          <p className="mx-auto mt-4 max-w-[680px] px-2 text-[16px] leading-[1.65] text-[#7A4E1A] sm:mt-6 sm:text-[20px]">
             Find out answers to common questions about our dessert options, ingredient sources, and dietary accommodations.
           </p>
         </div>
@@ -162,16 +162,16 @@ function FaqSection() {
               >
                 <div className="relative mx-auto max-w-[860px]">
                   {/* ===== DECORATIVE RIBBON / TAPE ===== */}
-                  <div className="absolute -top-2 left-[20%] z-10 h-4 w-[60px] rounded-sm bg-gradient-to-r from-[#F86B87]/40 to-[#FF8FA3]/40 opacity-80 shadow-sm sm:w-[80px]" style={{ transform: "rotate(-2deg)" }} />
-                  <div className="absolute -top-2 right-[25%] z-10 h-4 w-[50px] rounded-sm bg-gradient-to-r from-[#F86B87]/30 to-[#FF8FA3]/30 opacity-70 shadow-sm sm:w-[70px]" style={{ transform: "rotate(3deg)" }} />
+                  <div className="absolute -top-2 left-[20%] z-10 hidden h-4 w-[60px] rounded-sm bg-gradient-to-r from-[#F86B87]/40 to-[#FF8FA3]/40 opacity-80 shadow-sm sm:block sm:w-[80px]" style={{ transform: "rotate(-2deg)" }} />
+                  <div className="absolute -top-2 right-[25%] z-10 hidden h-4 w-[50px] rounded-sm bg-gradient-to-r from-[#F86B87]/30 to-[#FF8FA3]/30 opacity-70 shadow-sm sm:block sm:w-[70px]" style={{ transform: "rotate(3deg)" }} />
 
                   <button
                     type="button"
                     onClick={() => setActiveIndex(isOpen ? null : index)}
                     className={`relative w-full text-left backdrop-blur-sm transition-all duration-500 ${
                       isOpen
-                        ? "rounded-[28px] bg-white px-7 py-7 shadow-[0_12px_40px_-8px_rgba(248,107,135,0.18)] sm:px-10 sm:py-8"
-                        : "rounded-[32px] bg-white/50 px-7 py-6 shadow-[0_4px_16px_rgba(104,64,10,0.04)] hover:bg-white/80 hover:shadow-[0_8px_24px_-6px_rgba(248,107,135,0.1)] sm:px-10 sm:py-7"
+                        ? "rounded-[28px] bg-white px-6 py-6 shadow-[0_12px_40px_-8px_rgba(248,107,135,0.18)] sm:px-10 sm:py-8"
+                        : "rounded-[32px] bg-white/90 px-6 py-5 shadow-[0_4px_16px_rgba(104,64,10,0.04)] hover:bg-white hover:shadow-[0_8px_24px_-6px_rgba(248,107,135,0.1)] sm:px-10 sm:py-7"
                     }`}
                     style={{
                       borderImage: isOpen
@@ -204,7 +204,7 @@ function FaqSection() {
                               <PiSparkle className="h-4 w-4 sm:h-[18px] sm:w-[18px]" />
                             )}
                           </span>
-                          <h3 className={`text-[19px] font-semibold leading-[1.3] transition-colors duration-300 sm:text-[22px] ${
+                          <h3 className={`text-[18px] font-semibold leading-[1.3] transition-colors duration-300 sm:text-[22px] ${
                             isOpen ? "text-[#68400A]" : "text-[#68400A]/90"
                           }`}>
                             {item.question}
@@ -228,10 +228,10 @@ function FaqSection() {
                       </div>
 
                       {/* Chevron */}
-                      <div className={`mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-400 sm:h-12 sm:w-12 ${
-                        isOpen
-                          ? "border-[#F86B87]/30 bg-gradient-to-br from-[#F86B87]/10 to-[#FF8FA3]/10 text-[#F86B87]"
-                          : "border-[#AC8D64]/20 text-[#8B5B19] group-hover:border-[#F86B87]/20 group-hover:text-[#F86B87]"
+                        <div className={`mt-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-[18px] border-2 transition-all duration-400 sm:h-12 sm:w-12 sm:rounded-full ${
+                          isOpen
+                          ? "border-[#FFD5A2] bg-[#FFD7A7] text-[#8B5B19]"
+                          : "border-[#F6E4C4] bg-[#FFD7A7] text-[#8B5B19] group-hover:border-[#F86B87]/20 group-hover:text-[#F86B87]"
                       }`}>
                         <HiMiniChevronDown
                           className={`h-5 w-5 transition-all duration-400 sm:h-6 sm:w-6 ${

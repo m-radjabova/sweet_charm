@@ -9,12 +9,20 @@ import bearIcons from "../../assets/bear_iocns.png";
 import strawberryIcons from "../../assets/strawberry_icons.png";
 import cakeIcon from "../../assets/cake_icon.png";
 import macaronIcon from "../../assets/macaron_icon.png";
+import Seo from "../../components/Seo";
 
 export default function CartPage() {
   const { items, itemCount, subtotal, updateQuantity, removeItem, clearCart } = useCart();
 
   return (
     <main className="min-h-screen overflow-hidden bg-[var(--color-header-bg)] text-[#6B3E06]">
+      <Seo
+        title="Your Cart | SweetCharm"
+        description="Review your selected SweetCharm desserts before checkout."
+        path="/cart"
+        noindex
+      />
+
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <img
           loading="lazy"

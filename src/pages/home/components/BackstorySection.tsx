@@ -5,6 +5,7 @@ import backstoryImage from "../../../assets/our_little_backstory.png";
 import iceCreamIcon from "../../../assets/ice_cream_icon.png";
 import rabbitIcon from "../../../assets/rabbit_icons.png";
 import strawberryIcon from "../../../assets/strawberry_icons.png";
+import RevealMedia from "./RevealMedia";
 
 function BackstorySection() {
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -29,7 +30,7 @@ function BackstorySection() {
     <section
       id="about-us"
       ref={sectionRef}
-      className="relative overflow-hidden bg-gradient-to-b from-[#FFF8F0] via-[#FFF0E0] to-[#FFE8D0] px-4 pb-20 pt-12 sm:px-8 lg:px-12 lg:pb-28 lg:pt-18"
+      className="relative overflow-hidden bg-gradient-to-b from-[#FFF8F0] via-[#FFF0E0] to-[#FFE8D0] px-4 pb-18 pt-12 sm:px-8 lg:px-12 lg:pb-28 lg:pt-18"
     >
       {/* ===== DECORATIVE BACKGROUND ELEMENTS ===== */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -109,13 +110,15 @@ function BackstorySection() {
           }`}
         >
           <div className="relative">
-            <img
-            loading="lazy"
-              src={strawberryIcon}
-              alt="Strawberry badge"
-              className="h-[86px] w-[100px] object-contain sm:h-[110px] sm:w-[126px] drop-shadow-lg"
-              style={{ animation: "gentleBob 6s ease-in-out infinite" }}
-            />
+            <RevealMedia className="overflow-visible" delayMs={100}>
+              <img
+                loading="lazy"
+                src={strawberryIcon}
+                alt="Strawberry badge"
+                className="h-[86px] w-[100px] object-contain sm:h-[110px] sm:w-[126px] drop-shadow-lg"
+                style={{ animation: "gentleBob 6s ease-in-out infinite" }}
+              />
+            </RevealMedia>
             <div className="absolute -inset-4 rounded-full bg-gradient-to-r from-[#FFD4A0]/20 to-[#FFB880]/10 blur-xl" />
           </div>
         </div>
@@ -126,14 +129,14 @@ function BackstorySection() {
             isVisible ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"
           }`}
         >
-          <div className="inline-flex items-center gap-5 sm:gap-8">
-            <span className="text-[28px] text-[#C8924A] sm:text-[34px]" style={{ animation: "sparkle 3s ease-in-out infinite" }}>
+          <div className="inline-flex items-center gap-3 sm:gap-8">
+            <span className="text-[20px] text-[#C8924A] sm:text-[34px]" style={{ animation: "sparkle 3s ease-in-out infinite" }}>
               ✦
             </span>
             <h2
               className="font-['Milkshake','Cooper_Black','Comic_Sans_MS',cursive] leading-[0.95] tracking-[0]"
               style={{
-                fontSize: "clamp(4.8rem, 8vw, 7.1rem)",
+                fontSize: "clamp(3.3rem, 13vw, 7.1rem)",
                 background: "linear-gradient(135deg, #68400A 0%, #8B5B19 40%, #A07030 70%, #68400A 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
@@ -143,7 +146,7 @@ function BackstorySection() {
             >
               Our little backstory
             </h2>
-            <span className="text-[28px] text-[#C8924A] sm:text-[34px]" style={{ animation: "sparkle 3s ease-in-out infinite 1s" }}>
+            <span className="text-[20px] text-[#C8924A] sm:text-[34px]" style={{ animation: "sparkle 3s ease-in-out infinite 1s" }}>
               ✦
             </span>
           </div>
@@ -162,7 +165,7 @@ function BackstorySection() {
             isVisible ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"
           }`}
         >
-          <p className="relative px-2 text-[18px] leading-[1.6] text-[#7A4E1A] sm:px-0 sm:text-[25px]">
+          <p className="relative px-3 text-[16px] leading-[1.7] text-[#7A4E1A] sm:px-0 sm:text-[25px]">
             <span className="absolute -left-3 -top-3 text-[40px] text-[#C8924A]/30 font-serif leading-none">"</span>
             Beginning 2020, SweetCharm started out as homebakery business. By March 2022, we
             took the leap to our very own production space. Fast forward to March 2023, and
@@ -174,7 +177,7 @@ function BackstorySection() {
 
         {/* ===== IMAGE WITH OVERLAYS ===== */}
         <div
-          className={`relative mx-auto mt-12 flex max-w-[1440px] justify-center sm:mt-16 transition-all duration-1000 delay-900 ${
+          className={`relative mx-auto mt-10 flex max-w-[1440px] justify-center sm:mt-16 transition-all duration-1000 delay-900 ${
             isVisible ? "translate-y-0 opacity-100" : "translate-y-16 opacity-0"
           }`}
         >
@@ -182,15 +185,15 @@ function BackstorySection() {
           <div className="absolute -inset-8 rounded-[40px] bg-gradient-to-b from-[#FFD4A0]/20 via-[#FFC8A0]/10 to-transparent blur-2xl" />
 
           {/* Image container with rounded corners and shadow */}
-          <div className="relative w-full max-w-[1240px] rounded-3xl bg-white/40 p-3 shadow-[0_20px_60px_-15px_rgba(139,91,25,0.3)] backdrop-blur-sm ring-1 ring-[#FFD4A0]/30">
-            <div className="overflow-hidden rounded-2xl">
+          <div className="relative w-full max-w-[1240px] rounded-[34px] border-[4px] border-[#F79CB1] bg-white/40 p-2 shadow-[0_20px_60px_-15px_rgba(139,91,25,0.3)] backdrop-blur-sm ring-1 ring-[#FFD4A0]/30 sm:rounded-3xl sm:border-0 sm:p-3">
+            <RevealMedia className="rounded-2xl" delayMs={180}>
               <img
-              loading="lazy"
+                loading="lazy"
                 src={backstoryImage}
                 alt="SweetCharm backstory"
                 className="w-full object-contain transition-transform duration-700 hover:scale-105"
               />
-            </div>
+            </RevealMedia>
           </div>
 
           {/* ===== DESKTOP OVERLAYS ===== */}
@@ -255,34 +258,14 @@ function BackstorySection() {
 
         {/* ===== MOBILE OVERLAYS ===== */}
         <div
-          className={`mt-10 grid gap-6 lg:hidden transition-all duration-1000 delay-[1900ms] ${
+          className={`mt-8 flex justify-center lg:hidden transition-all duration-1000 delay-[1900ms] ${
             isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
           }`}
         >
-          <div className="flex items-center justify-center gap-4">
-            <div className="flex items-center gap-3 rounded-2xl bg-white/60 px-4 py-2 shadow-md backdrop-blur-sm ring-1 ring-[#FFD4A0]/30">
-              <span
-                className="font-['Milkshake','Cooper_Black','Comic_Sans_MS',cursive] text-[3rem] leading-none text-[#68400A]"
-                style={{ transform: "rotate(-7deg)" }}
-              >
-                Cake
-              </span>
-              <img loading="lazy" src={arrowTop} alt="" className="w-[60px] object-contain" />
-            </div>
-            <img loading="lazy" src={rabbitIcon} alt="Rabbit icon" className="w-[86px] object-contain drop-shadow-md" />
-          </div>
-
-          <div className="flex items-center justify-center gap-4">
-            <img loading="lazy" src={iceCreamIcon} alt="Cupcake icon" className="w-[88px] object-contain drop-shadow-md" />
-            <div className="flex items-center gap-3 rounded-2xl bg-white/60 px-4 py-2 shadow-md backdrop-blur-sm ring-1 ring-[#FFD4A0]/30">
-              <img loading="lazy" src={arrowDown} alt="" className="w-[60px] object-contain" />
-              <span
-                className="font-['Milkshake','Cooper_Black','Comic_Sans_MS',cursive] text-[3rem] leading-none text-[#68400A]"
-                style={{ transform: "rotate(6deg)" }}
-              >
-                Macaron
-              </span>
-            </div>
+          <div className="inline-flex items-center gap-3 rounded-[26px] bg-white/70 px-4 py-3 shadow-md backdrop-blur-sm ring-1 ring-[#FFD4A0]/30">
+            <img loading="lazy" src={iceCreamIcon} alt="Cupcake icon" className="w-[64px] object-contain drop-shadow-md" />
+            <img loading="lazy" src={rabbitIcon} alt="Rabbit icon" className="w-[64px] object-contain drop-shadow-md" />
+            <span className="text-[20px] text-[#C8924A]">✦</span>
           </div>
         </div>
       </div>

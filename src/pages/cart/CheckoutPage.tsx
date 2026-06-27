@@ -34,6 +34,7 @@ import Header from "../home/components/Header";
 import { useCart } from "../../hooks/useCart";
 import useContextPro from "../../hooks/useContextPro";
 import { formatDate, formatMoney, normalizePhoneForApi, normalizePhoneInput } from "../account/utils";
+import Seo from "../../components/Seo";
 
 type PaymentMethod = "cash" | "card";
 type AddressMode = "saved" | "new";
@@ -526,6 +527,13 @@ export default function CheckoutPage() {
   if (placedOrder) {
     return (
       <main className="min-h-screen overflow-hidden bg-[var(--color-header-bg)] text-[#6B3E06]">
+        <Seo
+          title="Order Confirmed | SweetCharm"
+          description="Your SweetCharm order has been placed successfully."
+          path="/checkout"
+          noindex
+        />
+
         <div className="relative z-30 bg-[var(--color-header-bg)]/40 px-4 py-3 sm:px-8 sm:py-4">
           <Header />
         </div>
@@ -586,6 +594,13 @@ export default function CheckoutPage() {
   if (items.length === 0) {
     return (
       <main className="min-h-screen overflow-hidden bg-[var(--color-header-bg)] text-[#6B3E06]">
+        <Seo
+          title="Checkout | SweetCharm"
+          description="Complete your SweetCharm dessert order and choose your delivery details."
+          path="/checkout"
+          noindex
+        />
+
         <div className="relative z-30 bg-[var(--color-header-bg)]/40 px-4 py-3 sm:px-8 sm:py-4">
           <Header />
         </div>
@@ -623,6 +638,13 @@ export default function CheckoutPage() {
 
   return (
     <main className="min-h-screen overflow-hidden bg-[var(--color-header-bg)] text-[#6B3E06]">
+      <Seo
+        title="Checkout | SweetCharm"
+        description="Complete your SweetCharm dessert order and choose your delivery details."
+        path="/checkout"
+        noindex
+      />
+
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <img loading="lazy" src={rabbitIcons} alt="" aria-hidden className="absolute right-0 top-10 w-44 opacity-[0.05] sm:w-60" />
         <div className="absolute left-[6%] top-[18%] h-4 w-4 animate-float rounded-full bg-[#FAD5DF]/70" />

@@ -269,7 +269,7 @@ function BestSellersSection() {
   return (
     <section
       id="best-sellers"
-      className="relative z-30 overflow-hidden bg-[#FEF7E7] px-4 py-16 sm:px-8 lg:px-12 lg:py-24"
+      className="relative z-30 overflow-hidden bg-[#FEF7E7] px-4 py-14 sm:px-8 lg:px-12 lg:py-24"
     >
       {/* Background decorative elements */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -307,7 +307,7 @@ function BestSellersSection() {
             className={`font-['Milkshake','Cooper_Black','Comic_Sans_MS',cursive] leading-[0.95] tracking-[0] text-[#68400A] transition-all duration-700 ${
               sectionInView ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
             }`}
-            style={{ fontSize: "clamp(4rem, 7vw, 6.5rem)", transitionDelay: "150ms" }}
+            style={{ fontSize: "clamp(3.5rem, 13vw, 6.5rem)", transitionDelay: "150ms" }}
           >
             Best Sellers
             <br />
@@ -352,7 +352,7 @@ function BestSellersSection() {
           </div>
 
           <p
-            className={`mx-auto mt-6 max-w-[500px] text-[17px] leading-relaxed text-[#8F6A2F]/70 transition-all duration-700 ${
+            className={`mx-auto mt-4 max-w-[500px] px-2 text-[16px] leading-relaxed text-[#8F6A2F]/70 transition-all duration-700 sm:mt-6 sm:text-[17px] ${
               sectionInView ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
             }`}
             style={{ transitionDelay: "350ms" }}
@@ -362,7 +362,7 @@ function BestSellersSection() {
         </div>
 
         {/* Best sellers grid */}
-        <div className="relative mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="relative mt-10 grid gap-6 sm:mt-14 sm:grid-cols-2 sm:gap-8 lg:grid-cols-3">
           {isLoading
             ? Array.from({ length: 6 }).map((_, index) => (
                 <div key={index} className="h-[400px] animate-pulse rounded-[32px] bg-gradient-to-br from-[#f7ead0] to-[#f3e1be]" />
@@ -396,17 +396,17 @@ function BestSellersSection() {
 
         {/* CTA Button */}
         <div
-          className={`mt-14 flex justify-center transition-all duration-700 ${
+          className={`mt-10 flex justify-center transition-all duration-700 sm:mt-14 ${
             sectionInView ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
           }`}
           style={{ transitionDelay: "500ms" }}
         >
           <Link
             to="/desserts"
-            className="group relative inline-flex h-[68px] min-w-[240px] items-center justify-center rounded-[24px] bg-gradient-to-r from-[#FEC84D] to-[#FFD87A] px-[30px] text-[18px] font-bold text-[#68400A] shadow-[0_13px_22px_rgba(254,200,77,0.25)] transition-all duration-300 hover:-translate-y-[3px] hover:shadow-[0_17px_30px_rgba(254,200,77,0.3)] active:scale-[0.97] max-[900px]:h-[62px] max-[900px]:min-w-[min(220px,78vw)] max-[900px]:rounded-[20px] max-[900px]:px-6 max-[900px]:text-[17px]"
+            className="group relative inline-flex h-[64px] min-w-[240px] items-center justify-center rounded-[24px] bg-gradient-to-r from-[#FEC84D] to-[#FFD87A] px-[30px] text-[17px] font-bold text-[#68400A] shadow-[0_13px_22px_rgba(254,200,77,0.25)] transition-all duration-300 hover:-translate-y-[3px] hover:shadow-[0_17px_30px_rgba(254,200,77,0.3)] active:scale-[0.97] sm:h-[68px] sm:text-[18px]"
           >
             <span className="relative z-10 flex items-center gap-3">
-              Explore All Desserts
+              View all
               <HiMiniChevronRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
             </span>
           </Link>

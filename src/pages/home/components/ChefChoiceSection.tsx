@@ -57,7 +57,7 @@ function ChefChoiceSection() {
   );
 
   return (
-    <section className="relative overflow-hidden bg-[#FEF7E7] px-4 py-14 sm:px-8 lg:px-12 lg:py-18">
+    <section className="relative overflow-hidden bg-[#FEF7E7] px-4 py-12 sm:px-8 lg:px-12 lg:py-18">
       {/* ---- ambient glow orbs ---- */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div
@@ -113,12 +113,12 @@ function ChefChoiceSection() {
       </div>
 
       {/* ---- main card ---- */}
-      <div className="relative mx-auto max-w-[1320px] overflow-hidden rounded-[38px] border border-white/80 bg-[linear-gradient(135deg,rgba(255,253,249,0.96),rgba(255,243,233,0.92))] shadow-[0_22px_60px_rgba(153,95,40,0.08)] backdrop-blur-sm transition-all duration-700 lg:grid lg:grid-cols-[1fr_0.95fr]">
+      <div className="relative mx-auto max-w-[1320px] overflow-hidden rounded-[34px] border border-white/80 bg-[linear-gradient(135deg,rgba(255,253,249,0.96),rgba(255,243,233,0.92))] shadow-[0_22px_60px_rgba(153,95,40,0.08)] backdrop-blur-sm transition-all duration-700 sm:rounded-[38px] lg:grid lg:grid-cols-[1fr_0.95fr]">
         {/* ---- subtle top border accent ---- */}
         <div className="absolute left-0 right-0 top-0 h-[3px] bg-gradient-to-r from-transparent via-[#F56D92] to-transparent" />
 
         {/* ========== left column (text) ========== */}
-        <div className="relative px-6 py-8 sm:px-9 lg:px-12 lg:py-12">
+        <div className="relative px-5 py-7 sm:px-9 lg:px-12 lg:py-12">
           {/* badge */}
           <div className="group inline-flex items-center gap-2 rounded-full bg-[#FFF0F4] px-4 py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[#F25D88] shadow-[0_8px_20px_rgba(242,93,136,0.12)] transition-all duration-300 hover:shadow-[0_12px_28px_rgba(242,93,136,0.22)]">
             <HiMiniSparkles className="h-4 w-4 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110" />
@@ -133,7 +133,7 @@ function ChefChoiceSection() {
 
             {/* name */}
             <h2
-              className="mt-3 animate-[fadeInUp_0.8s_ease-out] font-['Milkshake','Cooper_Black','Comic_Sans_MS',cursive] text-[clamp(2.8rem,5vw,4.8rem)] leading-[0.95] text-[#6B3E06]"
+              className="mt-3 animate-[fadeInUp_0.8s_ease-out] font-['Milkshake','Cooper_Black','Comic_Sans_MS',cursive] text-[clamp(3rem,12vw,4.8rem)] leading-[0.95] text-[#6B3E06]"
               style={{ animationFillMode: "both" }}
             >
               {dessert.name}
@@ -166,7 +166,7 @@ function ChefChoiceSection() {
 
             {/* description */}
             <div className="relative mt-6">
-              <p className="max-w-[520px] text-[16px] leading-8 text-[#835631] sm:text-[17px]">
+              <p className="max-w-[520px] text-[15px] leading-7 text-[#835631] sm:text-[17px]">
                 {dessert.description?.trim()
                   ? dessert.description
                   : "Handpicked by our chef for this week’s sweetest spotlight, made to steal the first bite and the second one too."}
@@ -198,11 +198,11 @@ function ChefChoiceSection() {
             </div>
 
             {/* buttons */}
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
               <Link
                 to={`/desserts/${dessert.slug}`}
                 style={{color: "var(--color-surface)"}}
-                className="group/btn relative inline-flex h-14 min-w-[210px] items-center justify-center gap-2 overflow-hidden rounded-[20px] bg-gradient-to-r from-[#FF8BA6] to-[#F56D92] px-6 text-[15px] font-bold text-white shadow-[0_14px_28px_rgba(245,109,146,0.24)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(245,109,146,0.35)] active:scale-[0.97]"
+                className="group/btn relative inline-flex h-14 min-w-[210px] items-center justify-center gap-2 overflow-hidden rounded-[20px] bg-gradient-to-r from-[#FF8BA6] to-[#F56D92] px-6 text-[16px] font-bold text-white shadow-[0_14px_28px_rgba(245,109,146,0.24)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(245,109,146,0.35)] active:scale-[0.97] sm:text-[15px]"
               >
                 {/* shimmer overlay */}
                 <span className="absolute inset-0 -translate-x-full skew-x-12 bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover/btn:translate-x-full" />
@@ -212,7 +212,7 @@ function ChefChoiceSection() {
               </Link>
               <Link
                 to="/desserts"
-                className="group/btn2 inline-flex h-14 min-w-[210px] items-center justify-center gap-2 rounded-[20px] border border-[#F2CBD6] bg-white/72 px-6 text-[15px] font-bold text-[#73431B] shadow-[0_8px_18px_rgba(149,91,28,0.08)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#F49AAF] hover:bg-white hover:shadow-[0_14px_30px_rgba(149,91,28,0.14)] active:scale-[0.97]"
+                className="group/btn2 inline-flex h-14 min-w-[210px] items-center justify-center gap-2 rounded-[20px] border border-[#F2CBD6] bg-white/72 px-6 text-[16px] font-bold text-[#73431B] shadow-[0_8px_18px_rgba(149,91,28,0.08)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#F49AAF] hover:bg-white hover:shadow-[0_14px_30px_rgba(149,91,28,0.14)] active:scale-[0.97] sm:text-[15px]"
               >
                 Explore Menu
                 <HiMiniArrowRight className="h-4 w-4 opacity-0 transition-all duration-300 group-hover/btn2:translate-x-0.5 group-hover/btn2:opacity-100" />
@@ -235,7 +235,7 @@ function ChefChoiceSection() {
         </div>
 
         {/* ========== right column (image) ========== */}
-        <div className="relative flex min-h-[240px] items-end justify-center overflow-hidden px-4 pb-4 pt-2 sm:min-h-[460px] sm:px-10 lg:min-h-full lg:pb-10">
+        <div className="relative flex min-h-[240px] items-end justify-center overflow-hidden px-3 pb-3 pt-1 sm:min-h-[460px] sm:px-10 lg:min-h-full lg:pb-10">
           {/* ---- glow behind image ---- */}
           <div
             className="absolute inset-x-[8%] bottom-8 h-20 animate-[glowPulse_4s_ease-in-out_infinite] rounded-full"

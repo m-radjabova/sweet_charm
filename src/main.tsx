@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import CreateContextPro from "./hooks/CreateContextPro.tsx";
 import RealtimeProvider from "./realtime/RealtimeProvider.tsx";
 import GlobalErrorBoundary from "./components/GlobalErrorBoundary.tsx";
+import { HelmetProvider } from "react-helmet-async";
 import "./i18n";
 
 const queryClient = new QueryClient({
@@ -27,16 +28,18 @@ const queryClient = new QueryClient({
 createRoot(document.getElementById("root")!).render(
   <>
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <GlobalErrorBoundary>
-          <CreateContextPro>
-            <RealtimeProvider>
-              <App />
-              <ToastContainer />
-            </RealtimeProvider>
-          </CreateContextPro>
-        </GlobalErrorBoundary>
-      </BrowserRouter>
+      <HelmetProvider>
+        <BrowserRouter>
+          <GlobalErrorBoundary>
+            <CreateContextPro>
+              <RealtimeProvider>
+                <App />
+                <ToastContainer />
+              </RealtimeProvider>
+            </CreateContextPro>
+          </GlobalErrorBoundary>
+        </BrowserRouter>
+      </HelmetProvider>
     </QueryClientProvider>
   </>
 );

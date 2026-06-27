@@ -1,0 +1,35 @@
+{
+  "name": "SweetCharm",
+  "short_name": "SweetCharm",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#FEF7E7",
+  "theme_color": "#F75D86",
+  "description": "Handmade desserts, premium coffee, cozy cafe vibes, and sweet rewards from SweetCharm.",
+  "lang": "en-US",
+  "dir": "ltr",
+  "categories": ["food", "shopping", "lifestyle"],
+  "icons": [
+    {
+      "src": "/cupcake.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/cupcake.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/website.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

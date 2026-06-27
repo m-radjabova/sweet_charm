@@ -88,6 +88,10 @@ button:disabled {
 }
 
 /* ── Skeleton shimmer ─────────────────────────────────── */
+/* ── Shimmer (used by SweetMomentsSection) ─────────────── */
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
 @keyframes skeleton-shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }

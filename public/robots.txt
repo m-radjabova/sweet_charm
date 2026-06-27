@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+
+Disallow: /account/
+Disallow: /admin
+Disallow: /admin/
+Disallow: /dashboard
+Disallow: /dashboard/
+Disallow: /cart
+Disallow: /checkout
+Disallow: /login
+Disallow: /sign-up
+Disallow: /403
+Disallow: /500
+
+Sitemap: https://sweet-charm.vercel.app/sitemap.xml

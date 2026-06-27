@@ -21,6 +21,7 @@ import strawberryIcon from "../../assets/strawberry_icons.png";
 import bearIcon from "../../assets/bear_iocns.png";
 import { clearStoredAuth, getErrorMessage, getMe, loginUser, persistTokens, registerUser } from "../../api/auth";
 import useContextPro from "../../hooks/useContextPro";
+import Seo from "../../components/Seo";
 
 type AuthMode = "login" | "register";
 type PasswordField = "password" | "confirmPassword";
@@ -263,6 +264,17 @@ function Login() {
 
   return (
     <section className="relative min-h-screen overflow-hidden px-4 py-6 sm:px-6 lg:px-8">
+      <Seo
+        title={isRegister ? "Create Account | SweetCharm" : "Login | SweetCharm"}
+        description={
+          isRegister
+            ? "Create your SweetCharm account to save favorites, manage orders, and enjoy sweet rewards."
+            : "Sign in to your SweetCharm account to manage your profile, orders, favorites, and rewards."
+        }
+        path={isRegister ? "/sign-up" : "/login"}
+        noindex
+      />
+
       {/* Animated gradient background */}
       <div
         className="pointer-events-none absolute inset-0 bg-cover bg-center bg-no-repeat"

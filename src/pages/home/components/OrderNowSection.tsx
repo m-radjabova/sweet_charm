@@ -24,7 +24,7 @@ function OrderNowSection() {
   }, []);
 
   return (
-    <section className="relative bg-[var(--color-hero-bg)] px-4 pb-20 pt-4 sm:px-8 lg:px-12 lg:pb-28">
+    <section className="relative bg-[var(--color-hero-bg)] px-4 pb-16 pt-3 sm:px-8 lg:px-12 lg:pb-28">
       {/* Decorative background elements */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <span className="absolute left-[5%] top-[12%] text-[18px] text-[#FEF7E7]/20 sm:text-[24px]">
@@ -43,7 +43,7 @@ function OrderNowSection() {
 
       <div
         ref={sectionRef}
-        className={`relative mx-auto min-h-[390px] max-w-[1680px] overflow-hidden rounded-[42px] shadow-[0_24px_60px_rgba(248,107,135,0.12)] transition-all duration-1000 sm:min-h-[460px] lg:min-h-[750px] ${
+        className={`relative mx-auto min-h-[520px] max-w-[1680px] overflow-hidden rounded-[34px] shadow-[0_24px_60px_rgba(248,107,135,0.12)] transition-all duration-1000 sm:min-h-[460px] sm:rounded-[42px] lg:min-h-[750px] ${
           isVisible
             ? "translate-y-0 opacity-100"
             : "translate-y-12 opacity-0"
@@ -59,7 +59,7 @@ function OrderNowSection() {
         />
 
         {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[rgba(248,107,135,0.55)] via-[rgba(248,107,135,0.3)] to-[rgba(248,107,135,0.55)]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[rgba(248,107,135,0.04)] via-[rgba(248,107,135,0.48)] to-[rgba(248,107,135,0.7)] sm:bg-gradient-to-r sm:from-[rgba(248,107,135,0.55)] sm:via-[rgba(248,107,135,0.3)] sm:to-[rgba(248,107,135,0.55)]" />
 
         {/* Decorative floating elements */}
         <div className="pointer-events-none absolute inset-0">
@@ -105,7 +105,7 @@ function OrderNowSection() {
         </div>
 
         {/* Content */}
-        <div className="absolute inset-y-0 left-0 flex w-full items-center justify-center px-4 sm:px-10 lg:w-[47%] lg:px-16">
+        <div className="absolute inset-y-0 left-0 flex w-full items-end justify-center px-4 pb-8 sm:items-center sm:px-10 sm:pb-0 lg:w-[47%] lg:px-16">
           <div className="flex max-w-[470px] flex-col items-center text-center">
             {/* Decorative line above title */}
             <div
@@ -132,7 +132,7 @@ function OrderNowSection() {
               </span>
               <h2
                 className="font-['Milkshake','Cooper_Black','Comic_Sans_MS',cursive] leading-[0.95] tracking-[0] text-[#FEF7E7] drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]"
-                style={{ fontSize: "clamp(4.4rem, 7vw, 6.6rem)" }}
+                style={{ fontSize: "clamp(3.4rem, 13vw, 6.6rem)" }}
               >
                 Bunnynuts
                 <br />
@@ -165,7 +165,7 @@ function OrderNowSection() {
             </div>
 
             <p
-              className={`mt-2 max-w-[420px] text-[20px] leading-[1.32] text-[#FEF7E7] drop-shadow-[0_1px_3px_rgba(0,0,0,0.12)] transition-all duration-[1.5s] sm:text-[24px] lg:text-[26px] ${
+              className={`mt-2 max-w-[420px] px-2 text-[16px] leading-[1.45] text-[#FEF7E7] drop-shadow-[0_1px_3px_rgba(0,0,0,0.12)] transition-all duration-[1.5s] sm:text-[24px] lg:text-[26px] ${
                 isVisible
                   ? "translate-y-0 opacity-100"
                   : "translate-y-8 opacity-0"
@@ -177,7 +177,7 @@ function OrderNowSection() {
 
             <a
               href="#menu"
-              className={`group relative mt-10 inline-flex min-w-[240px] items-center justify-center rounded-[22px] bg-[#FEF7E7] px-8 py-4 text-[18px] font-semibold text-[#68400A] shadow-[0_12px_28px_rgba(104,64,10,0.12)] transition-all duration-[1.2s] hover:-translate-y-1 hover:bg-[#FFF7EA] hover:shadow-[0_16px_36px_rgba(104,64,10,0.18)] active:translate-y-0 ${
+              className={`group relative mt-8 inline-flex min-w-[220px] items-center justify-center rounded-[22px] bg-[#FEF7E7] px-8 py-4 text-[17px] font-semibold text-[#68400A] shadow-[0_12px_28px_rgba(104,64,10,0.12)] transition-all duration-[1.2s] hover:-translate-y-1 hover:bg-[#FFF7EA] hover:shadow-[0_16px_36px_rgba(104,64,10,0.18)] active:translate-y-0 sm:mt-10 sm:min-w-[240px] sm:text-[18px] ${
                 isVisible
                   ? "translate-y-0 opacity-100"
                   : "translate-y-8 opacity-0"

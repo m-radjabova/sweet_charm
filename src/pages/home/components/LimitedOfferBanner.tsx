@@ -56,15 +56,15 @@ function LimitedOfferBanner() {
   return (
     <section
       ref={sectionRef}
-      className="relative overflow-hidden px-4 py-10 sm:px-8 lg:px-12 lg:py-14"
+      className="relative overflow-hidden px-4 py-8 sm:px-8 lg:px-12 lg:py-14"
     >
       <div className="mx-auto max-w-[1200px]">
         <div
-          className={`relative overflow-hidden rounded-[32px] bg-gradient-to-br ${offer.bgGradient} border ${offer.borderColor} p-[1px] transition-all duration-700 ${
+          className={`relative overflow-hidden rounded-[34px] bg-gradient-to-br ${offer.bgGradient} border ${offer.borderColor} p-[1px] transition-all duration-700 sm:rounded-[32px] ${
             isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
           }`}
         >
-          <div className="relative rounded-[31px] bg-white/80 px-6 py-8 backdrop-blur-sm sm:px-10 sm:py-10">
+          <div className="relative rounded-[33px] bg-white/80 px-5 py-7 backdrop-blur-sm sm:rounded-[31px] sm:px-10 sm:py-10">
             {/* Decorative sparkles */}
             <div className="pointer-events-none absolute inset-0 overflow-hidden">
               <span className="absolute left-[5%] top-[10%] text-[16px] text-[#F86B87]/20">✦</span>
@@ -100,7 +100,7 @@ function LimitedOfferBanner() {
               <HiMiniXMark className="h-4 w-4" />
             </button>
 
-            <div className="flex flex-col items-center gap-5 sm:flex-row sm:gap-8">
+            <div className="flex flex-col items-center gap-5 text-center sm:flex-row sm:gap-8 sm:text-left">
               {/* Icon */}
               <div className="relative shrink-0">
                 <div className={`flex h-20 w-20 items-center justify-center rounded-[24px] bg-gradient-to-br ${offer.gradient} text-white shadow-lg`}>
@@ -116,10 +116,10 @@ function LimitedOfferBanner() {
                   Limited Offer
                   <HiMiniSparkles className="h-3 w-3" />
                 </div>
-                  <h3 className="mt-2 font-['Milkshake','Cooper_Black','Comic_Sans_MS',cursive] text-[clamp(1.5rem,3.5vw,2.8rem)] leading-[1.1] text-[#68400A] sm:mt-3">
+                  <h3 className="mt-2 font-['Milkshake','Cooper_Black','Comic_Sans_MS',cursive] text-[clamp(2.4rem,10vw,2.8rem)] leading-[1.02] text-[#68400A] sm:mt-3">
                   {offer.description}
                 </h3>
-                <div className="mt-2 flex flex-wrap items-center justify-center gap-2 sm:mt-3 sm:gap-3">
+                <div className="mt-3 flex flex-wrap items-center justify-center gap-2 sm:mt-3 sm:justify-start sm:gap-3">
                   <span className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#F86B87] to-[#FA94A9] px-4 py-1.5 text-[13px] font-bold tracking-wider text-white shadow-[0_4px_12px_rgba(248,107,135,0.3)] sm:px-5 sm:py-2 sm:text-[15px]">
                     Use code: {offer.code}
                   </span>
@@ -133,7 +133,7 @@ function LimitedOfferBanner() {
               <a
                 href="#menu"
                 style={{color: "var(--color-surface)"}}
-                className="group relative inline-flex h-[52px] min-w-[160px] items-center justify-center rounded-[20px] bg-gradient-to-r from-[#F86B87] to-[#FA94A9] px-6 text-[15px] font-bold text-white shadow-[0_8px_20px_rgba(248,107,135,0.25)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_28px_rgba(248,107,135,0.35)] active:scale-[0.97]"
+                className="group relative inline-flex h-[58px] min-w-[220px] items-center justify-center rounded-[20px] bg-gradient-to-r from-[#F86B87] to-[#FA94A9] px-6 text-[17px] font-bold text-white shadow-[0_8px_20px_rgba(248,107,135,0.25)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_28px_rgba(248,107,135,0.35)] active:scale-[0.97] sm:h-[52px] sm:min-w-[160px] sm:text-[15px]"
               >
                 <span className="relative z-10 flex items-center gap-2">
                   Shop Now
