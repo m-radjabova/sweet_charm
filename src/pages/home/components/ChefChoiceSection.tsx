@@ -7,6 +7,7 @@ import {
   HiMiniChevronDoubleRight,
 } from "react-icons/hi2";
 import { getChefChoice } from "../../../api/desserts";
+import fallbackDessertImage from "../../../assets/cake_icon.png";
 
 function formatPrice(price?: string | null) {
   const numeric = Number(price ?? 0);
@@ -31,6 +32,7 @@ function ChefChoiceSection() {
   });
 
   const dessert = chefChoiceQuery.data;
+  const imageUrl = dessert?.image_url || dessert?.image_urls?.[0] || fallbackDessertImage;
 
   if (chefChoiceQuery.isLoading) {
     return (
@@ -271,7 +273,7 @@ function ChefChoiceSection() {
 
             <img
             loading="lazy"
-              src={dessert.image_url ?? ""}
+              src={imageUrl}
               alt={dessert.name}
               className="w-full max-w-[520px] rounded-[28px] object-cover shadow-[0_20px_40px_rgba(149,91,28,0.12)] transition-all duration-700 hover:scale-[1.02] lg:max-h-[620px]"
             />

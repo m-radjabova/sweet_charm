@@ -26,6 +26,7 @@ import Footer from "../home/components/Footer";
 import bunnyMascot from "../../assets/profile/profile_bunny2.png";
 import Seo from "../../components/Seo";
 import { SITE_URL } from "../../components/seoConfig";
+import { getDisplayDiscountPercent, getDisplayOldPrice } from "../../utils/pricing";
 
 // ─── Animations ────────────────────────────────────────────
 const animationStyles = `
@@ -169,11 +170,10 @@ function DessertCard({
   const { addItem } = useCart();
   const rating = getDessertRating(dessert);
   const filledStars = getFilledStars(rating);
+  const oldPrice = getDisplayOldPrice(dessert.price);
+  const imageUrl = dessert.image_url || dessert.image_urls?.[0] || bunnyMascot;
 
-  const discountPercent =
-    dessert.old_price && Number(dessert.old_price) > Number(dessert.price)
-      ? Math.round((1 - Number(dessert.price) / Number(dessert.old_price)) * 100)
-      : null;
+  const discountPercent = getDisplayDiscountPercent(dessert.price);
 
   function handleToggleFavorite() {
     setHeartBeat(true);
@@ -228,7 +228,7 @@ function DessertCard({
       >
         <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-[16px] sm:h-36 sm:w-36">
           <img
-            src={dessert.image_url ?? ""}
+            src={imageUrl}
             alt={dessert.name}
             loading="lazy"
             className="h-full w-full object-cover"
@@ -281,8 +281,8 @@ function DessertCard({
           <div className="flex items-center justify-between">
             <div className="flex items-baseline gap-2">
               <span className="text-[18px] font-black text-[#F85D85] sm:text-[20px]">{formatPrice(dessert.price)}</span>
-              {dessert.old_price && (
-                <span className="text-[13px] font-semibold text-[#BDA087] line-through">{formatPrice(dessert.old_price)}</span>
+              {oldPrice && (
+                <span className="text-[13px] font-semibold text-[#BDA087] line-through">{formatPrice(oldPrice)}</span>
               )}
             </div>
             <button
@@ -328,7 +328,7 @@ function DessertCard({
       <div className="relative overflow-hidden">
         <div className="relative aspect-[4/3] sm:aspect-[16/13]">
           <img
-            src={dessert.image_url ?? ""}
+            src={imageUrl}
             alt={dessert.name}
             loading="lazy"
             className="absolute inset-0 h-full w-full object-cover transition-all duration-700 ease-out"
@@ -398,8 +398,8 @@ function DessertCard({
         <div className="mt-3 flex items-center justify-between sm:mt-4">
           <div className="flex items-baseline gap-1.5 sm:gap-2">
             <span className="text-[18px] font-black text-[#F85D85] sm:text-[20px]">{formatPrice(dessert.price)}</span>
-            {dessert.old_price && (
-              <span className="text-[13px] font-semibold text-[#BDA087] line-through">{formatPrice(dessert.old_price)}</span>
+            {oldPrice && (
+              <span className="text-[13px] font-semibold text-[#BDA087] line-through">{formatPrice(oldPrice)}</span>
             )}
           </div>
 

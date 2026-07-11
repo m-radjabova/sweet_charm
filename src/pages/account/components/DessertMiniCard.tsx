@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { HiMiniGift, HiMiniHeart } from "react-icons/hi2";
 import type { FeaturedDessert } from "../../../types/types";
 import { formatMoney } from "../utils";
+import { getDisplayDiscountPercent, getDisplayOldPrice } from "../../../utils/pricing";
 
 const gradients = [
   "from-[#FFE8EF] to-[#FFF5E1]",
@@ -30,6 +31,8 @@ export default function DessertMiniCard({
   const rating = Number(dessert.rating_avg ?? 0);
   const filledStars = Math.max(0, Math.min(5, Math.round(rating)));
   const isCompact = variant === "compact";
+  const oldPrice = getDisplayOldPrice(dessert.price);
+  const discountPercent = getDisplayDiscountPercent(dessert.price);
 
   function openDessert() {
     navigate(`/desserts/${dessert.slug}`, { state: { dessert } });
@@ -79,9 +82,9 @@ export default function DessertMiniCard({
           </div>
         ) : null}
 
-        {dessert.old_price ? (
+        {discountPercent ? (
           <div className="absolute bottom-4 right-4 rounded-full bg-[#F86B87] px-3 py-1.5 text-xs font-bold text-white shadow-[0_8px_18px_rgba(248,107,135,0.28)]">
-            {Math.max(1, Math.round((1 - Number(dessert.price) / Number(dessert.old_price)) * 100))}% OFF
+            {discountPercent}% OFF
           </div>
         ) : null}
       </div>
@@ -126,9 +129,9 @@ export default function DessertMiniCard({
               <span className={`${isCompact ? "text-[1.7rem]" : "text-[2rem]"} font-black leading-none text-[#784706]`}>
                 {formatMoney(dessert.price)}
               </span>
-              {dessert.old_price ? (
+              {oldPrice ? (
                 <span className={`${isCompact ? "pb-0.5 text-sm" : "pb-1 text-base"} text-[#C9A67E] line-through`}>
-                  {formatMoney(dessert.old_price)}
+                  {formatMoney(oldPrice)}
                 </span>
               ) : null}
             </div>

@@ -321,7 +321,12 @@ function ProfilePage() {
             </button>
           </div>
 
-          <ProfileTopbar profile={profile} memberTier={memberTier} isAdmin={Boolean(isAdmin)} />
+          <ProfileTopbar
+            profile={profile}
+            memberTier={memberTier}
+            isAdmin={Boolean(isAdmin)}
+            onTabChange={setActiveTab}
+          />
           {activeTab === "dashboard" ? (
             <ProfileHero
               profile={profile}

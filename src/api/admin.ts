@@ -128,7 +128,6 @@ export interface AdminDessert {
   description?: string | null;
   ingredients?: string | null;
   price: string;
-  old_price?: string | null;
   stock: number;
   status: "active" | "inactive" | "out_of_stock";
   is_featured: boolean;
@@ -149,7 +148,6 @@ export interface AdminDessertPayload {
   description?: string | null;
   ingredients?: string | null;
   price: number;
-  old_price?: number | null;
   stock: number;
   status: "active" | "inactive" | "out_of_stock";
   is_featured: boolean;

@@ -11,6 +11,8 @@ import type { FeaturedDessert } from "../../../types/types";
 import { useState, useEffect, useRef } from "react";
 import { useFavorites } from "../../account/hooks/useFavorites";
 import { useNavigate } from "react-router-dom";
+import { getDisplayOldPrice } from "../../../utils/pricing";
+import fallbackDessertImage from "../../../assets/cake_icon.png";
 
 function formatPrice(price?: string | null) {
   const numeric = Number(price ?? 0);
@@ -64,6 +66,8 @@ function BestSellerCard({
   const navigate = useNavigate();
   const rating = getDessertRating(dessert);
   const filledStars = getFilledStars(rating);
+  const oldPrice = getDisplayOldPrice(dessert.price);
+  const imageUrl = dessert.image_url || dessert.image_urls?.[0] || fallbackDessertImage;
 
   const rank = index + 1;
 
@@ -115,7 +119,7 @@ function BestSellerCard({
       <div className="relative overflow-hidden">
         <div className="relative">
           <img
-            src={dessert.image_url ?? ""}
+            src={imageUrl}
             alt={dessert.name}
             loading="lazy"
             className="h-[200px] w-full object-cover transition-all duration-700 ease-out sm:h-[260px]"
@@ -213,8 +217,8 @@ function BestSellerCard({
         <div className="mt-auto flex items-center justify-between">
           <div className="flex items-baseline gap-2.5">
             <span className="text-[22px] font-bold text-[#68400A]">{formatPrice(dessert.price)}</span>
-            {dessert.old_price && (
-              <span className="text-[14px] text-[#C6A879] line-through">{formatPrice(dessert.old_price)}</span>
+            {oldPrice && (
+              <span className="text-[14px] text-[#C6A879] line-through">{formatPrice(oldPrice)}</span>
             )}
           </div>
 

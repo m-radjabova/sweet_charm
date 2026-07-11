@@ -29,6 +29,7 @@ import {
 import { getMyProfile } from "../../api/profile";
 import { getActiveCoupons, type PublicCoupon } from "../../api/coupons";
 import rabbitIcons from "../../assets/rabbit_icons.png";
+import cakeIcon from "../../assets/cake_icon.png";
 import Footer from "../home/components/Footer";
 import Header from "../home/components/Header";
 import { useCart } from "../../hooks/useCart";
@@ -1082,7 +1083,7 @@ export default function CheckoutPage() {
                       <div key={item.id} className="flex items-center gap-3 rounded-[22px] bg-[#FFF9F4] p-3">
                         <img 
                           loading="lazy"
-                          src={item.image_url ?? ""}
+                          src={item.image_url || cakeIcon}
                           alt={item.name}
                           className="h-16 w-16 rounded-[18px] object-cover"
                         />

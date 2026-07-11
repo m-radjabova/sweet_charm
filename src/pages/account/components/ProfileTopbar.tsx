@@ -10,20 +10,40 @@ import {
   HiMiniTruck,
   HiMiniXMark,
 } from "react-icons/hi2";
+import { getMyCoupons, getMyRewards, type AccountCoupon, type PointTransaction } from "../../../api/account";
 import { getActiveCoupons } from "../../../api/coupons";
 import { useRealtime } from "../../../realtime/useRealtime";
 import type { User } from "../../../types/types";
+import type { ProfileTab } from "../types";
 import { formatDate, formatMoney } from "../utils";
 
 interface Props {
   profile: User | null | undefined;
   memberTier: string;
   isAdmin: boolean;
+  onTabChange?: (tab: ProfileTab) => void;
 }
 
 const READ_COUPON_NOTIFICATIONS_KEY = "sweet_charm_read_coupon_notifications";
 
-export default function ProfileTopbar({ isAdmin }: Props) {
+function getCouponValueLabel(coupon: AccountCoupon) {
+  if (coupon.type === "percentage") return `${Number(coupon.value)}% OFF`;
+  if (coupon.type === "fixed") return `${formatMoney(coupon.value)} OFF`;
+  return "Free shipping";
+}
+
+function parseRewardLabel(transaction: PointTransaction) {
+  const description = transaction.description.trim();
+  if (description.startsWith("Unlocked Diamond bonus:")) {
+    return description.replace("Unlocked Diamond bonus:", "").trim();
+  }
+  if (description.startsWith("Unlocked ") && description.includes("reward:")) {
+    return description.split("reward:")[1]?.trim() ?? "Reward";
+  }
+  return null;
+}
+
+export default function ProfileTopbar({ profile, isAdmin, onTabChange }: Props) {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [readCouponIds, setReadCouponIds] = useState<string[]>([]);
   const notificationsRef = useRef<HTMLDivElement>(null);
@@ -37,9 +57,44 @@ export default function ProfileTopbar({ isAdmin }: Props) {
     queryKey: ["active-coupons"],
     queryFn: getActiveCoupons,
   });
+  const myCouponsQuery = useQuery({
+    queryKey: ["my-coupons"],
+    queryFn: getMyCoupons,
+    enabled: Boolean(profile?.id),
+  });
+  const rewardsQuery = useQuery({
+    queryKey: ["my-rewards", "notifications"],
+    queryFn: getMyRewards,
+    enabled: Boolean(profile?.id),
+  });
+  const storageKey = `${READ_COUPON_NOTIFICATIONS_KEY}:${profile?.id ?? "guest"}`;
   const coupons = couponsQuery.data ?? [];
-  const unreadCoupons = coupons.filter((coupon) => !readCouponIds.includes(coupon.id));
-  const totalUnread = unreadCoupons.length + unreadRealtimeCount;
+  const rewardCoupons = (myCouponsQuery.data ?? []).filter((coupon) => Boolean(coupon.reward_tier));
+  const rewardBenefitNotifications = (rewardsQuery.data?.transactions ?? [])
+    .map((transaction) => {
+      const label = parseRewardLabel(transaction);
+      if (!label || label.toLowerCase().includes("coupon")) return null;
+      return {
+        id: `reward-benefit-${transaction.id}`,
+        title: "Reward unlocked",
+        message: `${label} is ready for you.`,
+        created_at: transaction.created_at,
+      };
+    })
+    .filter((item): item is { id: string; title: string; message: string; created_at: string } => Boolean(item));
+  const rewardNotifications = [
+    ...rewardCoupons.map((coupon) => ({
+      id: `reward-coupon-${coupon.id}`,
+      title: "Reward coupon ready",
+      message: `${getCouponValueLabel(coupon)} reward is ready. Code: ${coupon.code}`,
+      coupon,
+    })),
+    ...rewardBenefitNotifications,
+  ];
+  const unreadRewardNotifications = rewardNotifications.filter((item) => !readCouponIds.includes(item.id));
+  const unreadCoupons = coupons.filter((coupon) => !readCouponIds.includes(`public-coupon-${coupon.id}`));
+  const unreadRealtimeNotifications = notifications.filter((notification) => notification.unread);
+  const totalUnread = unreadRewardNotifications.length + unreadCoupons.length + unreadRealtimeCount;
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -55,28 +110,44 @@ export default function ProfileTopbar({ isAdmin }: Props) {
   useEffect(() => {
     try {
       const rawValue = localStorage.getItem(READ_COUPON_NOTIFICATIONS_KEY);
+      const scopedValue = localStorage.getItem(storageKey);
+      if (scopedValue) {
+        const parsed = JSON.parse(scopedValue) as string[];
+        if (Array.isArray(parsed)) {
+          setReadCouponIds(parsed);
+          return;
+        }
+      }
       if (!rawValue) return;
       const parsed = JSON.parse(rawValue) as string[];
       if (Array.isArray(parsed)) {
         setReadCouponIds(parsed);
       }
     } catch {
-      localStorage.removeItem(READ_COUPON_NOTIFICATIONS_KEY);
+      localStorage.removeItem(storageKey);
     }
-  }, []);
+  }, [storageKey]);
 
   function persistReadCouponIds(nextIds: string[]) {
     setReadCouponIds(nextIds);
-    localStorage.setItem(READ_COUPON_NOTIFICATIONS_KEY, JSON.stringify(nextIds));
+    localStorage.setItem(storageKey, JSON.stringify(nextIds));
   }
 
-  function markAsRead(couponId: string) {
-    if (readCouponIds.includes(couponId)) return;
-    persistReadCouponIds([...readCouponIds, couponId]);
+  function markAsRead(notificationId: string) {
+    if (readCouponIds.includes(notificationId)) return;
+    persistReadCouponIds([...readCouponIds, notificationId]);
   }
 
   function clearNotifications() {
-    persistReadCouponIds(Array.from(new Set([...readCouponIds, ...unreadCoupons.map((coupon) => coupon.id)])));
+    persistReadCouponIds(
+      Array.from(
+        new Set([
+          ...readCouponIds,
+          ...unreadRewardNotifications.map((notification) => notification.id),
+          ...unreadCoupons.map((coupon) => `public-coupon-${coupon.id}`),
+        ]),
+      ),
+    );
     markAllNotificationsAsRead();
   }
 
@@ -170,7 +241,7 @@ export default function ProfileTopbar({ isAdmin }: Props) {
 
               {/* Coupon list */}
               <div className="space-y-2.5 max-h-[280px] overflow-y-auto scrollbar-thin sm:max-h-[320px] sm:space-y-3">
-                {couponsQuery.isLoading ? (
+                {couponsQuery.isLoading || myCouponsQuery.isLoading || rewardsQuery.isLoading ? (
                   <div className="flex flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-[#FFF8F1] to-[#FFF5EB] px-6 py-10">
                     <div className="flex gap-1.5">
                       {[0, 150, 300].map((delay) => (
@@ -183,8 +254,8 @@ export default function ProfileTopbar({ isAdmin }: Props) {
                     </div>
                     <p className="mt-4 text-sm font-medium text-[#B1845D]">Loading offers...</p>
                   </div>
-                ) : notifications.length > 0 ? (
-                  notifications.slice(0, 5).map((notification, index) => (
+                ) : unreadRealtimeNotifications.length > 0 ? (
+                  unreadRealtimeNotifications.slice(0, 5).map((notification, index) => (
                     <button
                       key={notification.id}
                       type="button"
@@ -214,6 +285,50 @@ export default function ProfileTopbar({ isAdmin }: Props) {
                       </div>
                     </button>
                   ))
+                ) : unreadRewardNotifications.length > 0 ? (
+                  unreadRewardNotifications.slice(0, 5).map((notification, index) => {
+                    const coupon = "coupon" in notification ? notification.coupon : null;
+                    return (
+                      <button
+                        key={notification.id}
+                        type="button"
+                        onClick={() => {
+                          markAsRead(notification.id);
+                          if (coupon) {
+                            onTabChange?.("coupons");
+                            setIsNotificationsOpen(false);
+                          }
+                        }}
+                        className="group relative w-full overflow-hidden rounded-[20px] bg-gradient-to-br from-[#FFF8F1] to-[#FFF0F5] p-4 text-left transition-all duration-200 hover:shadow-[0_4px_16px_rgba(175,117,60,0.1)]"
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
+                        <div className="absolute -right-4 -top-4 h-16 w-16 rounded-full bg-gradient-to-br from-[#F25D88]/10 to-[#FFB36B]/10 blur-xl" />
+                        <div className="relative flex items-start justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="rounded-md bg-gradient-to-r from-[#F25D88]/10 to-[#FF6B9D]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#F25D88]">
+                                Reward
+                              </span>
+                              <span className="h-2 w-2 rounded-full bg-[#F25D88]" />
+                            </div>
+                            <p className="mt-2 text-sm font-bold text-[#5C3805]">{notification.title}</p>
+                            <p className="mt-1 text-xs leading-5 text-[#9B7045]">{notification.message}</p>
+                            {coupon ? (
+                              <p className="mt-2 text-[11px] font-semibold text-[#B1845D]">
+                                Valid until {formatDate(coupon.end_date)}
+                              </p>
+                            ) : null}
+                          </div>
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#FFF0F5] to-[#FFE8EF]">
+                            <HiMiniBell className="h-4 w-4 text-[#F25D88]" />
+                          </div>
+                        </div>
+                        <span className="relative mt-3 inline-flex h-8 items-center rounded-full bg-white/80 px-3.5 text-[11px] font-bold text-[#F25D88] shadow-sm ring-1 ring-[#F25D88]/15">
+                          {coupon ? "Open coupons" : "Mark as read"}
+                        </span>
+                      </button>
+                    );
+                  })
                 ) : unreadCoupons.length > 0 ? (
                   unreadCoupons.slice(0, 5).map((coupon, index) => (
                     <div
@@ -256,7 +371,7 @@ export default function ProfileTopbar({ isAdmin }: Props) {
                       <div className="relative mt-3 flex items-center justify-between gap-3">
                         <button
                           type="button"
-                          onClick={() => markAsRead(coupon.id)}
+                          onClick={() => markAsRead(`public-coupon-${coupon.id}`)}
                           className="inline-flex h-8 items-center gap-1.5 rounded-full bg-white/80 px-3.5 text-[11px] font-bold text-[#F25D88] shadow-sm ring-1 ring-[#F25D88]/15 transition-all duration-200 hover:bg-white hover:shadow-[0_2px_8px_rgba(242,93,136,0.15)] active:scale-95"
                         >
                           <HiMiniCheck className="h-3.5 w-3.5" />

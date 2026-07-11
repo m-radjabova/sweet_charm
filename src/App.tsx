@@ -18,6 +18,7 @@ import DessertsPage from "./pages/dessert/DessertsPage";
 import CartPage from "./pages/cart/CartPage";
 import CheckoutPage from "./pages/cart/CheckoutPage";
 import ScrollToTop from "./components/ScrollToTop";
+import useLoading from "./hooks/useLoading";
 const AdminDashboardPage = lazy(() => import("./pages/admin/dashboard/AdminDashboardPage"));
 const AdminDessertsPage = lazy(() => import("./pages/admin/desserts/AdminDessertsPage"));
 const AdminCategoriesPage = lazy(() => import("./pages/admin/categories/AdminCategoriesPage"));
@@ -31,9 +32,15 @@ const AdminSettingsPage = lazy(() => import("./pages/admin/settings/AdminSetting
 
 
 function App() {
+  const { loading } = useLoading();
+
   useEffect(() => {
     AOS.init({ duration: 700, once: true });
   }, []);
+
+  if (loading) {
+    return <IsLoading />;
+  }
 
   return (
     <>

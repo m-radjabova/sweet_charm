@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { getStoredUser } from "../../../api/auth";
+import useContextPro from "../../../hooks/useContextPro";
 import type { FeaturedDessert } from "../../../types/types";
 
 const FAVORITES_KEY = "sweet_charm_favorite_dessert_ids";
 const FAVORITES_EVENT = "sweet-charm-favorites-updated";
 
-function getFavoritesStorageKey() {
-  const userId = getStoredUser()?.id;
+function getFavoritesStorageKey(userId?: string | null) {
   return userId ? `${FAVORITES_KEY}:${userId}` : `${FAVORITES_KEY}:guest`;
 }
 
@@ -24,7 +23,6 @@ function parseFavorites(rawValue: string | null) {
         slug: String(item.slug ?? item.id),
         price: String(item.price ?? "0"),
         description: typeof item.description === "string" ? item.description : null,
-        old_price: typeof item.old_price === "string" ? item.old_price : null,
         image_url: typeof item.image_url === "string" ? item.image_url : null,
         image_urls: Array.isArray(item.image_urls) ? item.image_urls.map(String) : [],
         rating_avg: typeof item.rating_avg === "number" ? item.rating_avg : 0,
@@ -49,9 +47,14 @@ function readFavorites(storageKey: string) {
 }
 
 export function useFavorites(desserts: FeaturedDessert[]) {
-  const currentStorageKey = getFavoritesStorageKey();
-  const [storageKey, setStorageKey] = useState(() => getFavoritesStorageKey());
-  const [favoriteDesserts, setFavoriteDesserts] = useState<FeaturedDessert[]>(() => readFavorites(getFavoritesStorageKey()));
+  const {
+    state: { user },
+  } = useContextPro();
+  const currentStorageKey = getFavoritesStorageKey(user?.id);
+  const [storageKey, setStorageKey] = useState(() => getFavoritesStorageKey(user?.id));
+  const [favoriteDesserts, setFavoriteDesserts] = useState<FeaturedDessert[]>(() =>
+    readFavorites(getFavoritesStorageKey(user?.id)),
+  );
 
   useEffect(() => {
     setStorageKey((current) => (current === currentStorageKey ? current : currentStorageKey));
@@ -76,7 +79,7 @@ export function useFavorites(desserts: FeaturedDessert[]) {
 
   useEffect(() => {
     const syncFavorites = () => {
-      const nextStorageKey = getFavoritesStorageKey();
+      const nextStorageKey = getFavoritesStorageKey(user?.id);
       if (nextStorageKey !== storageKey) {
         setStorageKey(nextStorageKey);
         return;
@@ -95,7 +98,7 @@ export function useFavorites(desserts: FeaturedDessert[]) {
       window.removeEventListener("storage", syncFavorites);
       window.removeEventListener(FAVORITES_EVENT, syncFavorites);
     };
-  }, [storageKey]);
+  }, [storageKey, user?.id]);
 
   const favoriteIds = useMemo(() => favoriteDesserts.map((dessert) => dessert.id), [favoriteDesserts]);
 

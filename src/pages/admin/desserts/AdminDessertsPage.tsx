@@ -34,6 +34,7 @@ import {
 import { getErrorMessage } from "../../../api/auth";
 import { useDebounce } from "../../../hooks/useDebounce";
 import { formatMoney } from "../../account/utils";
+import { getDisplayOldPrice } from "../../../utils/pricing";
 import AdminConfirmModal from "../components/AdminConfirmModal";
 import AdminPageHeader from "../components/AdminPageHeader";
 import AdminSurface from "../components/AdminSurface";
@@ -46,7 +47,6 @@ const emptyForm: AdminDessertPayload = {
   description: "",
   ingredients: "",
   price: 0,
-  old_price: null,
   stock: 0,
   status: "active",
   is_featured: false,
@@ -191,7 +191,6 @@ export default function AdminDessertsPage() {
       description: dessert.description ?? "",
       ingredients: dessert.ingredients ?? "",
       price: Number(dessert.price),
-      old_price: dessert.old_price ? Number(dessert.old_price) : null,
       stock: dessert.stock,
       status: dessert.status,
       is_featured: dessert.is_featured,
@@ -510,8 +509,8 @@ export default function AdminDessertsPage() {
                         <td className="px-5 py-5">
                           <div className="font-bold text-[#341B08]">
                             {formatMoney(dessert.price)}
-                            {dessert.old_price && (
-                              <span className="ml-2 text-xs font-medium text-[#B7885D] line-through">{formatMoney(dessert.old_price)}</span>
+                            {getDisplayOldPrice(dessert.price) && (
+                              <span className="ml-2 text-xs font-medium text-[#B7885D] line-through">{formatMoney(getDisplayOldPrice(dessert.price))}</span>
                             )}
                           </div>
                         </td>
@@ -546,7 +545,6 @@ export default function AdminDessertsPage() {
                                     description: dessert.description ?? "",
                                     ingredients: dessert.ingredients ?? "",
                                     price: Number(dessert.price),
-                                    old_price: dessert.old_price ? Number(dessert.old_price) : null,
                                     stock: dessert.stock,
                                     status: dessert.status,
                                     is_featured: !dessert.is_featured,
@@ -687,8 +685,8 @@ export default function AdminDessertsPage() {
                           </div>
                           <div className="text-right shrink-0">
                             <p className="text-lg font-black text-[#341B08]">{formatMoney(dessert.price)}</p>
-                            {dessert.old_price && (
-                              <p className="text-xs font-medium text-[#B7885D] line-through">{formatMoney(dessert.old_price)}</p>
+                            {getDisplayOldPrice(dessert.price) && (
+                              <p className="text-xs font-medium text-[#B7885D] line-through">{formatMoney(getDisplayOldPrice(dessert.price))}</p>
                             )}
                           </div>
                         </div>
@@ -741,7 +739,6 @@ export default function AdminDessertsPage() {
                                     description: dessert.description ?? "",
                                     ingredients: dessert.ingredients ?? "",
                                     price: Number(dessert.price),
-                                    old_price: dessert.old_price ? Number(dessert.old_price) : null,
                                     stock: dessert.stock,
                                     status: dessert.status,
                                     is_featured: !dessert.is_featured,
@@ -832,7 +829,7 @@ export default function AdminDessertsPage() {
                       <p className="mt-0.5 text-xs text-[#A67E59]">{dessert.category_name ?? "No category"}</p>
                       <div className="mt-2 flex flex-wrap gap-3 text-sm">
                         <span className="font-bold text-[#341B08]">{formatMoney(dessert.price)}</span>
-                        {dessert.old_price && <span className="text-xs font-medium text-[#B7885D] line-through">{formatMoney(dessert.old_price)}</span>}
+                        {getDisplayOldPrice(dessert.price) && <span className="text-xs font-medium text-[#B7885D] line-through">{formatMoney(getDisplayOldPrice(dessert.price))}</span>}
                         <span className={`font-semibold ${dessert.stock <= 0 ? "text-[#F25D88]" : "text-[#805B37]"}`}>
                           Stock: {dessert.stock}
                         </span>

@@ -28,7 +28,6 @@ export interface FeaturedDessert {
   description?: string | null;
   ingredients?: string | null;
   price: string;
-  old_price?: string | null;
   image_url?: string | null;
   image_urls?: string[];
   rating_avg?: number;
@@ -44,7 +43,6 @@ export interface CartItem {
   slug: string;
   name: string;
   price: string;
-  old_price?: string | null;
   image_url?: string | null;
   category_name?: string | null;
   quantity: number;

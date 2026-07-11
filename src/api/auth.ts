@@ -4,8 +4,6 @@ import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, clearStoredAuth } from "./authStor
 
 export { clearStoredAuth };
 
-const AUTH_USER_KEY = "sweet_charm_user";
-
 const AUTH_ROUTES = {
   login: "/auth/login",
   register: "/auth/register",
@@ -38,23 +36,15 @@ export function persistTokens(tokens: LoginResponse) {
 }
 
 export function getStoredUser() {
-  const rawValue = localStorage.getItem(AUTH_USER_KEY);
-  if (!rawValue) return null;
-
-  try {
-    return normalizeUser(JSON.parse(rawValue) as User);
-  } catch {
-    localStorage.removeItem(AUTH_USER_KEY);
-    return null;
-  }
+  return null;
 }
 
-export function persistStoredUser(user: User) {
-  localStorage.setItem(AUTH_USER_KEY, JSON.stringify(normalizeUser(user)));
+export function persistStoredUser(_user: User) {
+  // User data intentionally stays in memory only; tokens are enough to fetch /users/me.
 }
 
 export function clearStoredUser() {
-  localStorage.removeItem(AUTH_USER_KEY);
+  localStorage.removeItem("sweet_charm_user");
 }
 
 export function normalizeUser(user: User): User {

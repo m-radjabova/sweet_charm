@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
-import { persistStoredUser } from "../api/auth";
 import { getStoredAccessToken } from "../api/auth";
 import useContextPro from "../hooks/useContextPro";
 import { RealtimeContext } from "./RealtimeContext";
@@ -112,7 +111,6 @@ export default function RealtimeProvider({ children }: { children: ReactNode }) 
           ? String(summary.current_level.key ?? currentUser.current_level ?? "bronze")
           : currentUser.current_level,
       };
-      persistStoredUser(nextUser);
       dispatch({ type: "UPDATE_USER", payload: nextUser });
     };
 

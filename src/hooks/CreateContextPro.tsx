@@ -7,10 +7,8 @@ import {
   clearStoredUser,
   getMe,
   getStoredAccessToken,
-  getStoredUser,
   logoutUser,
   normalizeUser,
-  persistStoredUser,
   persistTokens,
 } from "../api/auth";
 import type { LoginResponse, User } from "../types/types";
@@ -54,12 +52,15 @@ function CreateContextPro({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const authRequestIdRef = useRef(0);
-  const initialUser = getStoredUser();
   const hasToken = Boolean(getStoredAccessToken());
   const [state, dispatch] = useReducer(reducer, {
-    user: initialUser,
-    isLoading: hasToken && !initialUser,
+    user: null,
+    isLoading: hasToken,
   });
+
+  useEffect(() => {
+    clearStoredUser();
+  }, []);
 
   const refreshUser = useCallback(async (options?: { background?: boolean }) => {
     const requestId = ++authRequestIdRef.current;
@@ -83,7 +84,6 @@ function CreateContextPro({ children }: { children: ReactNode }) {
       const me = await getMe();
       if (requestId === authRequestIdRef.current) {
         const normalizedUser = normalizeUser(me);
-        persistStoredUser(normalizedUser);
         dispatch({ type: "SET_USER", payload: normalizedUser });
       }
     } catch {
@@ -101,13 +101,12 @@ function CreateContextPro({ children }: { children: ReactNode }) {
   }, [queryClient]);
 
   useEffect(() => {
-    refreshUser({ background: Boolean(initialUser) });
+    refreshUser();
   }, [refreshUser]);
 
   const login = useCallback((tokens: LoginResponse, user: User) => {
     authRequestIdRef.current += 1;
     persistTokens(tokens);
-    persistStoredUser(user);
     queryClient.clear();
     dispatch({ type: "SET_USER", payload: normalizeUser(user) });
     dispatch({ type: "SET_LOADING", payload: false });

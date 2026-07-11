@@ -30,6 +30,7 @@ import { toast } from "react-toastify";
 import { useCart } from "../../hooks/useCart";
 import Seo from "../../components/Seo";
 import { SITE_URL } from "../../components/seoConfig";
+import { getDisplayDiscountPercent, getDisplayOldPrice } from "../../utils/pricing";
 
 // ─── Helpers ───────────────────────────────────────────
 function buildDetailCopy(dessert: FeaturedDessert) {
@@ -41,7 +42,7 @@ function buildDetailCopy(dessert: FeaturedDessert) {
     highlights: [
       `${category} favorite`,
       "Freshly prepared in small batches",
-      dessert.old_price ? "Special sweet deal today" : "Perfect for dessert lovers",
+      getDisplayOldPrice(dessert.price) ? "Special sweet deal today" : "Perfect for dessert lovers",
     ],
   };
 }
@@ -143,6 +144,7 @@ function RelatedDessertCard({
   const navigate = useNavigate();
   const image = dessert.image_url || dessert.image_urls?.[0] || bunnyCupcake;
   const [imgLoaded, setImgLoaded] = useState(false);
+  const oldPrice = getDisplayOldPrice(dessert.price);
 
   return (
     <article
@@ -192,8 +194,8 @@ function RelatedDessertCard({
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-end gap-1.5">
             <span className="text-xl font-black text-[#784706]">{formatMoney(dessert.price)}</span>
-            {dessert.old_price ? (
-              <span className="pb-0.5 text-xs text-[#C9A67E] line-through">{formatMoney(dessert.old_price)}</span>
+            {oldPrice ? (
+              <span className="pb-0.5 text-xs text-[#C9A67E] line-through">{formatMoney(oldPrice)}</span>
             ) : null}
           </div>
 
@@ -378,10 +380,8 @@ export default function DessertDetailPage() {
   const filledStars = Math.max(0, Math.min(5, Math.round(rating)));
   const dessertReviews = reviewsQuery.data ?? [];
   const myReview = dessertReviews.find((review) => review.is_mine);
-  const discountPercent =
-    dessert?.old_price && Number(dessert.old_price) > Number(dessert.price)
-      ? Math.round((1 - Number(dessert.price) / Number(dessert.old_price)) * 100)
-      : null;
+  const oldPrice = getDisplayOldPrice(dessert?.price);
+  const discountPercent = getDisplayDiscountPercent(dessert?.price);
   const [imgLoaded, setImgLoaded] = useState(false);
   const dessertUrl = dessert ? `${SITE_URL}/desserts/${dessert.slug}` : `${SITE_URL}/desserts`;
   const primaryImage = dessert?.image_url || dessert?.image_urls?.[0] || "/website.png";
@@ -715,9 +715,9 @@ export default function DessertDetailPage() {
                     <span className="text-[2.4rem] font-black leading-none text-[#F25D88] animate-count-up">
                       {formatMoney(dessert.price)}
                     </span>
-                    {dessert.old_price ? (
+                    {oldPrice ? (
                       <span className="pb-1.5 text-xl text-[#C9A67E] line-through">
-                        {formatMoney(dessert.old_price)}
+                        {formatMoney(oldPrice)}
                       </span>
                     ) : null}
                   </div>

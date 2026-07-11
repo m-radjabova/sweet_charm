@@ -719,34 +719,6 @@ export default function DessertEditorDrawer({
                   />
                 </div>
               </FieldShell>
-              <FieldShell label="Old price" hint="optional, for sales">
-                <div style={{ position: "relative" }}>
-                  <span
-                    style={{
-                      position: "absolute",
-                      left: 14,
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      color: palette.cocoaFaint,
-                      fontWeight: 600,
-                      fontSize: 14,
-                    }}
-                  >
-                    $
-                  </span>
-                  <TextInput
-                    type="number"
-                    value={form.old_price ?? ""}
-                    onChange={(e) =>
-                      updateField(
-                        "old_price",
-                        e.target.value ? Number(e.target.value) : null
-                      )
-                    }
-                    style={{ paddingLeft: 28 }}
-                  />
-                </div>
-              </FieldShell>
             </div>
 
             <Hairline />

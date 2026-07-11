@@ -10,6 +10,7 @@ import strawberryIcons from "../../assets/strawberry_icons.png";
 import cakeIcon from "../../assets/cake_icon.png";
 import macaronIcon from "../../assets/macaron_icon.png";
 import Seo from "../../components/Seo";
+import { getDisplayOldPrice } from "../../utils/pricing";
 
 export default function CartPage() {
   const { items, itemCount, subtotal, updateQuantity, removeItem, clearCart } = useCart();
@@ -196,7 +197,7 @@ export default function CartPage() {
                         <div className="relative shrink-0">
                           <img
                             loading="lazy"
-                            src={item.image_url ?? ""}
+                            src={item.image_url || cakeIcon}
                             alt={item.name}
                             className="h-28 w-full rounded-[24px] object-cover shadow-[0_4px_12px_rgba(175,117,60,0.10)] sm:w-36"
                           />
@@ -214,9 +215,9 @@ export default function CartPage() {
                             <span className="text-2xl font-black text-[#784706]">
                               {formatMoney(item.price)}
                             </span>
-                            {item.old_price ? (
+                            {getDisplayOldPrice(item.price) ? (
                               <span className="text-base text-[#C9A67E] line-through">
-                                {formatMoney(item.old_price)}
+                                {formatMoney(getDisplayOldPrice(item.price))}
                               </span>
                             ) : null}
                           </div>
