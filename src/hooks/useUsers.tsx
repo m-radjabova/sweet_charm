@@ -25,11 +25,11 @@ export default function useUsers(role?: UserRole) {
   const createUserMutation = useMutation({
     mutationFn: createUser,
     onSuccess: async () => {
-      toast.success("Foydalanuvchi yaratildi");
+      toast.success("User created successfully");
       await queryClient.invalidateQueries({ queryKey: ["users"] });
     },
     onError: (error) => {
-      toast.error(getErrorMessage(error, "Foydalanuvchini yaratib bo'lmadi"));
+      toast.error(getErrorMessage(error, "Could not create user"));
     },
   });
 
@@ -37,11 +37,11 @@ export default function useUsers(role?: UserRole) {
     mutationFn: ({ userId, payload }: { userId: string; payload: UpdateUserPayload }) =>
       updateUser(userId, payload),
     onSuccess: async () => {
-      toast.success("Foydalanuvchi ma'lumotlari yangilandi");
+      toast.success("User details updated successfully");
       await queryClient.invalidateQueries({ queryKey: ["users"] });
     },
     onError: (error) => {
-      toast.error(getErrorMessage(error, "Foydalanuvchini yangilab bo'lmadi"));
+      toast.error(getErrorMessage(error, "Could not update user"));
     },
   });
 

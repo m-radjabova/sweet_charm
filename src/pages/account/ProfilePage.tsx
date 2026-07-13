@@ -73,6 +73,7 @@ function ProfilePage() {
 
   const [activeTab, setActiveTab] = useState<ProfileTab>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [profileForm, setProfileForm] = useState<ProfileFormState>({
     full_name: "",
     email: "",
@@ -223,6 +224,17 @@ function ProfilePage() {
     event.target.value = "";
   }
 
+  async function handleLogout() {
+    if (isLoggingOut) return;
+
+    setIsLoggingOut(true);
+    try {
+      await logout();
+    } finally {
+      setIsLoggingOut(false);
+    }
+  }
+
   function renderActiveTab() {
     if (activeTab === "orders") return <OrdersPanel />;
     if (activeTab === "favorites") {
@@ -294,9 +306,10 @@ function ProfilePage() {
         <ProfileSidebar
           activeTab={activeTab}
           isAdmin={Boolean(isAdmin)}
+          isLoggingOut={isLoggingOut}
           isOpen={sidebarOpen}
           onTabChange={setActiveTab}
-          onLogout={() => void logout()}
+          onLogout={() => void handleLogout()}
           onClose={() => setSidebarOpen(false)}
         />
 

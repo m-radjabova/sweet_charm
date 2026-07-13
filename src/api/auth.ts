@@ -7,6 +7,7 @@ export { clearStoredAuth };
 const AUTH_ROUTES = {
   login: "/auth/login",
   register: "/auth/register",
+  google: "/auth/google",
 } as const;
 
 export interface LoginPayload {
@@ -17,6 +18,10 @@ export interface LoginPayload {
 export interface RegisterPayload extends LoginPayload {
   full_name: string;
   phone: string;
+}
+
+export interface GoogleLoginPayload {
+  id_token: string;
 }
 
 export function getStoredAccessToken() {
@@ -66,6 +71,11 @@ export async function loginUser(payload: LoginPayload) {
 
 export async function registerUser(payload: RegisterPayload) {
   const { data } = await apiClient.post<LoginResponse>(AUTH_ROUTES.register, payload);
+  return data;
+}
+
+export async function loginWithGoogle(payload: GoogleLoginPayload) {
+  const { data } = await apiClient.post<LoginResponse>(AUTH_ROUTES.google, payload);
   return data;
 }
 

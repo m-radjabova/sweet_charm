@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { signInWithPopup } from "firebase/auth";
 import {
   HiMiniArrowRight,
   HiMiniEye,
@@ -10,6 +11,7 @@ import {
   HiMiniUser,
   HiMiniShieldCheck,
 } from "react-icons/hi2";
+import { FcGoogle } from "react-icons/fc";
 import { MdOutlineAlternateEmail } from "react-icons/md";
 import { toast } from "react-toastify";
 import cakeIcon from "../../assets/cake_icon.png";
@@ -19,9 +21,10 @@ import iceCreamIcon from "../../assets/ice_cream_icon.png";
 import rabbitIcon from "../../assets/rabbit_icons.png";
 import strawberryIcon from "../../assets/strawberry_icons.png";
 import bearIcon from "../../assets/bear_iocns.png";
-import { clearStoredAuth, getErrorMessage, getMe, loginUser, persistTokens, registerUser } from "../../api/auth";
+import { clearStoredAuth, getErrorMessage, getMe, loginUser, loginWithGoogle, persistTokens, registerUser } from "../../api/auth";
 import useContextPro from "../../hooks/useContextPro";
 import Seo from "../../components/Seo";
+import { firebaseAuth, googleProvider } from "../../firebase";
 
 type AuthMode = "login" | "register";
 type PasswordField = "password" | "confirmPassword";
@@ -122,6 +125,7 @@ function Login() {
   const [form, setForm] = useState<FormState>(initialState);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState<Record<PasswordField, boolean>>({
     password: false,
     confirmPassword: false,
@@ -259,6 +263,39 @@ function Login() {
       toast.error(getErrorMessage(error, isRegister ? "Registration failed" : "Login failed"));
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    if (isSubmitting || isGoogleSubmitting) return;
+
+    setIsGoogleSubmitting(true);
+
+    try {
+      clearStoredAuth();
+
+      const credential = await signInWithPopup(firebaseAuth, googleProvider);
+      const idToken = await credential.user.getIdToken();
+      const tokens = await loginWithGoogle({ id_token: idToken });
+
+      persistTokens(tokens);
+      const me = await getMe();
+      login(tokens, me);
+
+      toast.success("Signed in with Google successfully! ✨");
+      navigate(
+        typeof location.state?.from === "string"
+          ? location.state.from
+          : me.role === "admin"
+            ? "/dashboard"
+            : "/",
+        { replace: true },
+      );
+    } catch (error) {
+      clearStoredAuth();
+      toast.error(getErrorMessage(error, "Google sign-in failed"));
+    } finally {
+      setIsGoogleSubmitting(false);
     }
   }
 
@@ -527,7 +564,7 @@ function Login() {
                   <div className="pt-2">
                     <button
                       type="submit"
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || isGoogleSubmitting}
                       className="group relative inline-flex h-[64px] w-full items-center justify-center gap-3 overflow-hidden rounded-[22px] bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-strong)] px-8 text-[20px] font-bold text-white shadow-[0_12px_28px_rgba(247,93,134,0.32)] transition-all duration-300 hover:translate-y-[-2px] hover:shadow-[0_20px_40px_rgba(247,93,134,0.40)] active:translate-y-0 active:shadow-[0_8px_20px_rgba(247,93,134,0.25)] disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70 disabled:shadow-none"
                     >
                       {/* Button shine effect */}
@@ -549,6 +586,33 @@ function Login() {
                     </button>
                   </div>
                 </form>
+
+                <div className="my-6 flex items-center gap-4">
+                  <span className="h-px flex-1 bg-[var(--color-border-soft)]" />
+                  <span className="text-sm font-semibold uppercase tracking-[0.12em] text-[var(--color-text-faint)]">
+                    or
+                  </span>
+                  <span className="h-px flex-1 bg-[var(--color-border-soft)]" />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleGoogleSignIn}
+                  disabled={isSubmitting || isGoogleSubmitting}
+                  className="inline-flex h-[58px] w-full items-center justify-center gap-3 rounded-[20px] border border-[var(--color-border-soft)] bg-white/85 px-6 text-[17px] font-bold text-[var(--color-brown)] shadow-sm transition-all duration-300 hover:translate-y-[-1px] hover:border-[var(--color-primary-soft)] hover:shadow-[0_14px_30px_rgba(150,93,40,0.12)] disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70 disabled:shadow-none"
+                >
+                  {isGoogleSubmitting ? (
+                    <>
+                      <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-[rgba(150,93,40,0.18)] border-t-[var(--color-primary)]" />
+                      Signing in with Google...
+                    </>
+                  ) : (
+                    <>
+                      <FcGoogle className="h-6 w-6" />
+                      Continue with Google
+                    </>
+                  )}
+                </button>
               </div>
 
               {/* Toggle auth mode */}

@@ -451,7 +451,7 @@ function ReviewsSection() {
                     <PiHeart className="h-10 w-10 text-[#FA94A9]/50" />
                   </div>
                   <p className="text-[18px] text-[#8F6A2F]">
-                    Reviews hozircha topilmadi.
+                    No reviews yet.
                   </p>
                 </div>
               ) : (

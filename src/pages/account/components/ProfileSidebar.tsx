@@ -28,6 +28,7 @@ const items = [
 interface Props {
   activeTab: ProfileTab;
   isAdmin: boolean;
+  isLoggingOut?: boolean;
   isOpen?: boolean;
   onTabChange: (tab: ProfileTab) => void;
   onLogout: () => void;
@@ -37,6 +38,7 @@ interface Props {
 export default function ProfileSidebar({
   activeTab,
   isAdmin,
+  isLoggingOut = false,
   isOpen = false,
   onTabChange,
   onLogout,
@@ -151,12 +153,18 @@ export default function ProfileSidebar({
           <button
             type="button"
             onClick={onLogout}
-            className="group flex w-full items-center gap-3 rounded-2xl px-4 py-2.5 text-sm font-semibold text-[#EF6F8B] transition-all duration-200 hover:bg-[#FFF1F4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2C9D6] active:scale-[0.98]"
+            disabled={isLoggingOut}
+            aria-busy={isLoggingOut}
+            className="group flex w-full items-center gap-3 rounded-2xl px-4 py-2.5 text-sm font-semibold text-[#EF6F8B] transition-all duration-200 hover:bg-[#FFF1F4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2C9D6] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 disabled:active:scale-100"
           >
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#FFF0F3] text-[#F25D88] transition-transform duration-200 group-hover:rotate-12">
-              <HiMiniPower className="h-4 w-4" />
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#FFF0F3] text-[#F25D88] transition-transform duration-200 group-hover:rotate-12 group-disabled:rotate-0">
+              {isLoggingOut ? (
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#F8B8C9] border-t-[#F25D88]" />
+              ) : (
+                <HiMiniPower className="h-4 w-4" />
+              )}
             </span>
-            Logout
+            <span>{isLoggingOut ? "Logging out..." : "Logout"}</span>
           </button>
         </div>
       </div>

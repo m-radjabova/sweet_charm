@@ -420,7 +420,7 @@ function FeaturedDesserts() {
               <span className="text-[32px]">🍰</span>
             </div>
             <p className="text-[18px] leading-relaxed text-[#8F6A2F]">
-              Featured desserts hozircha topilmadi.
+              No featured desserts yet.
             </p>
             <p className="mt-2 text-[15px] text-[#C6A879]">
               Check back soon for our latest sweet creations!

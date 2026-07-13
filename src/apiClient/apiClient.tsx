@@ -16,6 +16,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL ?? import.meta.env.VITE_API_OR
 const AUTH_EXCLUDED_PATHS = [
   "/auth/login",
   "/auth/register",
+  "/auth/google",
   "/auth/refresh",
 ];
 
